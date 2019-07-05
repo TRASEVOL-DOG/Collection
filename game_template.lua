@@ -35,13 +35,13 @@ end
 function _draw()
   cls(0)
   
-  glyph(3, 32, 32, 16, 16, 2*t(), 1, 2)
+  glyph(0x03, 32, 32, 16, 16, 2*t(), 1, 2)
   
 --  circfill(x, y, 7, 2)
-  local a = atan2(btnv"cur_x" - x, btnv"cur_y" - y) + 0.25
-  outlined_glyph(6, x, y, 16, 16, a, 1, 2, 4)
+  local a = atan2(btnv"cur_x" - x, btnv"cur_y" - y)
+  outlined_glyph(0x20, x, y, 16, sgn(cos(a)) * (16 + 2*sin(t())), a, 1, 2, 4)
   
 --  circ(btnv("cur_x"), btnv("cur_y"), btn("cur_rb") and 6 or btn("cur_lb") and 12 or 3, 4)
-  outlined_glyph(0, btnv("cur_x"), btnv("cur_y"), 8 + 8 * btnv("cur_lb"), 8 + 8 * btnv("cur_rb"), 0, 3, 5, 4)
+  outlined_glyph(0x00, btnv("cur_x"), btnv("cur_y"), 8 + 8 * btnv("cur_lb"), 8 + 8 * btnv("cur_rb"), 0, 3, 5, 4)
   
 end
