@@ -67,8 +67,8 @@ function love.load()
   init_sugar("Paku~Boisu!", 192, 128, 3)
   
   load_palette()
-  load_png("glyphs", "framework/glyphs.png", { 0x000000, 0xffffff, 0x888888}, true)
   load_font("framework/HungryPro.ttf", 16, "main", true)
+  init_glyphs()
   load_controls()
   
   if _init then _init() end
@@ -84,6 +84,12 @@ function love.draw()
   if _draw then _draw() end
 end
 
+
+
+
+
+
+-- palette & glyphs
 
 function load_palette()
   local full_palette, palette = {  -- tmp: Lux3K -- actual palette is to-do atm
@@ -107,6 +113,48 @@ function load_palette()
   use_palette(palette)
 end
 
+function init_glyphs()
+  load_png("glyphs", "framework/glyphs.png", { 0x000000, 0xffffff, 0x888888}, true)
+  spritesheet_grid(16, 16)
+  palt(0, true)
+end
+
+function glyph(n, x, y, width, height, angle, color_a, color_b)
+  width = width or 16
+  height = height or 16
+  angle = angle or 0
+
+  pal(1, color_a or 0)
+  pal(2, color_b or 0)
+  aspr(n, x, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+  pal(1, 1)
+  pal(2, 2)
+end
+
+function outlined_glyph(n, x, y, width, height, angle, color_a, color_b, outline_color)
+  width = width or 16
+  height = height or 16
+  angle = angle or 0
+
+  pal(1, outline_color)
+  pal(2, outline_color)
+  aspr(n, x-1, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+  aspr(n, x+1, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+  aspr(n, x, y-1, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+  aspr(n, x, y+1, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+
+  pal(1, color_a or 0)
+  pal(2, color_b or 0)
+  aspr(n, x, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+  pal(1, 1)
+  pal(2, 2)
+end
+
+
+
+
+
+-- controls system
 
 local cur_x, cur_y, m_x, m_y = 0, 0, 0, 0
 local s_btn, s_btnv = btn, btnv
