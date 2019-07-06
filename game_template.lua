@@ -54,6 +54,9 @@ function _draw()
     end
   end
   
+  -- name of this game
+    print("Template Game", GW / 2 - str_px_width("Template Game")/2, 2, flr(t()* 3))  
+    
   -- objects
   for _, obj in pairs(_objects) do
     glyph(obj.spr, obj.p.x, obj.p.y, 16, 16, 2*t(), 2, 3)  
