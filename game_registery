@@ -1,20 +1,19 @@
 {
-  {
-    "nameOfTheGame",
-    "urlOfTheGame",
-    "urlOfThePreview",
-    playerSprite
-  },
-  {
-    "fishing game",
-    "urlOfTheGame",
-    "urlOfThePreview",
-    playerSprite
-  },
-  {
-    "lumberjack game",
-    "urlOfTheGame",
-    "urlOfThePreview",
-    playerSprite
-  },
+  "games" : {
+    "example" : {
+      "url_main" : "urlOfTheGame",
+      "url_preview": "urlOfThePreview",
+      "player_spr" : "playerSprite"
+    },
+    "Fishing Game" : {
+      "url_main" : "urlOfTheGame",
+      "url_preview": "urlOfThePreview",
+      "player_spr" : "playerSprite"
+    },
+    "Lumberjack Game" : {
+      "url_main" : "urlOfTheGame",
+      "url_preview": "urlOfThePreview",
+      "player_spr" : "playerSprite"
+    }
+  }
 }

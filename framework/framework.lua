@@ -17,7 +17,7 @@
 -- Chain general info
   -- Going from a game to another / Go To Game : "gtg"
   -- "global_score" and "battery" are to be passed into the parameters when gtg. if it's the first link in chain, the framework will go with default value (0 and 100 respectively)
-  -- The game_registry is now at "https://raw.githubusercontent.com/EliottmacR/Collection/master/game_registery" and should be moved on later, maybe on the leaderboard repo.
+  -- The game_registry is now at "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_registery" and should be moved on later, maybe on the leaderboard repo.
   -- the registery is
 
 
@@ -315,9 +315,32 @@ function init_chain()
   end
   
   if not _game_registery then 
-    local g_r_url = "https://raw.githubusercontent.com/EliottmacR/Collection/master/game_registery"
+    local g_r_url = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_registery"
     local https = require("ssl.https")
-    local body = https.request(g_r_url)    
+    local body = https.request(g_r_url)   
+    
+    -- local body = [[
+                  -- {
+                    -- "games" : {
+                      -- "example" : {
+                        -- "url_main" : "urlOfTheGame",
+                        -- "url_preview": "urlOfThePreview",
+                        -- "player_spr" : "playerSprite"
+                      -- },
+                      -- "Fishing Game" : {
+                        -- "url_main" : "urlOfTheGame",
+                        -- "url_preview": "urlOfThePreview",
+                        -- "player_spr" : "playerSprite"
+                      -- },
+                      -- "Lumberjack Game" : {
+                        -- "url_main" : "urlOfTheGame",
+                        -- "url_preview": "urlOfThePreview",
+                        -- "player_spr" : "playerSprite"
+                      -- }
+                    -- }
+                   -- }
+                   -- ]]
+                  
     _game_registery = {}
     
     -- registery = json_to_table(body)
