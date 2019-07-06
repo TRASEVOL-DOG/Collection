@@ -14,6 +14,13 @@
 -- - _draw() : callback called every frame to draw the game
 --
 
+-- Chain general info
+  -- Going from a game to another / Go To Game : "gtg"
+  -- "global_score" and "battery" are to be passed into the parameters when gtg. if it's the first link in chain, the framework will go with default value (0 and 100 respectively)
+  -- The game_registry is now at "https://raw.githubusercontent.com/EliottmacR/Collection/master/game_registery" and should be moved on later, maybe on the leaderboard repo.
+  -- the registery is
+
+
 
 -- Notes on control system:
 -- directions map to arrow keys, WASD, and the controller left stick
@@ -39,8 +46,6 @@
 ----- game over screen
 ---
 ----- ui bar
----
------ chain up one game to the next
 ---
 
 
@@ -68,6 +73,8 @@ function love.load()
   load_font("framework/HungryPro.ttf", 16, "main", true)
   init_glyphs()
   load_controls()
+  
+  init_chain()
   
   if _init then _init() end
 end
@@ -291,3 +298,56 @@ function load_controls()
   end
 end
 
+-- chain system
+
+function init_chain()
+  
+  local referrer = castle.game.getReferrer()
+  local params = castle.game.getInitialParams()
+  
+  if params then
+    _objects = params.objects or {}
+    _game_registery = params._game_registery or {}
+    
+    global_score = params.global_score or 0
+    battery = params.battery or 100
+    
+  end
+  
+  if not _game_registery then 
+    local g_r_url = "https://raw.githubusercontent.com/EliottmacR/Collection/master/game_registery"
+    local https = require("ssl.https")
+    local body = https.request(g_r_url)    
+    _game_registery = {}
+    
+    -- registery = json_to_table(body)
+    
+    -- for token in string.gmatch(body, "[^\n]+") do
+       -- add(_game_registery, token)
+    -- end
+      
+    JSON = assert(loadfile "JSON.lua")() -- one-time load of the routines
+    local games = JSON:decode(body)
+    -- local raw_json_text    = JSON:encode(lua_table_or_value)
+    
+    for i, g in pairs(games) do     
+      for i, v in pairs(g) do 
+        log(i)
+        log(v)      
+      end    
+    end
+    
+  end
+  
+end
+
+
+
+
+
+-- https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
+-- https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
+-- https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
+-- https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
+-- https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
+-- https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
