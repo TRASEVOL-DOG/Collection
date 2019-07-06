@@ -1,6 +1,20 @@
-https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
-https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
-https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
-https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
-https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
-https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
+{
+  {
+    "nameOfTheGame",
+    "urlOfTheGame",
+    "urlOfThePreview",
+    playerSprite
+  },
+  {
+    "fishing game",
+    "urlOfTheGame",
+    "urlOfThePreview",
+    playerSprite
+  },
+  {
+    "lumberjack game",
+    "urlOfTheGame",
+    "urlOfThePreview",
+    playerSprite
+  },
+}

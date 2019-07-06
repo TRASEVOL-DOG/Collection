@@ -60,7 +60,7 @@ end
 
 require("sugarcoat/sugarcoat")
 sugar.utility.using_package(sugar.S, true)
-
+local JSON = require("JSON")
 
 -- forward declarations (local):
 local load_palette, load_controls, update_controls
@@ -326,7 +326,7 @@ function init_chain()
        -- add(_game_registery, token)
     -- end
       
-    JSON = assert(loadfile "JSON.lua")() -- one-time load of the routines
+    -- JSON = assert(loadfile "JSON.lua")() -- one-time load of the routines
     local games = JSON:decode(body)
     -- local raw_json_text    = JSON:encode(lua_table_or_value)
     
