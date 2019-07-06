@@ -3,17 +3,17 @@
     "example" : {
       "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
       "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
-      "player_spr" : 0x03
+      "player_spr" : 1
     },
     "Fishing Game" : {
       "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
       "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
-      "player_spr" : 0x03
+      "player_spr" : 3
     },
     "Lumberjack Game" : {
       "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
       "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
-      "player_spr" : 0x03
+      "player_spr" : 6
     }
   }
 }
