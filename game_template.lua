@@ -33,8 +33,10 @@ function _update()
     add(_objects, {spr = 0x03,  p = {x = btnv("cur_x"), y = btnv("cur_y")}})  
   end
   
-  if btnp("B") then
+  if btnp("B") or btnp("cur_lb") then
+    _objects = {}  
   end
+  
   
 end
 
