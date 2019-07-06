@@ -317,42 +317,9 @@ function init_chain()
   if not _game_registery then 
     local g_r_url = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_registery"
     local https = require("ssl.https")
-    local body = https.request(g_r_url)   
-    
-    -- local body = [[
-                  -- {
-                    -- "games" : {
-                      -- "example" : {
-                        -- "url_main" : "urlOfTheGame",
-                        -- "url_preview": "urlOfThePreview",
-                        -- "player_spr" : "playerSprite"
-                      -- },
-                      -- "Fishing Game" : {
-                        -- "url_main" : "urlOfTheGame",
-                        -- "url_preview": "urlOfThePreview",
-                        -- "player_spr" : "playerSprite"
-                      -- },
-                      -- "Lumberjack Game" : {
-                        -- "url_main" : "urlOfTheGame",
-                        -- "url_preview": "urlOfThePreview",
-                        -- "player_spr" : "playerSprite"
-                      -- }
-                    -- }
-                   -- }
-                   -- ]]
-                  
+    local body = https.request(g_r_url)
     _game_registery = {}
-    
-    -- registery = json_to_table(body)
-    
-    -- for token in string.gmatch(body, "[^\n]+") do
-       -- add(_game_registery, token)
-    -- end
-      
-    -- JSON = assert(loadfile "JSON.lua")() -- one-time load of the routines
-    local games = JSON:decode(body)
-    -- local raw_json_text    = JSON:encode(lua_table_or_value)
-    
+    local games = JSON:decode(body)    
     for ind_g, g in pairs(games) do     
       log(ind_g)
       for ind_l, l in pairs(g) do  
@@ -362,18 +329,6 @@ function init_chain()
         end    
       end    
     end
-    
-  end
-  
+  end  
 end
-
-
-
-
-
--- https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
--- https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
--- https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
--- https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
--- https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
 -- https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
