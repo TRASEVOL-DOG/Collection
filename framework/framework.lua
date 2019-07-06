@@ -322,26 +322,26 @@ function init_chain()
     local g_r_url = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_registery"
     local https = require("ssl.https")
     local body = https.request(g_r_url)
-    local body = [[{
-  "games" : {
-    "example" : {
-      "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
-      "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
-      "player_spr" : 1
-    },
-    "Fishing Game" : {
-      "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
-      "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
-      "player_spr" : 3
-    },
-    "Lumberjack Game" : {
-      "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
-      "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
-      "player_spr" : 6
-    }
-  }
-}
-]]
+    -- local body = [[{
+  -- "games" : {
+    -- "example" : {
+      -- "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
+      -- "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
+      -- "player_spr" : 1
+    -- },
+    -- "Fishing Game" : {
+      -- "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
+      -- "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
+      -- "player_spr" : 3
+    -- },
+    -- "Lumberjack Game" : {
+      -- "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
+      -- "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
+      -- "player_spr" : 6
+    -- }
+  -- }
+-- }
+-- ]]
     _game_registery = JSON:decode(body)    
     
     local translated_games = {}
