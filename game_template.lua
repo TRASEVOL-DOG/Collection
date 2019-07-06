@@ -34,18 +34,6 @@ function _update()
   end
   
   if btnp("B") then
-    local ind = irnd(#_game_registery) + 1
-    local url = _game_registery[ind]
-    
-    log("portal to game number " .. ind)
-    log("url =  " .. url)
-    
-    castle.game.load(
-      url, {
-        objects = _objects,
-        _game_registery = _game_registery
-      }
-    )
   end
   
 end
@@ -53,7 +41,7 @@ end
 function _draw()
   cls(1)
   
-  glyph(0x03, 32, 32, 16, 16, 2*t(), 2, 3)
+  -- glyph(0x03, 32, 32, 16, 16, 2*t(), 2, 3)
   
   for _, obj in pairs(_objects) do
     glyph(obj.spr, obj.p.x, obj.p.y, 16, 16, 2*t(), 2, 3)  
@@ -66,4 +54,34 @@ function _draw()
 --  circ(btnv("cur_x"), btnv("cur_y"), btn("cur_rb") and 6 or btn("cur_lb") and 12 or 3, 4)
   outlined_glyph(0x00, btnv("cur_x"), btnv("cur_y"), 8 + 8 * btnv("cur_lb"), 8 + 8 * btnv("cur_rb"), 0, 4, 5, 0)
   
+  
+  for i, game in pairs(_game_registery) do
+    print(game.name, 0, i*24, flr(t()* 3))  
+    glyph(game.player_spr, str_px_width(game.name), i*24, 16, 16, 2*t(), 2, 3) 
+    
+    if btnv("cur_rb") and point_in_rect(btnv("cur_x"),btnv("cur_y"), 0,0, str_px_width(game.name), i*24) then
+      go_to_game(i)
+    end
+  end
+  
+  
+end
+
+
+function point_in_rect(xp, yp, x1, y1, x2, y2)
+  return xp > x1 and xp < x2 and yp > y1 and yp < y2
+end
+
+function go_to_game(index_game)
+  local url = _game_registery[index_game].url_main
+  
+  log("going to .. " .. _game_registery[index_game].name )    
+  log("url =  " .. url)
+  
+  castle.game.load(
+    url, {
+      objects = _objects,
+      _game_registery = _game_registery
+    }
+  )
 end

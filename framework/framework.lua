@@ -18,7 +18,7 @@
   -- Going from a game to another / Go To Game : "gtg"
   -- "global_score" and "battery" are to be passed into the parameters when gtg. if it's the first link in chain, the framework will go with default value (0 and 100 respectively)
   -- The game_registry is now at "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_registery" and should be moved on later, maybe on the leaderboard repo.
-  -- the registery is
+  -- game_previews contains the game previews for the game over screen, inited in chain_init()
 
 
 
@@ -67,7 +67,9 @@ local load_palette, load_controls, update_controls
 local _ctrl_descriptions, _ctrl_active
 
 function love.load()
-  init_sugar("Paku~Boisu!", 192, 128, 3)
+  GW = 192
+  GH = 128
+  init_sugar("Paku~Boisu!", GW, GH, 3)
   
   load_palette()
   load_font("framework/HungryPro.ttf", 16, "main", true)
@@ -300,6 +302,8 @@ end
 
 -- chain system
 
+game_previews = {}
+
 function init_chain()
   
   local referrer = castle.game.getReferrer()
@@ -318,17 +322,68 @@ function init_chain()
     local g_r_url = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_registery"
     local https = require("ssl.https")
     local body = https.request(g_r_url)
-    _game_registery = {}
-    local games = JSON:decode(body)    
-    for ind_g, g in pairs(games) do     
-      log(ind_g)
-      for ind_l, l in pairs(g) do  
-        log(ind_l)  
-        for name, v in pairs(l) do 
-          log(name .. " : " .. v)   
-        end    
+    local body = [[{
+  "games" : {
+    "example" : {
+      "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
+      "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
+      "player_spr" : 1
+    },
+    "Fishing Game" : {
+      "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
+      "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
+      "player_spr" : 3
+    },
+    "Lumberjack Game" : {
+      "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
+      "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
+      "player_spr" : 6
+    }
+  }
+}
+]]
+    _game_registery = JSON:decode(body)    
+    
+    local translated_games = {}
+    
+    for ind_g, g in pairs(_game_registery) do 
+      local i = 1
+      for ind_l, l in pairs(g) do
+        local name = ind_l
+        local url_main = l["url_main"]
+        local url_preview = l["url_preview"]
+        local player_spr = l["player_spr"]
+        translated_games[i] = {
+          name = name,
+          url_main = url_main,
+          url_preview = url_preview,
+          player_spr = player_spr        
+        }      
+        add(game_previews, load_png(i, translated_games[i].url_preview))
+        i = i + 1
       end    
     end
+    
+    _game_registery = translated_games
+    
+    -- for ind_g, g in pairs(games) do 
+      -- local i = 1
+      -- for ind_l, l in pairs(g) do  
+        -- for name, v in pairs(l) do 
+          -- log(name)
+          -- local url = url or (name == "url_preview") and v 
+        -- end
+        -- g.index = i
+        -- log("g.url_preview " .. g.url_preview)   
+        -- add(game_previews, load_png(g.index, g.url_preview))
+        -- i = i + 1
+      
+      -- end    
+    -- end
+    
+    
   end  
 end
+
+
 -- https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
