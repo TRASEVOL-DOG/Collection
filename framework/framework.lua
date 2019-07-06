@@ -353,10 +353,13 @@ function init_chain()
     local games = JSON:decode(body)
     -- local raw_json_text    = JSON:encode(lua_table_or_value)
     
-    for i, g in pairs(games) do     
-      for i, v in pairs(g) do 
-        log(i)
-        log(v)      
+    for ind_g, g in pairs(games) do     
+      log(ind_g)
+      for ind_l, l in pairs(g) do  
+        log(ind_l)  
+        for name, v in pairs(l) do 
+          log(name .. " : " .. v)   
+        end    
       end    
     end
     
