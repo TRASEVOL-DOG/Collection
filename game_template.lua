@@ -29,7 +29,7 @@ function _update()
   x = x - btnv("left") + btnv("right")
   y = y - btnv("up") + btnv("down")
   
-  if btnp("A") then
+  if btnp("A") or btnp("cur_rb") then
     add(_objects, {spr = 0x03,  p = {x = btnv("cur_x"), y = btnv("cur_y")}})  
   end
   
@@ -43,6 +43,18 @@ function _draw()
   
   -- glyph(0x03, 32, 32, 16, 16, 2*t(), 2, 3)
   
+  -- games 
+  for i, game in pairs(_game_registery) do
+    rectfill(0,(i)*24, str_px_width(game.name), (i+1)*24, flr(t()* 3) + 1)
+    print(game.name, 0, i*24, flr(t()* 3))  
+    glyph(game.player_spr, str_px_width(game.name), i*24, 16, 16, 2*t(), 2, 3) 
+    
+    if btnp("cur_lb") and point_in_rect(btnv("cur_x"),btnv("cur_y"), 0,i*24, str_px_width(game.name), (i+1)*24) then
+      go_to_game(i)
+    end
+  end
+  
+  -- objects
   for _, obj in pairs(_objects) do
     glyph(obj.spr, obj.p.x, obj.p.y, 16, 16, 2*t(), 2, 3)  
   end
@@ -55,15 +67,6 @@ function _draw()
   outlined_glyph(0x00, btnv("cur_x"), btnv("cur_y"), 8 + 8 * btnv("cur_lb"), 8 + 8 * btnv("cur_rb"), 0, 4, 5, 0)
   
   
-  for i, game in pairs(_game_registery) do
-    rectfill(0,0, str_px_width(game.name), i*24, flr(t()* 3) + 1)
-    print(game.name, 0, i*24, flr(t()* 3))  
-    glyph(game.player_spr, str_px_width(game.name), i*24, 16, 16, 2*t(), 2, 3) 
-    
-    if btnp("cur_rb") and point_in_rect(btnv("cur_x"),btnv("cur_y"), 0,0, str_px_width(game.name), i*24) then
-      go_to_game(i)
-    end
-  end
   
   
 end
