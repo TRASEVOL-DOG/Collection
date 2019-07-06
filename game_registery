@@ -16,7 +16,7 @@
       "player_spr" : 6
     },
     "Eliott's Game" : {
-      "url_main" : "https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle",
+      "url_main" : "https://raw.githubusercontent.com/EliottmacR/FishingGame/master/game_template.castle",
       "url_preview": "https://raw.githubusercontent.com/EliottmacR/Collection/master/preview.png",
       "player_spr" : 8
     }
