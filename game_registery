@@ -1,18 +1,16 @@
 {
-  {
-    "nameOfTheGame",
+  "nameOfTheGame" : {
     "urlOfTheGame",
     "urlOfThePreview",
     playerSprite
   },
-  {
-    "fishing game",
+  
+  "fishing game" : {
     "urlOfTheGame",
     "urlOfThePreview",
     playerSprite
   },
-  {
-    "lumberjack game",
+  "lumberjack game" : {    
     "urlOfTheGame",
     "urlOfThePreview",
     playerSprite
