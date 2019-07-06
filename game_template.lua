@@ -1,5 +1,6 @@
 require("framework/framework.lua")
-
+require("socket")
+http = require("socket.http")
 _palette = {0, 17, 14, 13, 20, 4}
 
 _controls = {
@@ -17,25 +18,81 @@ _controls = {
   [ "cur_rb" ] = "Send movie to director!"
 }
 
+_objects = {}
 
 local x,y = 128,96
 function _init()
+  local referrer = castle.game.getReferrer()
+  local params = castle.game.getInitialParams()
+  if params then
+    _objects = params.objects or {}
+    _game_registery = params._game_registery or {}
+  end
+  if not _game_registery then 
+    local g_r_url = "https://raw.githubusercontent.com/EliottmacR/Collection/master/game_registery"
+    require("socket")
+    local https = require("ssl.https")
+    local body, code, headers, status = https.request(g_r_url)
+    -- if body then
+      -- log(body)
+    -- else
+      -- log("Could not load other games")
+    -- end
+    -- if status then
+      -- log(status)
+    -- end
+    
+    _game_registery = {}
+    
+    line = body
 
+    for token in string.gmatch(line, "[^\n]+") do
+       -- print(token) 
+       add(_game_registery, token)
+    end
+    -- for i, v in pairs(_game_registery) do
+      -- log(i)
+      -- log(v)
+    -- end
+    
+    
+    
+  end
 end
 
 function _update()
   x = x - btnv("left") + btnv("right")
   y = y - btnv("up") + btnv("down")
   
-  if btn("A") then
-    -- ??
+  if btnp("A") then
+    add(_objects, {spr = 0x03,  p = {x = btnv("cur_x"), y = btnv("cur_y")}})  
   end
+  
+  if btnp("B") then
+    -- local url = "https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle"
+    local ind = irnd(#_game_registery) + 1
+    local url = _game_registery[ind]
+    log("portal to game number " .. ind)
+    log("url =  " .. url)
+    
+    castle.game.load(
+      url, {
+        objects = _objects,
+        _game_registery = _game_registery
+      }
+    )
+  end
+  
 end
 
 function _draw()
   cls(1)
   
   glyph(0x03, 32, 32, 16, 16, 2*t(), 2, 3)
+  
+  for _, obj in pairs(_objects) do
+    glyph(obj.spr, obj.p.x, obj.p.y, 16, 16, 2*t(), 2, 3)  
+  end
   
 --  circfill(x, y, 7, 2)
   local a = atan2(btnv"cur_x" - x, btnv"cur_y" - y)
