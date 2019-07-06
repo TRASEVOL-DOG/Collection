@@ -56,7 +56,7 @@ function _draw()
   
   
   for i, game in pairs(_game_registery) do
-    rectfill(0,0, str_px_width(game.name), i*24, 1)
+    rectfill(0,0, str_px_width(game.name), i*24, flr(t()* 3) + 1)
     print(game.name, 0, i*24, flr(t()* 3))  
     glyph(game.player_spr, str_px_width(game.name), i*24, 16, 16, 2*t(), 2, 3) 
     
