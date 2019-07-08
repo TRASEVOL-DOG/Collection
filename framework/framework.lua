@@ -38,7 +38,7 @@
 ----- shader?
 ---
 ----- control screen
---- control descriptions are stored in _ctrl_descriptions
+--- control descriptions are stored in ctrl_descriptions
 ---  ^ it goes {{inputs} = "desc"} -> inputs are all the inputs that have the same description
 ---
 ----- pause/settings button + panel
@@ -65,7 +65,7 @@ local JSON = require("framework/JSON")
 
 -- forward declarations (local):
 local load_palette, load_controls, update_controls
-local _ctrl_descriptions, _ctrl_active
+local ctrl_descriptions, ctrl_active
 
 function love.load()
   GW = 192
@@ -165,7 +165,7 @@ end
 local cur_x, cur_y, m_x, m_y = 0, 0, 0, 0
 local s_btn, s_btnv = btn, btnv
 function update_controls()
-  for k, d in pairs(_ctrl_active) do
+  for k, d in pairs(ctrl_active) do
     d.pstate = d.state
     
     if k == "left" then
@@ -206,22 +206,22 @@ function update_controls()
 end
 
 function btn(k)
-  local d = _ctrl_active[k]
+  local d = ctrl_active[k]
   return d and d.state
 end
 
 function btnp(k)
-  local d = _ctrl_active[k]
+  local d = ctrl_active[k]
   return d and d.state and not d.pstate
 end
 
 function btnr(k)
-  local d = _ctrl_active[k]
+  local d = ctrl_active[k]
   return d and d.pstate and not d.state
 end
 
 function btnv(k)
-  local d = _ctrl_active[k]
+  local d = ctrl_active[k]
   return d and d.value or 0
 end
 
@@ -264,11 +264,11 @@ function load_controls()
   
   player_assign_ctrlr(0, 0)
   
-  _ctrl_descriptions, _ctrl_active = {}, {}
+  ctrl_descriptions, ctrl_active = {}, {}
   
   for k, desc in pairs(_controls) do
     local b = true
-    for _,v in pairs(_ctrl_descriptions) do
+    for _,v in pairs(ctrl_descriptions) do
       if v[2] == desc then
         b = false
         add(v[1], k)
@@ -276,10 +276,10 @@ function load_controls()
     end
     
     if b then
-      add(_ctrl_descriptions, { {k}, desc})
+      add(ctrl_descriptions, { {k}, desc})
     end
     
-    _ctrl_active[k] = { state = false, pstate = false, value = 0}
+    ctrl_active[k] = { state = false, pstate = false, value = 0}
     
     register_btn(k, 0, bindings[k])
     
