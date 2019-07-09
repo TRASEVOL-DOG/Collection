@@ -6,6 +6,8 @@
 -- - _difficulty : 0 is super easy, 100 should be near-impossible (we'll scale it internally - game 25 would have a difficulty of 100)
 
 -- here's what the player should define (as global)
+-- - _title: name of the game
+-- - _description: a one sentence description/instruction for the game
 -- - _palette : table of indexes pointing to which colors you want in the full palette (up to 8)
 -- - _controls : table listing the controls you're using in this game
 -- - 
@@ -64,14 +66,24 @@ sugar.utility.using_package(sugar.S, true)
 local JSON = require("framework/JSON")
 
 -- forward declarations (local):
-local load_palette, load_controls, update_controls
+local load_palette, load_controls
+local update_controls
+local update_controls_screen, draw_controls_screen
+
+local in_controls, in_pause, in_gameover
 local ctrl_descriptions, ctrl_active
+local light_table
 
 function love.load()
-  GW = 192
-  GH = 128
-  init_sugar("Paku~Boisu!", GW, GH, 3)
+  init_sugar("Remy & Eliott's Collection", 256, 192, 3)
   
+  -- setting default game info
+  _title = _title or "[please set a title!]"
+  _description = _description or "[please set a description!]"
+  _palette = _palette or { 0, 1, 3, 19, 27, 28, 29 } -- greyish gradient
+  _controls = _controls or {}
+  
+  -- loading resources
   load_palette()
   load_font("framework/HungryPro.ttf", 16, "main", true)
   init_glyphs()
@@ -80,19 +92,95 @@ function love.load()
   init_chain()
   
   if _init then _init() end
+  init_controls_screen()
 end
 
 function love.update()
   update_controls()
+
+  if in_controls then update_controls_screen() return end
 
   if _update then _update() end
 end
 
 function love.draw()
   if _draw then _draw() end
+  
+  if in_controls then draw_controls_screen() return end
 end
 
 
+
+-- controls screen
+
+function init_controls_screen()
+  in_controls = 99
+  
+  -- define color_0, color_1 and color_2 here
+  
+  
+end
+
+function update_controls_screen()
+  if in_controls == 99 then
+    if btnp("start") then
+      in_controls = 1
+      in_controls = false
+    end
+  elseif in_controls then
+    in_controls = in_controls - dt()
+    
+    if in_controls <= 0 then
+      in_controls = false
+    end
+  end
+end
+
+function draw_controls_screen()
+  local lt = light_table
+  cls(lt[1])
+  
+  printp(0x0000, 0x0100, 0x0200, 0x0000)
+  printp_color(lt[#lt], lt[flr(#lt/2)], 0)
+  
+  local x,y = 0, 8
+  local space1, space2 = 16, 28
+  
+  x = (screen_w() - str_px_width(_title)) / 2
+  pprint(_title, x, y)
+  
+  x = (screen_w() - str_px_width(_description)) / 2
+  y = y + space2
+  pprint(_description, x, y)
+
+  y = y + space2
+  for _, d in ipairs(ctrl_descriptions) do
+    local str = ""
+    for _, v in ipairs(d[1]) do
+      str = str..v..", "
+    end
+    
+    str = str:sub(1, #str-2).." : "..d[2]
+    
+    x = (screen_w() - str_px_width(str)) / 2
+    
+    pprint(str, x, y)
+    
+    y = y + space1
+  end
+
+  -- draw controls
+  -- add controls sprite
+  
+  -- "press start to continue"
+  
+  if t()%1 < 0.75 then
+    local str = "Press START to continue!"
+    x = (screen_w() - str_px_width(str)) / 2
+    y = screen_h() - 16
+    pprint(str, x, y)
+  end
+end
 
 
 
@@ -100,7 +188,7 @@ end
 -- palette & glyphs
 
 function load_palette()
-  local full_palette, palette = {  -- tmp: Lux3K -- actual palette is to-do atm
+  local full_palette, palette = {  -- "Glassworks", by Trasevol_Dog B-)
     0x000000, 0x000020, 0x330818, 0x1a0f4d,
     0x990036, 0x660000, 0x992e00, 0x332708,
     0x001c12, 0x00591b, 0x118f45, 0x998a26,
@@ -114,6 +202,18 @@ function load_palette()
   if not _palette then _palette = {0, 29} end
   for i,c in ipairs(_palette) do
     palette[i] = full_palette[c+1]
+  end
+  
+  local light_ref = { 0, 5, 1, 2, 4, 3, 8, 12, 7, 6, 18, 19, 20, 9, 21, 13, 11, 10, 22, 17, 15, 23, 27, 14, 16, 24, 25, 28, 26, 29 }
+  
+  light_table = {}
+  
+  for i,lc in ipairs(light_ref) do
+    for j,c in ipairs(_palette) do
+      if c == lc then
+        add(light_table, j-1)
+      end
+    end
   end
   
   use_palette(palette)
@@ -155,7 +255,6 @@ function outlined_glyph(n, x, y, width, height, angle, color_a, color_b, outline
   pal(1, 1)
   pal(2, 2)
 end
-
 
 
 
@@ -299,7 +398,14 @@ function load_controls()
       register_btn("ry_axis", 0, bindings.ry_axis)
     end
   end
+
+  register_btn("start", 0, { input_id("keyboard_scancode", "return"),
+                             input_id("controller_button", "start") })
+  ctrl_active["start"] = { state = false, pstate = false, value = 0}
 end
+
+
+
 
 -- chain system
 
