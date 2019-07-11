@@ -54,3 +54,5 @@ function load_game(game_id)
 end
 
 if load_game then print("first") end
+
+return load_game
