@@ -1,5 +1,8 @@
 require("framework")
 
+_name = "Testing!"
+_description = "This is just a test, really."
+
 _palette = {0, 17, 14, 13, 20, 4}
 
 _controls = {
