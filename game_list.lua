@@ -21,7 +21,7 @@ function get_id_from_name(game_name)
 end
 
 function reset_game_list_copy()
-  return _game_list_copy = copy_table(_game_list)
+  _game_list_copy = copy_table(_game_list)
 end
 
 function get_game_list()
