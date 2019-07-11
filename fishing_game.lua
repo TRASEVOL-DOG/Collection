@@ -29,9 +29,7 @@ local GW, GH = 0, 0
 
 function _init(w, h)
   GW = w or 0
-  GH = h or 0
-  use_font("second")
-  
+  GH = h or 0  
 end
 
 function _update()
@@ -70,6 +68,7 @@ end
 
 function _draw()
   cls(1)
+  use_font("second")
   
   print(_name, GW / 2 - sugar.gfx.str_px_width(_name)/2, 2, flr(t()* 3)) 
     
