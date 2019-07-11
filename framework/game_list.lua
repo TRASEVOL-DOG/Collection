@@ -27,9 +27,9 @@ end
 function get_game_list()
   return _game_list_copy
 end
-
+print("here")
 function load_game(game_id)
-
+  
   local path = get_path_from_id(game_id)
     
   if path then
