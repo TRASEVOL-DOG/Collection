@@ -28,10 +28,15 @@ function get_game_list()
   return _game_list_copy
 end
 
-function load_game(game_id)
-  
-  local path = get_path_from_id(game_id)
+function load_game(key, loading_with_name)
+
+  local path
     
+  if loading_with_name then 
+    path = get_path_from_id(get_id_from_name(key)) 
+  else   
+    path = get_path_from_id(key)
+  end
   if path then
   
     local params = castle.game.getInitialParams()
@@ -52,7 +57,5 @@ function load_game(game_id)
     
   end
 end
-
-if load_game then print("first") end
 
 return load_game
