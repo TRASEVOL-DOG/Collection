@@ -71,7 +71,7 @@ function _draw()
   -- this should be in end screen of framework, testing purpose only
   
     local i = 0
-    color(floor(t())
+    color(floor(t()))
     for id, game in pairs(get_game_list()) do
       local x = GW / 6 + i * GW/3
       local y = 50
