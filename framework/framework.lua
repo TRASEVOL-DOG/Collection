@@ -70,7 +70,11 @@ local light_table
 local GW, GH = 256, 192
 
 function love.load()
+<<<<<<< HEAD
   castle.system.setDimensions("full") 
+=======
+  castle.system.setDimensions('full') 
+>>>>>>> master
   init_sugar("Remy & Eliott's Collection", GW, GH, 3)
   
   -- setting default game info
