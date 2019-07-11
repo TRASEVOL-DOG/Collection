@@ -1,9 +1,12 @@
 require("framework/framework")
 
 _name = "Fishing Game"
+-- _name = "Game Template"
+-- _name = "Game Template 2"
+
 _description = "Some test indeed !"
 
-_palette = {0, 17, 14, 13, 20, 4}
+_palette = { ["0"] = 0, 17, 14, 13, 20, 4}
 
 
 _controls = {
@@ -74,16 +77,16 @@ function _draw()
   -- this should be in end screen of framework, testing purpose only
   
     local i = 0
-    local j = (flr(t()) + 1) % (#_palette)
-    log(j)
-    local col = _palette[j]
+    local j = flr(t()) % (#_palette)
+    local col = _palette[j + 1]
     color(col)
     for id, game in pairs(get_game_list()) do
       local x = GW / 6 + i * GW/3
       local y = 50
+      color(col)
       print(id, x, y)
       print(game.name, x - str_px_width(game.name)/2, y + 15)
-      rectfill(x, y, x + 15, y + 15, col + 1)
+      rectfill(x, y, x + 15, y + 15, col)
       i = i + 1
     end
   
