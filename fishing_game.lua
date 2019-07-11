@@ -50,33 +50,21 @@ end
 function _draw()
   cls(1)
   
-  -- glyph(0x03, 32, 32, 16, 16, 2*t(), 2, 3)
-  
+  print("Fishing Game", GW / 2 - sugar.gfx.str_px_width("Fishing Game")/2, 2, flr(t()* 3)) 
     
-  -- games 
-  -- for i, game in pairs(_game_registery) do
-    -- rectfill(0,(i)*24, str_px_width(game.name), (i+1)*24, flr(t()* 3) + 1)
-    -- print(game.name, 0, i*24, flr(t()* 3))  
-    -- glyph(game.player_spr, str_px_width(game.name), i*24, 16, 16, 2*t(), 2, 3) 
+  -- list of games
+
+  if _game_list then log("here") end
     
-    -- if btnp("cur_lb") and point_in_rect(btnv("cur_x"),btnv("cur_y"), 0,i*24, str_px_width(game.name), (i+1)*24) then
-      -- go_to_game(i)
-    -- end
-  -- end
-  
-  -- name of this game
-    print("Fishing Game", GW / 2 - sugar.gfx.str_px_width("Fishing Game")/2, 2, flr(t()* 3)) 
-  -- objects
-  -- for _, obj in pairs(_objects) do
-    -- glyph(obj.spr, obj.p.x, obj.p.y, 16, 16, 2*t(), 2, 3)  
-  -- end
-  
- -- circfill(x, y, 7, 2)
+    
   local a = atan2(btnv"cur_x" - x, btnv"cur_y" - y)
   outlined_glyph(0x20, x, y, 16, sgn(cos(a)) * (16 + 2*sin(t())), a, 2, 3, 0)
   
  -- circ(btnv("cur_x"), btnv("cur_y"), btn("cur_rb") and 6 or btn("cur_lb") and 12 or 3, 4)
   outlined_glyph(0x00, btnv("cur_x"), btnv("cur_y"), 8 + 8 * btnv("cur_lb"), 8 + 8 * btnv("cur_rb"), 0, 4, 5, 0)
+  
+  
+  
   
   
   
