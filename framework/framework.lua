@@ -51,16 +51,15 @@
 if CASTLE_PREFETCH then
   CASTLE_PREFETCH({
     "sugarcoat/sugarcoat.lua",
-    "framework/JSON.lua",
-    "framework/glyphs.png",
-    "framework/HungryPro.ttf"
+    "glyphs.png",
+    "HungryPro.ttf"
   })
 end
 
 
+require("game_list")
 require("sugarcoat/sugarcoat")
 sugar.utility.using_package(sugar.S, true)
-local JSON = require("framework/JSON")
 
 -- forward declarations (local):
 local load_palette, load_controls
@@ -72,23 +71,33 @@ local ctrl_descriptions, ctrl_active
 local light_table
 
 function love.load()
-  init_sugar("Remy & Eliott's Collection", 256, 192, 3)
-  
-  -- setting default game info
-  _title = _title or "[please set a title!]"
-  _description = _description or "[please set a description!]"
-  _controls = _controls or {}
-  
-  -- loading resources
-  load_palette()
-  load_font("framework/HungryPro.ttf", 16, "main", true)
-  init_glyphs()
-  load_controls()
-  
-  init_chain()
-  
+  if first_time_launch then -- global variable in .castle linked main
+    _init       = function ()
+                    local game_id = get_id_from_name(game_name)
+                    launch_game(game_id)            
+                  end
+    love.update = function () end
+    love.draw   = function () end
+    
+  else -- inside collection loop of game.
+    init_sugar("Remy & Eliott's Collection", 256, 192, 3)
+    
+    -- setting default game info
+    _title = _title or "[please set a title!]"
+    _description = _description or "[please set a description!]"
+    _controls = _controls or {}
+    
+    -- loading resources
+    load_palette()
+    load_font("framework/HungryPro.ttf", 16, "main", true)
+    init_glyphs()
+    load_controls()
+    
+    init_chain()
+    
+    init_controls_screen()
+  end
   if _init then _init() end
-  init_controls_screen()
 end
 
 function love.update()
@@ -420,91 +429,30 @@ end
 
 
 
+-- game loading
 
--- chain system
-
-game_previews = {}
-
-function init_chain()
+function launch_game( game_id )
   
-  local referrer = castle.game.getReferrer()
-  local params = castle.game.getInitialParams()
-  
-  if params then
-    _objects = params.objects or {}
-    _game_registery = params._game_registery or {}
+  local path = get_path_from_id(game_id)
     
-    global_score = params.global_score or 0
-    battery = params.battery or 100
+  if path then
+  
+    local params = castle.game.getInitialParams()
+    local battery_level
+    local global_score
+    
+    if params then 
+      battery_level = params.battery_level or 100
+      global_score = params.global_score or 0    
+    end
+    
+    castle.game.load(
+        path, {
+        battery_level = battery_level,
+        global_score = global_score
+      }
+    )
     
   end
   
-  if not _game_registery then 
-    local g_r_url = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_registery"
-    local https = require("ssl.https")
-    local body = https.request(g_r_url)
-    -- local body = [[{
-  -- "games" : {
-    -- "example" : {
-      -- "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
-      -- "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
-      -- "player_spr" : 1
-    -- },
-    -- "Fishing Game" : {
-      -- "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
-      -- "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
-      -- "player_spr" : 3
-    -- },
-    -- "Lumberjack Game" : {
-      -- "url_main" : "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
-      -- "url_preview": "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/preview.png",
-      -- "player_spr" : 6
-    -- }
-  -- }
--- }
--- ]]
-    _game_registery = JSON:decode(body)    
-    
-    local translated_games = {}
-    
-    for ind_g, g in pairs(_game_registery) do 
-      local i = 1
-      for ind_l, l in pairs(g) do
-        local name = ind_l
-        local url_main = l["url_main"]
-        local url_preview = l["url_preview"]
-        local player_spr = l["player_spr"]
-        translated_games[i] = {
-          name = name,
-          url_main = url_main,
-          url_preview = url_preview,
-          player_spr = player_spr        
-        }      
-        add(game_previews, load_png(i, translated_games[i].url_preview))
-        i = i + 1
-      end    
-    end
-    
-    _game_registery = translated_games
-    
-    -- for ind_g, g in pairs(games) do 
-      -- local i = 1
-      -- for ind_l, l in pairs(g) do  
-        -- for name, v in pairs(l) do 
-          -- log(name)
-          -- local url = url or (name == "url_preview") and v 
-        -- end
-        -- g.index = i
-        -- log("g.url_preview " .. g.url_preview)   
-        -- add(game_previews, load_png(g.index, g.url_preview))
-        -- i = i + 1
-      
-      -- end    
-    -- end
-    
-    
-  end  
 end
-
-
--- https://raw.githubusercontent.com/EliottmacR/Collection/master/game_template.castle
