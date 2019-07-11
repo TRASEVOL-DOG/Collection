@@ -70,6 +70,8 @@ local in_controls, in_pause, in_gameover
 local ctrl_descriptions, ctrl_active
 local light_table
 
+local GW, GH = 256, 192
+
 function love.load()
   if first_time_launch then -- global variable in .castle linked main
     _init       = function ()
@@ -80,7 +82,7 @@ function love.load()
     love.draw   = function () end
     
   else -- inside collection loop of game.
-    init_sugar("Remy & Eliott's Collection", 256, 192, 3)
+    init_sugar("Remy & Eliott's Collection", GW, GH, 3)
     
     -- setting default game info
     _title = _title or "[please set a title!]"
@@ -95,7 +97,7 @@ function love.load()
         
     init_controls_screen()
   end
-  if _init then _init() end
+  if _init then _init(GW, GH) end
 end
 
 function love.update()
