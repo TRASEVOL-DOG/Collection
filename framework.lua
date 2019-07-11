@@ -92,9 +92,7 @@ function love.load()
     load_font("framework/HungryPro.ttf", 16, "main", true)
     init_glyphs()
     load_controls()
-    
-    init_chain()
-    
+        
     init_controls_screen()
   end
   if _init then _init() end
