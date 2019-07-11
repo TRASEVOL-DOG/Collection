@@ -67,6 +67,7 @@ function point_in_rect(xp, yp, x1, y1, x2, y2)
   return xp > x1 and xp < x2 and yp > y1 and yp < y2
 end
 
+
 function _draw()
   cls(1)
   
@@ -76,23 +77,23 @@ function _draw()
   -- this should be in end screen of framework, testing purpose only
   
     local i = 0
-    color(flr(t()))
+    color(_palette[flr(t()) % (#_palette)])
     for id, game in pairs(get_game_list()) do
       local x = GW / 6 + i * GW/3
       local y = 50
       print(id, x, y)
       print(game.name, x - str_px_width(game.name)/2, y + 15)
-      rectfill(x, y, x + 15, y + 15, ceil(t()))
+      rectfill(x, y, x + 15, y + 15, _palette[flr(t()) % (#_palette)])
       i = i + 1
     end
   
   --
     
   local a = atan2(btnv"cur_x" - x, btnv"cur_y" - y)
-  outlined_glyph(0x20, x, y, 16, sgn(cos(a)) * (16 + 2*sin(t())), a, 2, 3, 0)
+  outlined_glyph(0x20, x, y, 16, sgn(cos(a)) * (16 + 2*sin(t())), a, _palette[2], _palette[3], 0)
   
  -- circ(btnv("cur_x"), btnv("cur_y"), btn("cur_rb") and 6 or btn("cur_lb") and 12 or 3, 4)
-  outlined_glyph(0x00, btnv("cur_x"), btnv("cur_y"), 8 + 8 * btnv("cur_lb"), 8 + 8 * btnv("cur_rb"), 0, 4, 5, 0)
+  outlined_glyph(0x00, btnv("cur_x"), btnv("cur_y"), 8 + 8 * btnv("cur_lb"), 8 + 8 * btnv("cur_rb"), 0, _palette[4], _palette[5], 0)
   
 end
 
