@@ -8,7 +8,6 @@
 -- here's what the player should define (as global)
 -- - _title: name of the game
 -- - _description: a one sentence description/instruction for the game
--- - _palette : table of indexes pointing to which colors you want in the full palette (up to 8)
 -- - _controls : table listing the controls you're using in this game
 -- - 
 -- - _init() : callback called on loading the game
@@ -39,9 +38,7 @@
 ---
 ----- shader?
 ---
------ control screen
---- control descriptions are stored in ctrl_descriptions
----  ^ it goes {{inputs} = "desc"} -> inputs are all the inputs that have the same description
+----- cursor
 ---
 ----- pause/settings button + panel
 ---
@@ -80,7 +77,6 @@ function love.load()
   -- setting default game info
   _title = _title or "[please set a title!]"
   _description = _description or "[please set a description!]"
-  _palette = _palette or { 0, 1, 3, 19, 27, 28, 29 } -- greyish gradient
   _controls = _controls or {}
   
   -- loading resources
@@ -115,10 +111,8 @@ end
 
 function init_controls_screen()
   in_controls = 99
-  
-  -- define color_0, color_1 and color_2 here
-  
-  
+
+
 end
 
 function update_controls_screen()
@@ -137,42 +131,65 @@ function update_controls_screen()
 end
 
 function draw_controls_screen()
-  local lt = light_table
-  cls(lt[1])
+  cls(0)
   
-  printp(0x0000, 0x0100, 0x0200, 0x0000)
-  printp_color(lt[#lt], lt[flr(#lt/2)], 0)
+  printp(0x0000, 0x0100, 0x0200, 0x0300)
+  printp_color(29, 19, 3)
   
   local x,y = 0, 8
   local space1, space2 = 16, 28
   
   x = (screen_w() - str_px_width(_title)) / 2
-  pprint(_title, x, y)
+--  pprint(_title, x, y)
+  for i = 1, #_title do
+    local y = y + 1.5*cos(-t() + i/10)
+    local c = _title:sub(i,i)
+    pprint(c, x, y)
+    x = x + str_px_width(c)
+  end
   
   x = (screen_w() - str_px_width(_description)) / 2
   y = y + space2
   pprint(_description, x, y)
 
   y = y + space2
+  
+  local controls_icons = { up = 0, left = 1, down = 2, right = 3, A = 4, B = 5, cur_x = 6, cur_y = 6, cur_lb = 7, cur_rb = 8 }
+  
+  spritesheet("controls")
+  
+  local mwa, mwb = 0, 0
   for _, d in ipairs(ctrl_descriptions) do
-    local str = ""
+    local str, w = " : "..d[2], 0
     for _, v in ipairs(d[1]) do
-      str = str..v..", "
+      w = w + 17
     end
+    w = w - 7
+
+    mwa = max(mwa, w)
+    mwb = max(mwb, str_px_width(str))
+  end
+  
+  local x = (screen_w() - mwa - mwb) / 2 + mwa
+  
+  for _, d in ipairs(ctrl_descriptions) do
+    local str, w = " : "..d[2], 0
+    for _, v in ipairs(d[1]) do
+      w = w + 17
+    end
+    w = w - 7
     
-    str = str:sub(1, #str-2).." : "..d[2]
+    local x = x - w
     
-    x = (screen_w() - str_px_width(str)) / 2
+    for _, v in ipairs(d[1]) do
+      spr(controls_icons[v] + flr(t()/2 % 3) * 16, x, y)
+      x = x + 17
+    end
     
     pprint(str, x, y)
     
     y = y + space1
   end
-
-  -- draw controls
-  -- add controls sprite
-  
-  -- "press start to continue"
   
   if t()%1 < 0.75 then
     local str = "Press START to continue!"
@@ -180,6 +197,8 @@ function draw_controls_screen()
     y = screen_h() - 16
     pprint(str, x, y)
   end
+  
+  spritesheet("glyphs")
 end
 
 
@@ -188,7 +207,7 @@ end
 -- palette & glyphs
 
 function load_palette()
-  local full_palette, palette = {  -- "Glassworks", by Trasevol_Dog B-)
+  local palette = {  -- "Glassworks", by Trasevol_Dog B-)
     0x000000, 0x000020, 0x330818, 0x1a0f4d,
     0x990036, 0x660000, 0x992e00, 0x332708,
     0x001c12, 0x00591b, 0x118f45, 0x998a26,
@@ -197,24 +216,7 @@ function load_palette()
     0xb319ff, 0xff4f75, 0xff9999, 0xffc8a3,
     0xfeffad, 0xb1ff96, 0x99fff5, 0xbcb6e3,
     0xebebeb, 0xffffff
-  }, {}
-
-  if not _palette then _palette = {0, 29} end
-  for i,c in ipairs(_palette) do
-    palette[i] = full_palette[c+1]
-  end
-  
-  local light_ref = { 0, 5, 1, 2, 4, 3, 8, 12, 7, 6, 18, 19, 20, 9, 21, 13, 11, 10, 22, 17, 15, 23, 27, 14, 16, 24, 25, 28, 26, 29 }
-  
-  light_table = {}
-  
-  for i,lc in ipairs(light_ref) do
-    for j,c in ipairs(_palette) do
-      if c == lc then
-        add(light_table, j-1)
-      end
-    end
-  end
+  }
   
   use_palette(palette)
 end
@@ -325,6 +327,8 @@ function btnv(k)
 end
 
 function load_controls()
+  load_png("controls", "framework/controls.png")
+
   local bindings = {
     left   = { input_id("keyboard_scancode", "left"),
                input_id("keyboard_scancode", "a"),
@@ -370,7 +374,17 @@ function load_controls()
     for _,v in pairs(ctrl_descriptions) do
       if v[2] == desc then
         b = false
-        add(v[1], k)
+        
+        local bb = false -- code below avoids having both cur_x and cur_y in the description table, as they have the same icons.
+        if k == "cur_x" or k == "cur_y" then
+          for _,vb in pairs(v[1]) do
+            bb = vb == "cur_x" or "cur_y"
+          end
+        end
+        
+        if not bb then
+          add(v[1], k)
+        end
       end
     end
     

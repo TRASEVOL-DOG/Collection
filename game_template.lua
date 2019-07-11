@@ -1,5 +1,9 @@
 require("framework/framework.lua")
 require("socket")
+
+_name = "Testing!"
+_description = "This is just a test, really."
+
 _palette = {0, 17, 14, 13, 20, 4}
 
 _controls = {
@@ -57,7 +61,7 @@ function _draw()
   end
   
   -- name of this game
-    print("Template Game", GW / 2 - str_px_width("Template Game")/2, 2, flr(t()* 3))  
+    print("Template Game", screen_w() / 2 - str_px_width("Template Game")/2, 2, flr(t()* 3))  
     
   -- objects
   for _, obj in pairs(_objects) do
