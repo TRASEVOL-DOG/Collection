@@ -44,7 +44,26 @@ function _update()
     _objects = {}  
   end
   
+  if btnp("cur_lb") then
+    local i = 0
+    for id, game in pairs(get_game_list()) do
+      local x = GW / 6 + i * GW/3
+      local y = 50
+      
+      local x_mouse = btnv("cur_x")
+      local y_mouse = btnv("cur_y")
+      
+      if point_in_rect(x_mouse, y_mouse, x, y, x + 15, y + 15) then launch_game(id) end  
+      
+      i = i + 1
+      
+    end
+  end
   
+end
+
+function point_in_rect(xp, yp, x1, y1, x2, y2)
+  return xp > x1 and xp < x2 and yp > y1 and yp < y2
 end
 
 function _draw()
@@ -53,9 +72,20 @@ function _draw()
   print("Fishing Game", GW / 2 - sugar.gfx.str_px_width("Fishing Game")/2, 2, flr(t()* 3)) 
     
   -- list of games
-
-  if _game_list then log("here") end
-    
+  -- this should be in end screen of framework, testing purpose only
+  
+    local i = 0
+    color(floor(t())
+    for id, game in pairs(get_game_list()) do
+      local x = GW / 6 + i * GW/3
+      local y = 50
+      print(id, x, y)
+      print(game.name, x, y + 15)
+      rectfill(x, y, x + 15, y + 15, ceil(t()))
+      i = i + 1
+    end
+  
+  --
     
   local a = atan2(btnv"cur_x" - x, btnv"cur_y" - y)
   outlined_glyph(0x20, x, y, 16, sgn(cos(a)) * (16 + 2*sin(t())), a, 2, 3, 0)

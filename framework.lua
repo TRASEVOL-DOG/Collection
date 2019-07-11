@@ -94,7 +94,13 @@ function love.load()
     load_font("framework/HungryPro.ttf", 16, "main", true)
     init_glyphs()
     load_controls()
-        
+    
+    -- futur games will be defined in init
+    -- for now, only return copy on game_list
+    -- this will surely change when games will need more info to be inited (spr info and preview etc)
+      reset_game_list_copy()
+    --
+    
     init_controls_screen()
   end
   if _init then _init(GW, GH) end

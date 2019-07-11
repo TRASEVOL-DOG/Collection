@@ -43,31 +43,45 @@ function _update()
   end
   
   
+  if btnp("cur_lb") then
+    local i = 0
+    for id, game in pairs(get_game_list()) do
+      local x = GW / 6 + i * GW/3
+      local y = 50
+      
+      local x_mouse = btnv("cur_x")
+      local y_mouse = btnv("cur_y")
+      
+      if point_in_rect(x_mouse, y_mouse, x, y, x + 15, y + 15) then launch_game(id) end  
+      
+      i = i + 1
+      
+    end
+  end
+  
 end
 
 function _draw()
-  cls(1)
-  
-  -- glyph(0x03, 32, 32, 16, 16, 2*t(), 2, 3)
-  
-    
-  -- games 
-  -- for i, game in pairs(_game_registery) do
-    -- rectfill(0,(i)*24, str_px_width(game.name), (i+1)*24, flr(t()* 3) + 1)
-    -- print(game.name, 0, i*24, flr(t()* 3))  
-    -- glyph(game.player_spr, str_px_width(game.name), i*24, 16, 16, 2*t(), 2, 3) 
-    
-    -- if btnp("cur_lb") and point_in_rect(btnv("cur_x"),btnv("cur_y"), 0,i*24, str_px_width(game.name), (i+1)*24) then
-      -- go_to_game(i)
-    -- end
-  -- end
+  cls(1)  
   
   -- name of this game
     print("Game Template", GW / 2 - sugar.gfx.str_px_width("Game Template")/2, 2, flr(t()* 3)) 
-  -- objects
-  -- for _, obj in pairs(_objects) do
-    -- glyph(obj.spr, obj.p.x, obj.p.y, 16, 16, 2*t(), 2, 3)  
-  -- end
+    
+  -- list of games
+  -- this should be in end screen of framework, testing purpose only
+  
+    local i = 0
+    color(floor(t())
+    for id, game in pairs(get_game_list()) do
+      local x = GW / 6 + i * GW/3
+      local y = 50
+      print(id, x, y)
+      print(game.name, x, y + 15)
+      rectfill(x, y, x + 15, y + 15, ceil(t()))
+      i = i + 1
+    end
+  
+  --
   
  -- circfill(x, y, 7, 2)
   local a = atan2(btnv"cur_x" - x, btnv"cur_y" - y)
