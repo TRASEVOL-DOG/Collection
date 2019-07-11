@@ -25,5 +25,5 @@ function reset_game_list_copy()
 end
 
 function get_game_list()
-  return copy_game_list
+  return _game_list_copy
 end
