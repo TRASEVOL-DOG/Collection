@@ -51,15 +51,16 @@ if not first_time_launch then
   if CASTLE_PREFETCH then
     CASTLE_PREFETCH({
       "sugarcoat/sugarcoat.lua",
-      "glyphs.png",
-      "HungryPro.ttf"
+      "framework/glyphs.png",
+      "framework/HungryPro.ttf"
     })
   end
   require("sugarcoat/sugarcoat")
+  require("framework/game_list")
   sugar.utility.using_package(sugar.S, true)
+else
+  require("game_list")
 end
-
-require("game_list")
 
 -- forward declarations (local):
 local load_palette, load_controls
