@@ -1,8 +1,7 @@
 require("framework")
 
-
-_name = "Testing!"
-_description = "This is just a test, really."
+_name = "Fishing Game"
+_description = "Some test indeed !"
 
 _palette = {0, 17, 14, 13, 20, 4}
 
@@ -30,6 +29,8 @@ local GW, GH = 0, 0
 function _init(w, h)
   GW = w or 0
   GH = h or 0
+  use_font("not_main")
+  
 end
 
 function _update()
@@ -69,7 +70,7 @@ end
 function _draw()
   cls(1)
   
-  print("Fishing Game", GW / 2 - sugar.gfx.str_px_width("Fishing Game")/2, 2, flr(t()* 3)) 
+  print(_name, GW / 2 - sugar.gfx.str_px_width(_name)/2, 2, flr(t()* 3)) 
     
   -- list of games
   -- this should be in end screen of framework, testing purpose only
@@ -92,12 +93,6 @@ function _draw()
   
  -- circ(btnv("cur_x"), btnv("cur_y"), btn("cur_rb") and 6 or btn("cur_lb") and 12 or 3, 4)
   outlined_glyph(0x00, btnv("cur_x"), btnv("cur_y"), 8 + 8 * btnv("cur_lb"), 8 + 8 * btnv("cur_rb"), 0, 4, 5, 0)
-  
-  
-  
-  
-  
-  
   
 end
 
