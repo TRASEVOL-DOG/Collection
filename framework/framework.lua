@@ -51,8 +51,8 @@
 if CASTLE_PREFETCH then
   CASTLE_PREFETCH({
     "sugarcoat/sugarcoat.lua",
-    "framework/glyphs.png",
-    "framework/HungryPro.ttf"
+    "glyphs.png",
+    "HungryPro.ttf"
   })
 end
 
