@@ -60,7 +60,7 @@ function _draw()
   -- end
   
   -- name of this game
-    print("Game Template", GW / 2 - sugar.gfx.str_px_width("Fishing Game")/2, 2, flr(t()* 3)) 
+    print("Game Template 2", GW / 2 - sugar.gfx.str_px_width("Fishing Game")/2, 2, flr(t()* 3)) 
   -- objects
   -- for _, obj in pairs(_objects) do
     -- glyph(obj.spr, obj.p.x, obj.p.y, 16, 16, 2*t(), 2, 3)  
