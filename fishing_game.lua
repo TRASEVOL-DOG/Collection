@@ -76,13 +76,14 @@ function _draw()
   -- this should be in end screen of framework, testing purpose only
   
     local i = 0
-    color(_palette[flr(t()) % (#_palette)])
+    local col = _palette[(flr(t())) % (#_palette)]
+    color(col)
     for id, game in pairs(get_game_list()) do
       local x = GW / 6 + i * GW/3
       local y = 50
       print(id, x, y)
       print(game.name, x - str_px_width(game.name)/2, y + 15)
-      rectfill(x, y, x + 15, y + 15, _palette[flr(t()) % (#_palette)])
+      rectfill(x, y, x + 15, y + 15, col + 1)
       i = i + 1
     end
   
