@@ -53,7 +53,7 @@ function _update()
       local x_mouse = btnv("cur_x")
       local y_mouse = btnv("cur_y")
       
-      if point_in_rect(x_mouse, y_mouse, x, y, x + 15, y + 15) then launch_game(id) end  
+      if point_in_rect(x_mouse, y_mouse, x, y, x + 15, y + 15) then load_game(id) end  
       
       i = i + 1
       
