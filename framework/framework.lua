@@ -47,19 +47,19 @@
 ----- ui bar
 ---
 
-
-if CASTLE_PREFETCH then
-  CASTLE_PREFETCH({
-    "sugarcoat/sugarcoat.lua",
-    "glyphs.png",
-    "HungryPro.ttf"
-  })
+if not first_time_launch then
+  if CASTLE_PREFETCH then
+    CASTLE_PREFETCH({
+      "sugarcoat/sugarcoat.lua",
+      "glyphs.png",
+      "HungryPro.ttf"
+    })
+  end
+  require("sugarcoat/sugarcoat")
+  sugar.utility.using_package(sugar.S, true)
 end
 
-
 require("game_list")
-require("sugarcoat/sugarcoat")
-sugar.utility.using_package(sugar.S, true)
 
 -- forward declarations (local):
 local load_palette, load_controls
