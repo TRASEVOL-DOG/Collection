@@ -78,21 +78,6 @@ function _draw()
   
 end
 
-
 function point_in_rect(xp, yp, x1, y1, x2, y2)
   return xp > x1 and xp < x2 and yp > y1 and yp < y2
-end
-
-function go_to_game(index_game)
-  local url = _game_registery[index_game].url_main
-  
-  log("going to .. " .. _game_registery[index_game].name )    
-  log("url =  " .. url)
-  
-  castle.game.load(
-    url, {
-      objects = _objects,
-      _game_registery = _game_registery
-    }
-  )
 end
