@@ -76,7 +76,9 @@ function _draw()
   -- this should be in end screen of framework, testing purpose only
   
     local i = 0
-    local col = _palette[(flr(t())) % (#_palette)]
+    local j = (flr(t())) % (#_palette)
+    log(j)
+    local col = _palette[j]
     color(col)
     for id, game in pairs(get_game_list()) do
       local x = GW / 6 + i * GW/3
