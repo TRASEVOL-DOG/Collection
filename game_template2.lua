@@ -1,4 +1,4 @@
-require("framework")
+require("framework/framework")
 
 _name = "Game Template 2"
 _description = "Some test indeed !"
@@ -21,16 +21,14 @@ _controls = {
   [ "cur_rb" ] = "Send movie to director!"
 }
 
-_objects = {}
-
 local x,y = 128,96
 local GW, GH = 0, 0
 
 function _init(w, h)
   GW = w or 0
   GH = h or 0
+  use_font("second")
   
-  use_font("not_main")
 end
 
 function _update()

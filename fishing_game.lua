@@ -1,4 +1,4 @@
-require("framework")
+require("framework/framework")
 
 _name = "Fishing Game"
 _description = "Some test indeed !"
@@ -21,15 +21,13 @@ _controls = {
   [ "cur_rb" ] = "Send movie to director!"
 }
 
-_objects = {}
-
 local x,y = 128,96
 local GW, GH = 0, 0
 
 function _init(w, h)
   GW = w or 0
   GH = h or 0
-  use_font("not_main")
+  use_font("second")
   
 end
 
@@ -76,7 +74,7 @@ function _draw()
   -- this should be in end screen of framework, testing purpose only
   
     local i = 0
-    local j = (flr(t())) % (#_palette)
+    local j = (flr(t()) + 1) % (#_palette)
     log(j)
     local col = _palette[j]
     color(col)

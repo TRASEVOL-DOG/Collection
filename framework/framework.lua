@@ -92,7 +92,7 @@ function love.load()
     -- loading resources
     load_palette()
     load_font("framework/HungryPro.ttf", 16, "main", true)
-    load_font("framework/HungryPro.ttf", 16, "not_main", true)
+    load_font("sugarcoat/TeapotPro.ttf", 16, "second", true)
     init_glyphs()
     load_controls()
     

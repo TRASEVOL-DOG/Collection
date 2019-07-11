@@ -1,5 +1,5 @@
 ---
-main: game_template.lua
+main: fishing_game.lua
 title: template
 owner: spaceling
 primaryColor: 000000
