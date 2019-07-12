@@ -68,7 +68,9 @@ local ctrl_descriptions, ctrl_active
 local light_table
 
 local GW, GH = 256, 192
+local UI_H = GH/6
 local battery_level
+local UI_battery_spr = 0x10
 local global_score
 
 function love.load()
@@ -103,7 +105,7 @@ function love.load()
   --
   
   init_controls_screen()
-  if _init then _init(GW, GH) end
+  if _init then _init(GW, GH - UI_H) end
 end
 
 function love.update()
@@ -115,7 +117,12 @@ function love.update()
 end
 
 function love.draw()
-  if _draw then _draw() end
+
+	love.graphics.push()
+		love.graphics.translate(0,UI_H)
+    if _draw then _draw() end
+	love.graphics.pop()
+  
   
   draw_ui()
   
@@ -150,13 +157,18 @@ end
 
 function draw_ui()
   color(flr(t() * 10) + 1)
-  rectfill(0, 0, GW, GH/6)
-  rectfill(3, 3, GW-3, GH/6-3, 0)
-  outlined_glyph(0x70, 16, 16, 16, 16, a, _palette[2], _palette[3], 0)
-  print(":" .. battery_level .. "%", 7 + 16, 7, 29)  
-  local str = "SCORE:" .. global_score .. " "
-  print(str, GW - str_px_width(str) - 5, 7, 29  )
   
+  local y_offset = sin(t() / 2)*2
+  
+  rectfill(0, 0, GW, UI_H)
+  rectfill(3, 3, GW-3, UI_H-3, 0)
+  outlined_glyph(UI_battery_spr, 16, 16, 16, 16, a, _palette[2], _palette[3], 0)
+  print(":", 7 + 16, 7, 29)  
+  print(" " .. battery_level .. "%", 7 + 16, 7 + y_offset, 29)  
+  local str = "SCORE:"
+  local strc = "SCORE:" .. global_score .. " "
+  print(str, GW - str_px_width(strc) - 5, 7, 29  )
+  print(global_score .. " ", GW - str_px_width(global_score .. " ") - 5, 7 + y_offset, 29  )
 
 end
 
@@ -446,4 +458,10 @@ function load_controls()
   register_btn("start", 0, { input_id("keyboard_scancode", "return"),
                              input_id("controller_button", "start") })
   ctrl_active["start"] = { state = false, pstate = false, value = 0}
+end
+
+
+function give_points( points)
+  if not points or not global_score then return end
+  global_score = global_score + points
 end
