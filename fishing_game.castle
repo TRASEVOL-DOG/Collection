@@ -1,6 +1,6 @@
 ---
-main: game_template.lua
-title: template
+main: fishing_game.lua
+title: Fishing
 owner: spaceling
 primaryColor: 000000
 dimensions: full
