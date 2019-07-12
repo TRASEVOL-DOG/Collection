@@ -68,10 +68,11 @@ local ctrl_descriptions, ctrl_active
 local light_table
 
 local GW, GH = 256, 192
+local battery_level
+local global_score
 
 function love.load()
-  -- castle.system.setDimensions("full") 
-  -- castle.system.setScalingModes(true, true)
+
   init_sugar("Remy & Eliott's Collection", GW, GH, 3)
   
   -- setting default game info
@@ -79,6 +80,15 @@ function love.load()
   _description = _description or "[please set a description!]"
   _controls = _controls or {}
   
+  local params = castle.game.getInitialParams()
+  
+  if params then 
+    battery_level = params.battery_level
+    global_score = params.global_score
+  end
+  battery_level = battery_level or 100
+  global_score = global_score or 0
+
   -- loading resources
   load_palette()
   load_font("framework/HungryPro.ttf", 16, "main", true)
@@ -107,7 +117,10 @@ end
 function love.draw()
   if _draw then _draw() end
   
+  draw_ui()
+  
   if in_controls then draw_controls_screen() return end
+  
 end
 
 
@@ -133,6 +146,18 @@ function update_controls_screen()
       in_controls = false
     end
   end
+end
+
+function draw_ui()
+  color(flr(t() * 10) + 1)
+  rectfill(0, 0, GW, GH/6)
+  rectfill(3, 3, GW-3, GH/6-3, 0)
+  outlined_glyph(0x70, 16, 16, 16, 16, a, _palette[2], _palette[3], 0)
+  print(":" .. battery_level .. "%", 7 + 16, 7, 29)  
+  local str = "SCORE:" .. global_score .. " "
+  print(str, GW - str_px_width(str) - 5, 7, 29  )
+  
+
 end
 
 function draw_controls_screen()
