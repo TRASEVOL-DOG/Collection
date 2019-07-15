@@ -25,6 +25,8 @@ _controls = {
 }
 
 local GW, GH = 0, 0
+local time_since_launch = 0
+local t = function() return time_since_launch or 0 end
 player = {x = 0, y = 0, w = 16, h = 16, a = 0}
 bubbles = {} -- bubbles around player
 bubble_timer = 1
@@ -84,7 +86,7 @@ end
 
 
 function _update()
-  
+  time_since_launch = time_since_launch + dt()
   update_player()
   
   update_targets()
@@ -172,8 +174,8 @@ function update_bullets()
     bullet.r = bullet.r - dt() * 2
     
     for i, target in pairs(targets) do
-      local t_y = get_rope_y_offset(ropes[target.rope + 1].y) + ropes[target.rope + 1].y
-      if dist(bullet.x, bullet.y, target.x, t_y) < 16 then
+      local t_y = get_rope_y_offset(ropes[target.rope + 1].y) + ropes[target.rope + 1].y + 8
+      if dist(bullet.x, bullet.y, target.x + 8, t_y) < 16 then
         targets[i] = nil      
         bullets[ind] = nil      
         give_points(20)
