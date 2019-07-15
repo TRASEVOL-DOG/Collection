@@ -25,6 +25,8 @@ _controls = {
 }
 
 local GW, GH = 0, 0
+local time_since_launch = 0
+local t = function() return time_since_launch or 0 end
 player = {x = 0, y = 0, w = 16, h = 16, a = 0}
 bubbles = {} -- bubbles around player
 bubble_timer = 1
@@ -84,7 +86,7 @@ end
 
 
 function _update()
-  
+  time_since_launch = time_since_launch + dt()
   update_player()
   
   update_targets()
