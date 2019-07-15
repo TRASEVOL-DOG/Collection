@@ -86,7 +86,9 @@ end
 
 
 function _update()
+
   time_since_launch = time_since_launch + dt()
+  
   update_player()
   
   update_targets()
@@ -95,9 +97,11 @@ function _update()
   
   update_bullets()
   
-  -- if btnp("A") or btnp("cur_rb") then
-    -- add(_objects, {spr = 0x03,  p = {x = btnv("cur_x"), y = btnv("cur_y")}})  
-  -- end
+  
+  
+  if btnp("A") or btnp("cur_rb") then
+    stop_targets = not stop_targets
+  end
   
   -- if btnp("cur_lb") then
     -- local i = 0
@@ -174,7 +178,7 @@ function update_bullets()
     bullet.r = bullet.r - dt() * 2
     
     for i, target in pairs(targets) do
-      local t_y = get_rope_y_offset(ropes[target.rope + 1].y) + ropes[target.rope + 1].y + 8
+      local t_y = get_rope_y_offset(ropes[target.rope + 1].y) + ropes[target.rope + 1].y
       if dist(bullet.x, bullet.y, target.x + 8, t_y) < 16 then
         targets[i] = nil      
         bullets[ind] = nil      
@@ -193,7 +197,7 @@ function update_targets()
   end  
   
   for ind, target in pairs(targets) do
-    target.x = target.x + target.speed * dt() * target.dir
+    target.x = target.x + (stop_targets and 0 or (target.speed * dt() * target.dir))
     if target.x < -32 or target.x > GW + 32 then
       targets[ind] = nil
     end    
@@ -344,7 +348,7 @@ function draw_targets()
     local y = get_rope_y_offset(target.x, ropes[target.rope + 1].step ) + ropes[target.rope + 1].y
     
     outlined_glyph(g_spr.target, target.x + 8, y + 2, 16, 16, 0, 0, 0, 0)
-    outlined_glyph(g_spr.target, target.x + 8, y , 16, 16, 0, _palette[2], _palette[3], 0)
+    outlined_glyph(g_spr.target, target.x + 8, y , 16, 16, 0, _palette[2], _palette[3], 0)    
   end
 end
 
