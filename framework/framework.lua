@@ -59,8 +59,8 @@ require("framework/game_list")
 sugar.utility.using_package(sugar.S, true)
 
 -- forward declarations (local):
-local load_palette, load_controls
-local update_controls
+local load_palette, load_controls, load_assets
+local update_controls, draw_cursor
 local init_controls_screen, update_controls_screen, draw_controls_screen
 local pause, update_pause, draw_pause
 
@@ -74,485 +74,540 @@ local battery_level
 local UI_battery_spr = 0x10
 local global_score
 
-function love.load()
 
-  init_sugar("Remy & Eliott's Collection", GW, GH, 3)
-  
-  -- setting default game info
-  _title = _title or "[please set a title!]"
-  _description = _description or "[please set a description!]"
-  _controls = _controls or {}
-  
-  local params = castle.game.getInitialParams()
-  
-  if params then 
-    battery_level = params.battery_level
-    global_score = params.global_score
-  end
-  battery_level = battery_level or 100
-  global_score = global_score or 0
+do -- love overloads (load, update, draw)
 
-  -- loading resources
-  load_palette()
-  load_font("framework/HungryPro.ttf", 16, "main", true)
-  load_font("sugarcoat/TeapotPro.ttf", 16, "second", true)
-  init_glyphs()
-  load_controls()
-  
-  -- futur games will be defined in init
-  -- for now, only return copy on game_list
-  -- this will surely change when games will need more info to be inited (spr info and preview etc)
-    reset_game_list_copy()
-  --
-  
-  init_controls_screen()
-  if _init then _init(GW, GH - UI_H) end
-end
-
-function love.update()
-  update_controls()
-  update_pause()
-  
-  if in_controls then update_controls_screen() return end
-  
-
-  if _update then _update() end
-  
-end
-
-function love.draw()
-
-	love.graphics.push()
-		love.graphics.translate(0,UI_H)
-    if _draw then _draw() end
-	love.graphics.pop()
-  
-  
-  draw_ui()
-  
-  if in_pause_t then draw_pause() end
-  
-  if in_controls then draw_controls_screen() return end
-  
-end
-
-
-
--- controls screen
-
-function init_controls_screen()
-  in_controls = 99
-
-
-end
-
-function update_controls_screen()
-  if in_controls == 99 then
-    if btnp("start") then
-      in_controls = 1
-      --in_controls = false
-    end
-  elseif in_controls then
-    in_controls = in_controls - dt()
+  function love.load()
+    init_sugar("Remy & Eliott's Collection", GW, GH, 3)
     
-    if in_controls <= 0 then
-      in_controls = false
-    end
-  end
-end
-
-function draw_ui()
-  color(flr(t() * 10) + 1)
-  
-  local y_offset = sin(t() / 2)*2
-  
-  rectfill(0, 0, GW, UI_H)
-  rectfill(3, 3, GW-3, UI_H-3, 0)
-  outlined_glyph(UI_battery_spr, 16, 16, 16, 16, a, _palette[2], _palette[3], 0)
-  print(":", 7 + 16, 7, 29)  
-  print(" " .. battery_level .. "%", 7 + 16, 7 + y_offset, 29)  
-  local str = "SCORE:"
-  local strc = "SCORE:" .. global_score .. " "
-  print(str, GW - str_px_width(strc) - 5, 7, 29  )
-  print(global_score .. " ", GW - str_px_width(global_score .. " ") - 5, 7 + y_offset, 29  )
-
-end
-
-function draw_controls_screen()
-  if in_controls == 99 then
-    cls(0)
-  else
-    local h = (2 * in_controls) * 192
+    log("Initializing Collection framework.", "o7")
     
-    for y = 0, 192, 32 do
-      local r = min((h - y) / 4, 32)
-      if r > 0 then
-        for x = y%64 / 2, 256, 32 do
-          circfill(x, y, r, 0)
-        end
+    -- setting default game info
+    _title = _title or "[please set a title!]"
+    _description = _description or "[please set a description!]"
+    _controls = _controls or {}
+    
+    local params = castle.game.getInitialParams()
+    
+    if params then 
+      battery_level = params.battery_level
+      global_score = params.global_score
+    end
+    battery_level = battery_level or 100
+    global_score = global_score or 0
+  
+    -- loading resources
+    load_assets()
+    load_controls()
+    
+    -- futur games will be defined in init
+    -- for now, only return copy on game_list
+    -- this will surely change when games will need more info to be inited (spr info and preview etc)
+      reset_game_list_copy()
+    --
+    
+    init_controls_screen()
+    
+    log("Done initializing Collection framework, launching game!", "o7")
+    
+    if _init then _init(GW, GH - UI_H) end
+  end
+  
+  function love.update()
+    update_controls()
+    update_pause()
+    
+    if in_controls then update_controls_screen() return end
+    
+  
+    if _update then _update() end
+    
+  end
+  
+  function love.draw()
+  
+  	love.graphics.push()
+  		love.graphics.translate(0,UI_H)
+      if _draw then _draw() end
+  	love.graphics.pop()
+    
+    
+    draw_ui()
+    
+    if in_pause_t then draw_pause() end
+    
+    if in_controls then draw_controls_screen() end
+    
+    draw_cursor()
+  end
+
+end
+
+
+do -- topbar
+
+  function draw_ui() -- placeholder + to be renamed
+    color(flr(t() * 10) + 1)
+    
+    local y_offset = sin(t() / 2)*2
+    
+    rectfill(0, 0, GW, UI_H)
+    rectfill(3, 3, GW-3, UI_H-3, 0)
+    outlined_glyph(UI_battery_spr, 16, 16, 16, 16, a, _palette[2], _palette[3], 0)
+    print(":", 7 + 16, 7, 29)  
+    print(" " .. battery_level .. "%", 7 + 16, 7 + y_offset, 29)  
+    local str = "SCORE:"
+    local strc = "SCORE:" .. global_score .. " "
+    print(str, GW - str_px_width(strc) - 5, 7, 29  )
+    print(global_score .. " ", GW - str_px_width(global_score .. " ") - 5, 7 + y_offset, 29  )
+  end
+
+end
+
+
+do -- controls screen
+
+  function init_controls_screen()
+    in_controls = 99
+  
+  
+  end
+  
+  local control_mode = 0
+  function update_controls_screen()
+    if in_controls == 99 then
+      if btnp("start") then
+        in_controls = 1
+        --in_controls = false
+      end
+    elseif in_controls then
+      in_controls = in_controls - dt()
+      
+      if in_controls <= 0 then
+        in_controls = false
       end
     end
-    
-    local y = cos(0.3 - in_controls * 0.3) * 200 - 200
-    camera(0, -y)
   end
   
-  printp(0x0000, 0x0100, 0x0200, 0x0300)
-  printp_color(29, 19, 3)
   
-  local x,y = 0, 8
-  local space1, space2 = 16, 28
-  
-  x = (screen_w() - str_px_width(_title)) / 2
---  pprint(_title, x, y)
-  for i = 1, #_title do
-    local y = y + 1.5*cos(-t() + i/10)
-    local c = _title:sub(i,i)
-    pprint(c, x, y)
-    x = x + str_px_width(c)
-  end
-  
-  x = (screen_w() - str_px_width(_description)) / 2
-  y = y + space2
-  pprint(_description, x, y)
-
-  y = y + space2
-  
-  local controls_icons = { up = 0, left = 1, down = 2, right = 3, A = 4, B = 5, cur_x = 6, cur_y = 6, cur_lb = 7, cur_rb = 8 }
-  
-  spritesheet("controls")
-  
-  local mwa, mwb = 0, 0
-  for _, d in ipairs(ctrl_descriptions) do
-    local str, w = " : "..d[2], 0
-    for _, v in ipairs(d[1]) do
-      w = w + 17
-    end
-    w = w - 7
-
-    mwa = max(mwa, w)
-    mwb = max(mwb, str_px_width(str))
-  end
-  
-  local x = (screen_w() - mwa - mwb) / 2 + mwa
-  
-  for _, d in ipairs(ctrl_descriptions) do
-    local str, w = " : "..d[2], 0
-    for _, v in ipairs(d[1]) do
-      w = w + 17
-    end
-    w = w - 7
-    
-    local x = x - w
-    
-    for _, v in ipairs(d[1]) do
-      spr(controls_icons[v] + flr(t()/2 % 3) * 16, x, y)
-      x = x + 17
-    end
-    
-    pprint(str, x, y)
-    
-    y = y + space1
-  end
-  
-  if t()%1 < 0.75 then
-    local str = "Press START to continue!"
-    x = (screen_w() - str_px_width(str)) / 2
-    y = screen_h() - 16
-    pprint(str, x, y)
-  end
-  
-  spritesheet("glyphs")
-  
-  camera()
-end
-
-
--- pause
-
-function pause()
-  if in_pause then
-    in_pause = false
-
-    castle.uiupdate = false
-  else
-    in_pause = true
-    in_pause_t = in_pause_t or 0
-  
-    castle.uiupdate = ui_panel
-  end
-end
-
-function update_pause()
-  if btnp("start") and in_controls ~= 99 then
-    pause()
-  end
-
-  if in_pause then
-    in_pause_t = min(in_pause_t + 2 * dt(), 1)
-  elseif in_pause_t then
-    in_pause_t = in_pause_t - 2 * dt()
-    if in_pause_t < 0 then
-      in_pause_t = nil
-    end
-  end
-end
-
-function draw_pause()
-  spritesheet("screen_dither")
-  pal(1, 0)
-  palt(0, true)
-  
-  if in_pause_t < 1 then
-    local h = 1.2 * in_pause_t * 192 * 2 - 32
-    
-    -- do the transition here
-    for y = h%32 - 32, min(h, 192)-1, 32 do
-      local v = mid(flr((h - y) / 32), 0, 3)
-      
-      spr(v * 32, 0, y, 16, 2)
-    end
-    
-    local y = sqr(cos(0.3 - in_pause_t * 0.3)) * 192 - 192
-    camera(0, -y)
-  else
-    -- do the complete screen obscuring here
-    for y = 0, 192-1, 32 do
-      spr(96, 0, y, 16, 2)
-    end
-  end
-  
-  pal(1, 1)
-  spritesheet("glyphs")
-  
-  printp(0x3330, 0x3130, 0x3230, 0x3330)
-  printp_color(29, 19, 0)
-  
-  local str = "Pause!"
-  local x, y = (screen_w() - str_px_width(str))/2, screen_h()/2 - 8
-  for i = 1, #str do
-    local ch = str:sub(i,i)
-    pprint(ch, x, y + 2.5*cos(-t() + i/6))
-    x = x + str_px_width(ch)
-  end
-  
-  camera()
-end
-
-function ui_panel()
-  local ui = castle.ui
-  ui.markdown("### ".._title.."/n".._description)
-  ui.markdown(_description)
-
-end
-
-
-
--- palette & glyphs
-
-function load_palette()
-  local palette = {  -- "Glassworks", by Trasevol_Dog B-)
-    0x000000, 0x000020, 0x330818, 0x1a0f4d,
-    0x990036, 0x660000, 0x992e00, 0x332708,
-    0x001c12, 0x00591b, 0x118f45, 0x998a26,
-    0xff2600, 0xff8c00, 0xffff33, 0x6de622,
-    0x0fff9f, 0x00ace6, 0x2e00ff, 0x772e99,
-    0xb319ff, 0xff4f75, 0xff9999, 0xffc8a3,
-    0xfeffad, 0xb1ff96, 0x99fff5, 0xbcb6e3,
-    0xebebeb, 0xffffff
-  }
-  
-  use_palette(palette)
-end
-
-function init_glyphs()
-  load_png("glyphs", "framework/glyphs.png", { 0x000000, 0xffffff, 0x888888}, true)
-  spritesheet_grid(16, 16)
-  palt(0, true)
-end
-
-function glyph(n, x, y, width, height, angle, color_a, color_b)
-  width = width or 16
-  height = height or 16
-  angle = angle or 0
-
-  pal(1, color_a or 0)
-  pal(2, color_b or 0)
-  aspr(n, x, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
-  pal(1, 1)
-  pal(2, 2)
-end
-
-function outlined_glyph(n, x, y, width, height, angle, color_a, color_b, outline_color)
-  width = width or 16
-  height = height or 16
-  angle = angle or 0
-
-  pal(1, outline_color)
-  pal(2, outline_color)
-  aspr(n, x-1, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
-  aspr(n, x+1, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
-  aspr(n, x, y-1, angle, 1, 1, 0.5, 0.5, width/16, height/16)
-  aspr(n, x, y+1, angle, 1, 1, 0.5, 0.5, width/16, height/16)
-
-  pal(1, color_a or 0)
-  pal(2, color_b or 0)
-  aspr(n, x, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
-  pal(1, 1)
-  pal(2, 2)
-end
-
-
-
-
--- controls system
-
-local cur_x, cur_y, m_x, m_y = 0, 0, 0, 0
-local s_btn, s_btnv = btn, btnv
-function update_controls()
-  for k, d in pairs(ctrl_active) do
-    d.pstate = d.state
-    
-    if k == "left" then
-      d.value = s_btnv("left") - min(s_btnv("lx_axis"), 0)
-      d.state = d.value > 0
-    elseif k == "right" then
-      d.value = s_btnv("right") + max(s_btnv("lx_axis"), 0)
-      d.state = d.value > 0
-    elseif k == "up" then
-      d.value = s_btnv("up") - min(s_btnv("ly_axis"), 0)
-      d.state = d.value > 0
-    elseif k == "down" then
-      d.value = s_btnv("down") + max(s_btnv("ly_axis"), 0)
-      d.state = d.value > 0
-    elseif k == "cur_x" then
-      d.value = d.value + 3* s_btnv("rx_axis")
-      d.state = s_btn("rx_axis")
-      
-      local n_x = s_btnv("cur_x")
-      if n_x ~= m_x then
-        m_x, d.value = n_x, n_x
-        d.state = true
-      end
-    elseif k == "cur_y" then
-      d.value = d.value + 3* s_btnv("ry_axis")
-      d.state = s_btn("ry_axis")
-      
-      local n_y = s_btnv("cur_y")
-      if n_y ~= m_y then
-        m_y, d.value = n_y, n_y
-        d.state = true
-      end
+  function draw_controls_screen() -- /!\ messy code
+    if in_controls == 99 then
+      cls(16)
     else
-      d.value = s_btnv(k)
-      d.state = s_btn(k)
-    end
-  end
-end
-
-function btn(k)
-  local d = ctrl_active[k]
-  return d and d.state
-end
-
-function btnp(k)
-  local d = ctrl_active[k]
-  return d and d.state and not d.pstate
-end
-
-function btnr(k)
-  local d = ctrl_active[k]
-  return d and d.pstate and not d.state
-end
-
-function btnv(k)
-  local d = ctrl_active[k]
-  return d and d.value or 0
-end
-
-function load_controls()
-  load_png("controls", "framework/controls.png")
-  load_png("screen_dither", "framework/screen_dither.png", { 0x000000, 0xffffff })
-
-  local bindings = {
-    left   = { input_id("keyboard_scancode", "left"),
-               input_id("keyboard_scancode", "a"),
-               input_id("controller_button", "dpleft") },
-    right  = { input_id("keyboard_scancode", "right"),
-               input_id("keyboard_scancode", "d"),
-               input_id("controller_button", "dpright") },
-    up     = { input_id("keyboard_scancode", "up"),
-               input_id("keyboard_scancode", "w"),
-               input_id("controller_button", "dpup") },
-    down   = { input_id("keyboard_scancode", "down"),
-               input_id("keyboard_scancode", "s"),
-               input_id("controller_button", "dpdown") },
-    
-    lx_axis = { input_id("controller_axis", "leftx") },
-    ly_axis = { input_id("controller_axis", "lefty") },
-    
-    A =      { input_id("keyboard_scancode", "z"),
-               input_id("keyboard_scancode", "rshift"),
-               input_id("controller_button", "a") },
-    B =      { input_id("keyboard_scancode", "x"),
-               input_id("keyboard_scancode", "return"),
-               input_id("controller_button", "b") },
-
-    cur_x  = { input_id("mouse_position", "x") },
-    cur_y  = { input_id("mouse_position", "y") },
-    
-    cur_lb = { input_id("mouse_button", "lb"),
-               input_id("controller_button", "rightshoulder") },
-    cur_rb = { input_id("mouse_button", "rb"),
-               input_id("controller_axis", "triggerright") },
-
-    rx_axis = { input_id("controller_axis", "rightx") },
-    ry_axis = { input_id("controller_axis", "righty") }
-  }
-  
-  player_assign_ctrlr(0, 0)
-  
-  ctrl_descriptions, ctrl_active = {}, {}
-  
-  for k, desc in pairs(_controls) do
-    if not bindings[k] then
-      error("There are no bindings for control '"..k.."'. Please only use the controls made available by the framework.")
-    end
-  
-    local b = true
-    for _,v in pairs(ctrl_descriptions) do
-      if v[2] == desc then
-        b = false
-        
-        local bb = false -- code below avoids having both cur_x and cur_y in the description table, as they have the same icons.
-        if k == "cur_x" or k == "cur_y" then
-          for _,vb in pairs(v[1]) do
-            bb = bb or vb == "cur_x" or vb == "cur_y"
+      local h = (2 * in_controls) * 192
+      
+      for y = 0, 192, 32 do
+        local r = min((h - y) / 4, 32)
+        if r > 0 then
+          for x = y%64 / 2, 256, 32 do
+            circfill(x, y, r, 0)
           end
         end
+      end
+      
+      local y = cos(0.3 - in_controls * 0.3) * 200 - 200
+      camera(0, -y)
+    end
+    
+    printp(0x0000, 0x0100, 0x0200, 0x0300)
+    printp_color(29, 19, 3)
+    
+    local x,y = 0, 0
+    local space1, space2 = 16, 28
+    
+    x = (screen_w() - str_px_width(_title)) / 2
+  --  pprint(_title, x, y)
+    for i = 1, #_title do
+      local y = y + 1.5*cos(-t() + i/10)
+      local c = _title:sub(i,i)
+      pprint(c, x, y)
+      x = x + str_px_width(c)
+    end
+    
+    x = (screen_w() - str_px_width(_description)) / 2
+    y = y + space2
+    pprint(_description, x, y)
+  
+    y = y + space2
+    
+    local controls_icons = { up = 0, left = 1, down = 2, right = 3, A = 4, B = 5, cur_x = 6, cur_y = 6, cur_lb = 7, cur_rb = 8 }
+    
+    spritesheet("controls")
+    
+    
+    
+    
+    
+    local mwa, mwb = 0, 0
+    for _, d in ipairs(ctrl_descriptions) do
+      local str, w = " : "..d[2], 0
+      for _, v in ipairs(d[1]) do
+        w = w + 17
+      end
+      w = w - 7
+  
+      mwa = max(mwa, w)
+      mwb = max(mwb, str_px_width(str))
+    end
+    
+    local x = (screen_w() - mwa - mwb) / 2 + mwa
+    
+    for _, d in ipairs(ctrl_descriptions) do
+      local str, w = " : "..d[2], 0
+      for _, v in ipairs(d[1]) do
+        w = w + 17
+      end
+      w = w - 7
+      
+      local x = x - w
+      
+      for _, v in ipairs(d[1]) do
+        spr(controls_icons[v] + flr(t()/2 % 3) * 16, x, y)
+        x = x + 17
+      end
+      
+      pprint(str, x, y)
+      
+      y = y + space1
+    end
+    
+    if t()%1 < 0.75 then
+      local str = "Press START to continue!"
+      x = (screen_w() - str_px_width(str)) / 2
+      y = screen_h() - 16
+      pprint(str, x, y)
+    end
+    
+    spritesheet("glyphs")
+    
+    camera()
+  end
+
+end
+
+
+do -- pause
+
+  function pause()
+    if in_pause then
+      in_pause = false
+  
+      castle.uiupdate = false
+    else
+      in_pause = true
+      in_pause_t = in_pause_t or 0
+    
+      castle.uiupdate = ui_panel
+    end
+  end
+  
+  function update_pause()
+    if btnp("start") and in_controls ~= 99 then
+      pause()
+    end
+  
+    if in_pause then
+      in_pause_t = min(in_pause_t + 2 * dt(), 1)
+    elseif in_pause_t then
+      in_pause_t = in_pause_t - 2 * dt()
+      if in_pause_t < 0 then
+        in_pause_t = nil
+      end
+    end
+  end
+  
+  function draw_pause()
+    spritesheet("screen_dither")
+    pal(1, 0)
+    palt(0, true)
+    
+    if in_pause_t < 1 then
+      local h = 1.2 * in_pause_t * 192 * 2 - 32
+      
+      -- do the transition here
+      for y = h%32 - 32, min(h, 192)-1, 32 do
+        local v = mid(flr((h - y) / 32), 0, 3)
         
-        if not bb then
-          add(v[1], k)
-        end
+        spr(v * 32, 0, y, 16, 2)
+      end
+      
+      local y = sqr(cos(0.3 - in_pause_t * 0.3)) * 192 - 192
+      camera(0, -y)
+    else
+      -- do the complete screen obscuring here
+      for y = 0, 192-1, 32 do
+        spr(96, 0, y, 16, 2)
       end
     end
     
-    if b then
-      add(ctrl_descriptions, { {k}, desc})
-    end
-  end
-
-  for k, d in pairs(bindings) do
-    if k ~= "lx_axis" and k ~= "ly_axis" and k ~= "rx_axis" and k ~= "ry_axis" then
-      ctrl_active[k] = { state = false, pstate = false, value = 0}
+    pal(1, 1)
+    spritesheet("glyphs")
+    
+    printp(0x3330, 0x3130, 0x3230, 0x3330)
+    printp_color(29, 19, 0)
+    
+    local str = "Pause!"
+    local x, y = (screen_w() - str_px_width(str))/2, screen_h()/2 - 8
+    for i = 1, #str do
+      local ch = str:sub(i,i)
+      pprint(ch, x, y + 2.5*cos(-t() + i/6))
+      x = x + str_px_width(ch)
     end
     
-    register_btn(k, 0, d)
+    camera()
+  end
+  
+  function ui_panel()
+    local ui = castle.ui
+    ui.markdown("### ".._title.."/n".._description)
+    ui.markdown(_description)
+  
   end
 
-  register_btn("start", 0, { input_id("keyboard_scancode", "return"),
-                             input_id("controller_button", "start") })
-  ctrl_active["start"] = { state = false, pstate = false, value = 0}
+end
+
+
+do -- palette & glyphs
+
+  function load_palette()
+    local palette = {  -- "Glassworks", by Trasevol_Dog B-)
+      0x000000, 0x000020, 0x330818, 0x1a0f4d,
+      0x990036, 0x660000, 0x992e00, 0x332708,
+      0x001c12, 0x00591b, 0x118f45, 0x998a26,
+      0xff2600, 0xff8c00, 0xffff33, 0x6de622,
+      0x0fff9f, 0x00ace6, 0x2e00ff, 0x772e99,
+      0xb319ff, 0xff4f75, 0xff9999, 0xffc8a3,
+      0xfeffad, 0xb1ff96, 0x99fff5, 0xbcb6e3,
+      0xebebeb, 0xffffff
+    }
+    
+    use_palette(palette)
+    
+    log("Using the Glassworks palette.", "o7")
+  end
+  
+  function glyph(n, x, y, width, height, angle, color_a, color_b)
+    width = width or 16
+    height = height or 16
+    angle = angle or 0
+  
+    pal(1, color_a or 0)
+    pal(2, color_b or 0)
+    aspr(n, x, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+    pal(1, 1)
+    pal(2, 2)
+  end
+  
+  function outlined_glyph(n, x, y, width, height, angle, color_a, color_b, outline_color)
+    width = width or 16
+    height = height or 16
+    angle = angle or 0
+  
+    pal(1, outline_color)
+    pal(2, outline_color)
+    aspr(n, x-1, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+    aspr(n, x+1, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+    aspr(n, x, y-1, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+    aspr(n, x, y+1, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+  
+    pal(1, color_a or 0)
+    pal(2, color_b or 0)
+    aspr(n, x, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+    pal(1, 1)
+    pal(2, 2)
+  end
+
+end
+
+
+do -- controls system
+
+  local cur_x, cur_y, m_x, m_y = 0, 0, 0, 0
+  local s_btn, s_btnv = btn, btnv
+  function update_controls()
+    for k, d in pairs(ctrl_active) do
+      d.pstate = d.state
+      
+      if k == "left" then
+        d.value = s_btnv("left") - min(s_btnv("lx_axis"), 0)
+        d.state = d.value > 0
+      elseif k == "right" then
+        d.value = s_btnv("right") + max(s_btnv("lx_axis"), 0)
+        d.state = d.value > 0
+      elseif k == "up" then
+        d.value = s_btnv("up") - min(s_btnv("ly_axis"), 0)
+        d.state = d.value > 0
+      elseif k == "down" then
+        d.value = s_btnv("down") + max(s_btnv("ly_axis"), 0)
+        d.state = d.value > 0
+      elseif k == "cur_x" then
+        d.value = d.value + 3* s_btnv("rx_axis")
+        d.state = s_btn("rx_axis")
+        
+        local n_x = s_btnv("cur_x")
+        if n_x ~= m_x then
+          m_x, d.value = n_x, n_x
+          d.state = true
+        end
+      elseif k == "cur_y" then
+        d.value = d.value + 3* s_btnv("ry_axis")
+        d.state = s_btn("ry_axis")
+        
+        local n_y = s_btnv("cur_y")
+        if n_y ~= m_y then
+          m_y, d.value = n_y, n_y
+          d.state = true
+        end
+      else
+        d.value = s_btnv(k)
+        d.state = s_btn(k)
+      end
+    end
+  end
+  
+  function btn(k)
+    local d = ctrl_active[k]
+    return d and d.state
+  end
+  
+  function btnp(k)
+    local d = ctrl_active[k]
+    return d and d.state and not d.pstate
+  end
+  
+  function btnr(k)
+    local d = ctrl_active[k]
+    return d and d.pstate and not d.state
+  end
+  
+  function btnv(k)
+    local d = ctrl_active[k]
+    return d and d.value or 0
+  end
+  
+  function load_controls()
+    local bindings = {
+      left   = { input_id("keyboard_scancode", "left"),
+                 input_id("keyboard_scancode", "a"),
+                 input_id("controller_button", "dpleft") },
+      right  = { input_id("keyboard_scancode", "right"),
+                 input_id("keyboard_scancode", "d"),
+                 input_id("controller_button", "dpright") },
+      up     = { input_id("keyboard_scancode", "up"),
+                 input_id("keyboard_scancode", "w"),
+                 input_id("controller_button", "dpup") },
+      down   = { input_id("keyboard_scancode", "down"),
+                 input_id("keyboard_scancode", "s"),
+                 input_id("controller_button", "dpdown") },
+      
+      lx_axis = { input_id("controller_axis", "leftx") },
+      ly_axis = { input_id("controller_axis", "lefty") },
+      
+      A =      { input_id("keyboard_scancode", "z"),
+                 input_id("keyboard_scancode", "rshift"),
+                 input_id("controller_button", "a") },
+      B =      { input_id("keyboard_scancode", "x"),
+                 input_id("keyboard_scancode", "return"),
+                 input_id("controller_button", "b") },
+  
+      cur_x  = { input_id("mouse_position", "x") },
+      cur_y  = { input_id("mouse_position", "y") },
+      
+      cur_lb = { input_id("mouse_button", "lb"),
+                 input_id("controller_button", "rightshoulder") },
+      cur_rb = { input_id("mouse_button", "rb"),
+                 input_id("controller_axis", "triggerright") },
+  
+      rx_axis = { input_id("controller_axis", "rightx") },
+      ry_axis = { input_id("controller_axis", "righty") }
+    }
+    
+    player_assign_ctrlr(0, 0)
+    
+    ctrl_descriptions, ctrl_active = {}, {}
+    
+    for k, desc in pairs(_controls) do
+      if not bindings[k] then
+        error("There are no bindings for control '"..k.."'. Please only use the controls made available by the framework.")
+      end
+    
+      local b = true
+      for _,v in pairs(ctrl_descriptions) do
+        if v[2] == desc then
+          b = false
+          
+          local bb = false -- code below avoids having both cur_x and cur_y in the description table, as they have the same icons.
+          if k == "cur_x" or k == "cur_y" then
+            for _,vb in pairs(v[1]) do
+              bb = bb or vb == "cur_x" or vb == "cur_y"
+            end
+          end
+          
+          if not bb then
+            add(v[1], k)
+          end
+        end
+      end
+      
+      if b then
+        add(ctrl_descriptions, { {k}, desc})
+      end
+    end
+  
+    for k, d in pairs(bindings) do
+      if k ~= "lx_axis" and k ~= "ly_axis" and k ~= "rx_axis" and k ~= "ry_axis" then
+        ctrl_active[k] = { state = false, pstate = false, value = 0}
+      end
+      
+      register_btn(k, 0, d)
+    end
+  
+    register_btn("start", 0, { input_id("keyboard_scancode", "return"),
+                               input_id("controller_button", "start") })
+    ctrl_active["start"] = { state = false, pstate = false, value = 0}
+    
+    log("Finished registering all controls!", "o7")
+  end
+
+end
+
+
+do -- misc
+
+  function draw_cursor()
+    palt(0, false)
+    palt(16, true)
+    spritesheet("controls")
+    
+    local mx, my = btnv("cur_x"), btnv("cur_y")
+    if btn("cur_lb") then
+      spr(51, mx, my)
+    else
+      spr(50, mx, my)
+    end
+    spr(btn("cur_lb") and 51 or 50, btnv("cur_x"), btnv("cur_y"))
+    
+    spritesheet("glyphs")
+    palt(0, true)
+    palt(16, false)
+  end
+  
+  function load_assets()
+    load_palette()
+  
+    load_font("framework/HungryPro.ttf", 16, "main", true)
+    load_font("sugarcoat/TeapotPro.ttf", 16, "second", true) -- obsolete, should be removed
+    
+    load_png("glyphs", "framework/glyphs.png", { 0x000000, 0xffffff, 0x888888}, true)
+    load_png("screen_dither", "framework/screen_dither.png", { 0x000000, 0xffffff })
+    load_png("controls", "framework/controls.png")
+    
+    spritesheet_grid(16, 16)
+    palt(0, true)
+    
+    log("All framework assets loaded!", "o7")
+  end
+
 end
 
 
