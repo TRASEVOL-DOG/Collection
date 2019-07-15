@@ -118,10 +118,9 @@ do -- love overloads (load, update, draw)
     update_pause()
     
     if in_controls then update_controls_screen() return end
-    
+    if in_pause then return end
   
     if _update then _update() end
-    
   end
   
   function love.draw()
@@ -174,11 +173,22 @@ do -- controls screen
   end
   
   local control_mode = 0
+  local mode_x, mode_y, mode_hover = 128-32, 48, false
   function update_controls_screen()
     if in_controls == 99 then
       if btnp("start") then
         in_controls = 1
         --in_controls = false
+      end
+      
+      local mx, my = btnv("cur_x"), btnv("cur_y")
+      if mx >= mode_x and mx < mode_x+64 and my >= mode_y and my < mode_y+16 then
+        mode_hover = true
+        if btnp("cur_lb") then
+          control_mode = (control_mode + 1) % 3
+        end
+      else
+        mode_hover = false
       end
     elseif in_controls then
       in_controls = in_controls - dt()
@@ -192,7 +202,7 @@ do -- controls screen
   
   function draw_controls_screen() -- /!\ messy code
     if in_controls == 99 then
-      cls(16)
+      cls(0)
     else
       local h = (2 * in_controls) * 192
       
@@ -213,7 +223,7 @@ do -- controls screen
     printp_color(29, 19, 3)
     
     local x,y = 0, 0
-    local space1, space2 = 16, 28
+    local space1, space2 = 16, 25
     
     x = (screen_w() - str_px_width(_title)) / 2
   --  pprint(_title, x, y)
@@ -235,12 +245,16 @@ do -- controls screen
     spritesheet("controls")
     
     
+    spr(9 + 16*control_mode, mode_x, mode_y, 4, 1)
+    if mode_hover then
+      spr(btn("cur_lb") and 60 or 56, mode_x, mode_y, 4, 1)
+    end
     
-    
+    y = y + space1
     
     local mwa, mwb = 0, 0
     for _, d in ipairs(ctrl_descriptions) do
-      local str, w = " : "..d[2], 0
+      local str, w = ": "..d[2], 0
       for _, v in ipairs(d[1]) do
         w = w + 17
       end
@@ -262,7 +276,7 @@ do -- controls screen
       local x = x - w
       
       for _, v in ipairs(d[1]) do
-        spr(controls_icons[v] + flr(t()/2 % 3) * 16, x, y)
+        spr(controls_icons[v] + control_mode * 16, x, y)
         x = x + 17
       end
       
@@ -272,7 +286,13 @@ do -- controls screen
     end
     
     if t()%1 < 0.75 then
-      local str = "Press START to continue!"
+      local str
+      if control_mode == 2 then
+        str = "Press START to continue!"
+      else
+        str = "Press E/Enter to continue!"
+      end
+      
       x = (screen_w() - str_px_width(str)) / 2
       y = screen_h() - 16
       pprint(str, x, y)
@@ -563,7 +583,9 @@ do -- controls system
     end
   
     register_btn("start", 0, { input_id("keyboard_scancode", "return"),
+                               input_id("keyboard_scancode", "e"),
                                input_id("controller_button", "start") })
+                               
     ctrl_active["start"] = { state = false, pstate = false, value = 0}
     
     log("Finished registering all controls!", "o7")
