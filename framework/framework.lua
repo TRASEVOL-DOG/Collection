@@ -77,7 +77,6 @@ local light_table
 local cursor_is_visible = true
 
 local battery_level
-local UI_battery_spr = 0x10
 local global_score
 
 do -- love overloads (load, update, draw)
@@ -428,7 +427,7 @@ do -- pause
   
   function ui_panel()
     local ui = castle.ui
-    ui.markdown("### ".._title.."/n".._description)
+    ui.markdown("### ".._title.."\n".._description)
     ui.markdown(_description)
   
   end
@@ -687,7 +686,7 @@ do -- misc
 end
 
 
-function give_points( points)
-  if not points or not global_score then return end
-  global_score = global_score + points
-end
+-- function give_points( points)
+  -- if not points or not global_score then return end
+  -- global_score = global_score + points
+-- end

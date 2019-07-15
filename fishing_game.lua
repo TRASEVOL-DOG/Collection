@@ -24,9 +24,12 @@ _controls = {
   [ "cur_rb" ] = "Send movie to director!"
 }
 
+_score = 0
+
 local GW, GH = 0, 0
 local time_since_launch = 0
 local t = function() return time_since_launch or 0 end
+
 player = {x = 0, y = 0, w = 16, h = 16, a = 0}
 bubbles = {} -- bubbles around player
 bubble_timer = 1
@@ -62,7 +65,7 @@ function _init()
   init_ground() 
   init_ropes() 
   
-  make_cursor_visible(false)
+  -- make_cursor_visible(false)
   
   -- began_game_over = true
   
@@ -99,27 +102,26 @@ function _update()
   
   update_bullets()
   
-  
-  
+ 
   if btnp("A") or btnp("cur_rb") then
-    stop_targets = not stop_targets
+    -- stop_targets = not stop_targets
   end
   
-  -- if btnp("cur_lb") then
-    -- local i = 0
-    -- for id, game in pairs(get_game_list()) do
-      -- local x = GW / 6 + i * GW/3
-      -- local y = 50
+  if btnp("cur_lb") then
+    local i = 0
+    for id, game in pairs(get_game_list()) do
+      local x = GW / 6 + i * GW/3
+      local y = 50
       
-      -- local x_mouse = btnv("cur_x")
-      -- local y_mouse = btnv("cur_y")
+      local x_mouse = btnv("cur_x")
+      local y_mouse = btnv("cur_y")
       
-      -- if point_in_rect(x_mouse, y_mouse, x, y, x + 15, y + 15) then load_game(id) end  
+      if point_in_rect(x_mouse, y_mouse, x, y, x + 15, y + 15) then load_game(id) end  
       
-      -- i = i + 1
+      i = i + 1
       
-    -- end
-  -- end
+    end
+  end
   
   if remaining_targets == 0 and count(targets) == 0 and not began_game_over then
     began_game_over = true
@@ -232,18 +234,18 @@ function _draw()
     
   -- list of games
   -- this should be in end screen of framework, testing purpose only
-    -- local i = 0
-    -- local col = _palette[5]
-    -- color(col)
-    -- for id, game in pairs(get_game_list()) do
-      -- local x = GW / 6 + i * GW/3
-      -- local y = 50
-      -- color(col)
-      -- print(id, x, y)
-      -- print(game.name, x - str_px_width(game.name)/2, y + 15)
-      -- rectfill(x, y, x + 15, y + 15, col)
-      -- i = i + 1
-    -- end
+    local i = 0
+    local col = _palette[5]
+    color(col)
+    for id, game in pairs(get_game_list()) do
+      local x = GW / 6 + i * GW/3
+      local y = 50
+      color(col)
+      print(id, x, y)
+      print(game.name, x - str_px_width(game.name)/2, y + 15)
+      rectfill(x, y, x + 15, y + 15, col)
+      i = i + 1
+    end
   --
   
   draw_ground()
@@ -392,6 +394,11 @@ end
 
 function draw_mouse()
   outlined_glyph(g_spr.mouse, btnv("cur_x"), btnv("cur_y"), 8 , 8 , 0, _palette[4], _palette[5], 0)
+end
+
+function give_points( points)
+  if not points or not _score then return end
+  _score = _score + points
 end
 
 function point_in_rect(xp, yp, x1, y1, x2, y2)
