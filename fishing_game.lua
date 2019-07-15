@@ -62,6 +62,8 @@ function _init()
   init_ground() 
   init_ropes() 
   
+  make_cursor_visible(false)
+  
   -- began_game_over = true
   
 end
@@ -256,6 +258,7 @@ function _draw()
   
   draw_bullets()  
   draw_bubbles()  
+  
   draw_mouse()
   
   if began_game_over then
@@ -383,7 +386,7 @@ function draw_remaining()
   
   x = x + 17
   
-  pprint(": " .. remaining_targets, x, y)
+  pprint(": " .. remaining_targets + count(targets), x, y)
 
 end
 
