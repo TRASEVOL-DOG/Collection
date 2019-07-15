@@ -31,7 +31,7 @@ function get_game_list()
   return _game_list_copy
 end
 
-function load_game(key, loading_with_name)
+function load_game(key, loading_with_name, params)
 
   local path
     
@@ -42,20 +42,18 @@ function load_game(key, loading_with_name)
   end
   if path then
   
-    local params = castle.game.getInitialParams()
-    local battery_level
-    local global_score
+    -- local params = castle.game.getInitialParams()
+    -- local battery_level
+    -- local global_score
     
-    if params then 
-      battery_level = params.battery_level or 100
-      global_score = params.global_score or 0    
-    end
+    -- if params then 
+      -- battery_level = params.battery_level or 100
+      -- global_score = params.global_score or 0    
+    -- end
     
     castle.game.load(
-        path, {
-        battery_level = battery_level,
-        global_score = global_score
-      }
+        path, 
+        params
     )
     
   end

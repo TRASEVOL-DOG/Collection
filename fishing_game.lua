@@ -116,7 +116,11 @@ function _update()
       local x_mouse = btnv("cur_x")
       local y_mouse = btnv("cur_y")
       
-      if point_in_rect(x_mouse, y_mouse, x, y, x + 15, y + 15) then load_game(id) end  
+      if point_in_rect(x_mouse, y_mouse, x, y, x + 15, y + 15) then 
+        load_game(id, false, {battery_level = (battery_level or 100) - 10, 
+                              global_score = (global_score or 0) + _score,
+                             })       
+      end  
       
       i = i + 1
       
@@ -254,6 +258,7 @@ function _draw()
   draw_player()  
   
   draw_remaining()
+  draw_score()
   
   draw_ropes()
   draw_targets()
@@ -390,6 +395,15 @@ function draw_remaining()
   
   pprint(": " .. remaining_targets + count(targets), x, y)
 
+end
+
+function draw_score()
+
+  local x = GW / 2 - 60
+  local y = GH / 2 + sin(t() / 4) * 2 + 16
+
+  pprint("Score : " .. _score, x, y)
+  
 end
 
 function draw_mouse()

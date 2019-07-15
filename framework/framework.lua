@@ -684,9 +684,3 @@ do -- misc
   end
 
 end
-
-
--- function give_points( points)
-  -- if not points or not global_score then return end
-  -- global_score = global_score + points
--- end
