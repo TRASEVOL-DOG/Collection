@@ -47,20 +47,16 @@
 ----- ui bar
 ---
 
-if not first_time_launch then
-  if CASTLE_PREFETCH then
-    CASTLE_PREFETCH({
-      "sugarcoat/sugarcoat.lua",
-      "framework/glyphs.png",
-      "framework/HungryPro.ttf"
-    })
-  end
-  require("sugarcoat/sugarcoat")
-  require("framework/game_list")
-  sugar.utility.using_package(sugar.S, true)
-else
-  require("game_list")
+if CASTLE_PREFETCH then
+  CASTLE_PREFETCH({
+    "sugarcoat/sugarcoat.lua",
+    "framework/glyphs.png",
+    "framework/HungryPro.ttf"
+  })
 end
+require("sugarcoat/sugarcoat")
+require("framework/game_list")
+sugar.utility.using_package(sugar.S, true)
 
 -- forward declarations (local):
 local load_palette, load_controls
@@ -73,40 +69,44 @@ local ctrl_descriptions, ctrl_active
 local light_table
 
 local GW, GH = 256, 192
+local UI_H = GH/6
+local battery_level
+local UI_battery_spr = 0x10
+local global_score
 
 function love.load()
-  if first_time_launch then -- global variable in .castle linked main
-    _init       = function ()
-                    local game_id = get_id_from_name(game_name)
-                    launch_game(game_id)            
-                  end
-    love.update = function () end
-    love.draw   = function () end
-    
-  else -- inside collection loop of game.
-    init_sugar("Remy & Eliott's Collection", GW, GH, 3)
-    
-    -- setting default game info
-    _title = _title or "[please set a title!]"
-    _description = _description or "[please set a description!]"
-    _controls = _controls or {}
-    
-    -- loading resources
-    load_palette()
-    load_font("framework/HungryPro.ttf", 16, "main", true)
-    load_font("sugarcoat/TeapotPro.ttf", 16, "second", true)
-    init_glyphs()
-    load_controls()
-    
-    -- futur games will be defined in init
-    -- for now, only return copy on game_list
-    -- this will surely change when games will need more info to be inited (spr info and preview etc)
-      reset_game_list_copy()
-    --
-    
-    init_controls_screen()
+
+  init_sugar("Remy & Eliott's Collection", GW, GH, 3)
+  
+  -- setting default game info
+  _title = _title or "[please set a title!]"
+  _description = _description or "[please set a description!]"
+  _controls = _controls or {}
+  
+  local params = castle.game.getInitialParams()
+  
+  if params then 
+    battery_level = params.battery_level
+    global_score = params.global_score
   end
-  if _init then _init(GW, GH) end
+  battery_level = battery_level or 100
+  global_score = global_score or 0
+
+  -- loading resources
+  load_palette()
+  load_font("framework/HungryPro.ttf", 16, "main", true)
+  load_font("sugarcoat/TeapotPro.ttf", 16, "second", true)
+  init_glyphs()
+  load_controls()
+  
+  -- futur games will be defined in init
+  -- for now, only return copy on game_list
+  -- this will surely change when games will need more info to be inited (spr info and preview etc)
+    reset_game_list_copy()
+  --
+  
+  init_controls_screen()
+  if _init then _init(GW, GH - UI_H) end
 end
 
 function love.update()
@@ -121,11 +121,19 @@ function love.update()
 end
 
 function love.draw()
-  if _draw then _draw() end
+
+	love.graphics.push()
+		love.graphics.translate(0,UI_H)
+    if _draw then _draw() end
+	love.graphics.pop()
+  
+  
+  draw_ui()
   
   if in_pause_t then draw_pause() end
   
   if in_controls then draw_controls_screen() return end
+  
 end
 
 
@@ -151,6 +159,23 @@ function update_controls_screen()
       in_controls = false
     end
   end
+end
+
+function draw_ui()
+  color(flr(t() * 10) + 1)
+  
+  local y_offset = sin(t() / 2)*2
+  
+  rectfill(0, 0, GW, UI_H)
+  rectfill(3, 3, GW-3, UI_H-3, 0)
+  outlined_glyph(UI_battery_spr, 16, 16, 16, 16, a, _palette[2], _palette[3], 0)
+  print(":", 7 + 16, 7, 29)  
+  print(" " .. battery_level .. "%", 7 + 16, 7 + y_offset, 29)  
+  local str = "SCORE:"
+  local strc = "SCORE:" .. global_score .. " "
+  print(str, GW - str_px_width(strc) - 5, 7, 29  )
+  print(global_score .. " ", GW - str_px_width(global_score .. " ") - 5, 7 + y_offset, 29  )
+
 end
 
 function draw_controls_screen()
@@ -531,31 +556,7 @@ function load_controls()
 end
 
 
-
--- game loading
-
-function launch_game( game_id )
-  
-  local path = get_path_from_id(game_id)
-    
-  if path then
-  
-    local params = castle.game.getInitialParams()
-    local battery_level
-    local global_score
-    
-    if params then 
-      battery_level = params.battery_level or 100
-      global_score = params.global_score or 0    
-    end
-    
-    castle.game.load(
-        path, {
-        battery_level = battery_level,
-        global_score = global_score
-      }
-    )
-    
-  end
-  
+function give_points( points)
+  if not points or not global_score then return end
+  global_score = global_score + points
 end

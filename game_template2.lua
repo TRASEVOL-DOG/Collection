@@ -3,6 +3,7 @@ require("framework/framework")
 -- _name = "Fishing Game"
 -- _name = "Game Template"
 _name = "Game Template 2"
+
 _description = "Some test indeed !"
 
 _palette = { ["0"] = 0, 17, 14, 13, 20, 4}
@@ -28,9 +29,7 @@ local GW, GH = 0, 0
 
 function _init(w, h)
   GW = w or 0
-  GH = h or 0
-  use_font("second")
-  
+  GH = h or 0  
 end
 
 function _update()
@@ -54,7 +53,7 @@ function _update()
       local x_mouse = btnv("cur_x")
       local y_mouse = btnv("cur_y")
       
-      if point_in_rect(x_mouse, y_mouse, x, y, x + 15, y + 15) then launch_game(id) end  
+      if point_in_rect(x_mouse, y_mouse, x, y, x + 15, y + 15) then load_game(id) end  
       
       i = i + 1
       
@@ -68,7 +67,8 @@ function point_in_rect(xp, yp, x1, y1, x2, y2)
 end
 
 function _draw()
-  cls(1)
+  cls(_palette[1])
+  use_font("second")
   
   print(_name, GW / 2 - sugar.gfx.str_px_width(_name)/2, 2, flr(t()* 3)) 
     
@@ -76,8 +76,7 @@ function _draw()
   -- this should be in end screen of framework, testing purpose only
   
     local i = 0
-    local j = flr(t()) % (#_palette)
-    local col = _palette[j + 1]
+    local col = _palette[5]
     color(col)
     for id, game in pairs(get_game_list()) do
       local x = GW / 6 + i * GW/3
@@ -90,11 +89,12 @@ function _draw()
     end
   
   --
+  
+  outlined_glyph(0x24, GW/2, GH/2, 16, 16, 0, _palette[2], _palette[3], 0)
     
   local a = atan2(btnv"cur_x" - x, btnv"cur_y" - y)
   outlined_glyph(0x20, x, y, 16, sgn(cos(a)) * (16 + 2*sin(t())), a, _palette[2], _palette[3], 0)
   
- -- circ(btnv("cur_x"), btnv("cur_y"), btn("cur_rb") and 6 or btn("cur_lb") and 12 or 3, 4)
   outlined_glyph(0x00, btnv("cur_x"), btnv("cur_y"), 8 + 8 * btnv("cur_lb"), 8 + 8 * btnv("cur_rb"), 0, _palette[4], _palette[5], 0)
   
 end

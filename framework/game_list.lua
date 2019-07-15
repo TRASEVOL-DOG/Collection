@@ -1,8 +1,11 @@
 
 _game_list = {
-  {name = "fishing_game", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/fishing_game.lua"},
-  {name = "game_template", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.lua"},
-  {name = "game_template2", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template2.lua"}
+  -- {name = "fishing_game", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/fishing_game.lua"},
+  -- {name = "game_template", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.lua"},
+  -- {name = "game_template2", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template2.lua"},
+  {name = "fishing_game", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/fishing_game.castle"},
+  {name = "game_template", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle"},
+  {name = "game_template2", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template2.castle"},
 }
 
 -- a copy of game_list that will be given when list will be read (security purpose + no need to copy table every frame or to store copy in games)
@@ -27,3 +30,35 @@ end
 function get_game_list()
   return _game_list_copy
 end
+
+function load_game(key, loading_with_name)
+
+  local path
+    
+  if loading_with_name then 
+    path = get_path_from_id(get_id_from_name(key)) 
+  else   
+    path = get_path_from_id(key)
+  end
+  if path then
+  
+    local params = castle.game.getInitialParams()
+    local battery_level
+    local global_score
+    
+    if params then 
+      battery_level = params.battery_level or 100
+      global_score = params.global_score or 0    
+    end
+    
+    castle.game.load(
+        path, {
+        battery_level = battery_level,
+        global_score = global_score
+      }
+    )
+    
+  end
+end
+
+return load_game
