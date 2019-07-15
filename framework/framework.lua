@@ -65,9 +65,10 @@ end
 -- forward declarations (local):
 local load_palette, load_controls
 local update_controls
-local update_controls_screen, draw_controls_screen
+local init_controls_screen, update_controls_screen, draw_controls_screen
+local pause, update_pause, draw_pause
 
-local in_controls, in_pause, in_gameover
+local in_controls, in_pause, in_pause_t, in_gameover
 local ctrl_descriptions, ctrl_active
 local light_table
 
@@ -110,14 +111,19 @@ end
 
 function love.update()
   update_controls()
-
+  update_pause()
+  
   if in_controls then update_controls_screen() return end
+  
 
   if _update then _update() end
+  
 end
 
 function love.draw()
   if _draw then _draw() end
+  
+  if in_pause_t then draw_pause() end
   
   if in_controls then draw_controls_screen() return end
 end
@@ -136,7 +142,7 @@ function update_controls_screen()
   if in_controls == 99 then
     if btnp("start") then
       in_controls = 1
-      in_controls = false
+      --in_controls = false
     end
   elseif in_controls then
     in_controls = in_controls - dt()
@@ -148,7 +154,23 @@ function update_controls_screen()
 end
 
 function draw_controls_screen()
-  cls(0)
+  if in_controls == 99 then
+    cls(0)
+  else
+    local h = (2 * in_controls) * 192
+    
+    for y = 0, 192, 32 do
+      local r = min((h - y) / 4, 32)
+      if r > 0 then
+        for x = y%64 / 2, 256, 32 do
+          circfill(x, y, r, 0)
+        end
+      end
+    end
+    
+    local y = cos(0.3 - in_controls * 0.3) * 200 - 200
+    camera(0, -y)
+  end
   
   printp(0x0000, 0x0100, 0x0200, 0x0300)
   printp_color(29, 19, 3)
@@ -216,8 +238,88 @@ function draw_controls_screen()
   end
   
   spritesheet("glyphs")
+  
+  camera()
 end
 
+
+-- pause
+
+function pause()
+  if in_pause then
+    in_pause = false
+
+    castle.uiupdate = false
+  else
+    in_pause = true
+    in_pause_t = in_pause_t or 0
+  
+    castle.uiupdate = ui_panel
+  end
+end
+
+function update_pause()
+  if btnp("start") and in_controls ~= 99 then
+    pause()
+  end
+
+  if in_pause then
+    in_pause_t = min(in_pause_t + 2 * dt(), 1)
+  elseif in_pause_t then
+    in_pause_t = in_pause_t - 2 * dt()
+    if in_pause_t < 0 then
+      in_pause_t = nil
+    end
+  end
+end
+
+function draw_pause()
+  spritesheet("screen_dither")
+  pal(1, 0)
+  palt(0, true)
+  
+  if in_pause_t < 1 then
+    local h = 1.2 * in_pause_t * 192 * 2 - 32
+    
+    -- do the transition here
+    for y = h%32 - 32, min(h, 192)-1, 32 do
+      local v = mid(flr((h - y) / 32), 0, 3)
+      
+      spr(v * 32, 0, y, 16, 2)
+    end
+    
+    local y = sqr(cos(0.3 - in_pause_t * 0.3)) * 192 - 192
+    camera(0, -y)
+  else
+    -- do the complete screen obscuring here
+    for y = 0, 192-1, 32 do
+      spr(96, 0, y, 16, 2)
+    end
+  end
+  
+  pal(1, 1)
+  spritesheet("glyphs")
+  
+  printp(0x3330, 0x3130, 0x3230, 0x3330)
+  printp_color(29, 19, 0)
+  
+  local str = "Pause!"
+  local x, y = (screen_w() - str_px_width(str))/2, screen_h()/2 - 8
+  for i = 1, #str do
+    local ch = str:sub(i,i)
+    pprint(ch, x, y + 2.5*cos(-t() + i/6))
+    x = x + str_px_width(ch)
+  end
+  
+  camera()
+end
+
+function ui_panel()
+  local ui = castle.ui
+  ui.markdown("### ".._title.."/n".._description)
+  ui.markdown(_description)
+
+end
 
 
 
@@ -345,6 +447,7 @@ end
 
 function load_controls()
   load_png("controls", "framework/controls.png")
+  load_png("screen_dither", "framework/screen_dither.png", { 0x000000, 0xffffff })
 
   local bindings = {
     left   = { input_id("keyboard_scancode", "left"),
@@ -387,6 +490,10 @@ function load_controls()
   ctrl_descriptions, ctrl_active = {}, {}
   
   for k, desc in pairs(_controls) do
+    if not bindings[k] then
+      error("There are no bindings for control '"..k.."'. Please only use the controls made available by the framework.")
+    end
+  
     local b = true
     for _,v in pairs(ctrl_descriptions) do
       if v[2] == desc then
@@ -395,7 +502,7 @@ function load_controls()
         local bb = false -- code below avoids having both cur_x and cur_y in the description table, as they have the same icons.
         if k == "cur_x" or k == "cur_y" then
           for _,vb in pairs(v[1]) do
-            bb = vb == "cur_x" or "cur_y"
+            bb = bb or vb == "cur_x" or vb == "cur_y"
           end
         end
         
@@ -408,26 +515,14 @@ function load_controls()
     if b then
       add(ctrl_descriptions, { {k}, desc})
     end
-    
-    ctrl_active[k] = { state = false, pstate = false, value = 0}
-    
-    register_btn(k, 0, bindings[k])
-    
-    if k == "left" or k == "right" then
-      register_btn("lx_axis", 0, bindings.lx_axis)
+  end
+
+  for k, d in pairs(bindings) do
+    if k ~= "lx_axis" and k ~= "ly_axis" and k ~= "rx_axis" and k ~= "ry_axis" then
+      ctrl_active[k] = { state = false, pstate = false, value = 0}
     end
     
-    if k == "up" or k == "down" then
-      register_btn("ly_axis", 0, bindings.ly_axis)
-    end
-    
-    if k == "cur_x" then
-      register_btn("rx_axis", 0, bindings.rx_axis)
-    end
-    
-    if k == "cur_y" then
-      register_btn("ry_axis", 0, bindings.ry_axis)
-    end
+    register_btn(k, 0, d)
   end
 
   register_btn("start", 0, { input_id("keyboard_scancode", "return"),
