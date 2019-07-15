@@ -39,10 +39,10 @@ spawn_target_cooldown = .7
 
 remaining_targets = 20
 
-function _init(w, h)
-  GW = w or 0
-  GH = h or 0  
-  player.x, player.y = w / 2, h - 16
+function _init()
+  GW = screen_w()
+  GH = screen_h()
+  player.x, player.y = GW / 2, GH - 16
   player.a = 0
   
   g_spr = {
@@ -221,7 +221,6 @@ end
 
 function _draw()
   cls(_palette[1])
-  use_font("second")
     
   -- list of games
   -- this should be in end screen of framework, testing purpose only

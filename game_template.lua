@@ -27,9 +27,9 @@ _controls = {
 local x,y = 128,96
 local GW, GH = 0, 0
 
-function _init(w, h)
-  GW = w or 0
-  GH = h or 0  
+function _init()
+  GW = screen_w()
+  GH = screen_h()
 end
 
 function _update()
@@ -68,7 +68,6 @@ end
 
 function _draw()
   cls(_palette[1])
-  use_font("second")
   
   print(_name, GW / 2 - sugar.gfx.str_px_width(_name)/2, 2, flr(t()* 3)) 
     

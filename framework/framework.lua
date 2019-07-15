@@ -38,8 +38,6 @@
 ---
 ----- shader?
 ---
------ cursor
----
 ----- pause/settings button + panel
 ---
 ----- game over screen
@@ -51,25 +49,31 @@ if CASTLE_PREFETCH then
   CASTLE_PREFETCH({
     "sugarcoat/sugarcoat.lua",
     "framework/glyphs.png",
-    "framework/HungryPro.ttf"
+    "framework/controls.png",
+    "framework/screen_dither.png",
+    "framework/Awesome.ttf"
   })
 end
+
 require("sugarcoat/sugarcoat")
 require("framework/game_list")
 sugar.utility.using_package(sugar.S, true)
+local S = sugar.S
+
+local GAME_WIDTH, GAME_HEIGHT = 256, 192
+local TOPBAR_HEIGHT = 16
 
 -- forward declarations (local):
 local load_palette, load_controls, load_assets
 local update_controls, draw_cursor
 local init_controls_screen, update_controls_screen, draw_controls_screen
+local update_topbar, draw_topbar
 local pause, update_pause, draw_pause
 
 local in_controls, in_pause, in_pause_t, in_gameover
 local ctrl_descriptions, ctrl_active
 local light_table
 
-local GW, GH = 256, 192
-local UI_H = GH/6
 local battery_level
 local UI_battery_spr = 0x10
 local global_score
@@ -78,7 +82,7 @@ local global_score
 do -- love overloads (load, update, draw)
 
   function love.load()
-    init_sugar("Remy & Eliott's Collection", GW, GH, 3)
+    init_sugar("Remy & Eliott's Collection", GAME_WIDTH, GAME_HEIGHT + TOPBAR_HEIGHT, 3)
     
     log("Initializing Collection framework.", "o7")
     
@@ -110,7 +114,7 @@ do -- love overloads (load, update, draw)
     
     log("Done initializing Collection framework, launching game!", "o7")
     
-    if _init then _init(GW, GH - UI_H) end
+    if _init then _init() end
   end
   
   function love.update()
@@ -124,18 +128,24 @@ do -- love overloads (load, update, draw)
   end
   
   function love.draw()
-  
-  	love.graphics.push()
-  		love.graphics.translate(0,UI_H)
-      if _draw then _draw() end
-  	love.graphics.pop()
+    camera()
     
+  	--love.graphics.push()
+  	--	love.graphics.translate(0,UI_H)
+    if _draw then _draw() end
+  	--love.graphics.pop()
     
-    draw_ui()
+    use_font("main")
+    
+    --draw_ui()
     
     if in_pause_t then draw_pause() end
     
     if in_controls then draw_controls_screen() end
+    
+    draw_topbar()
+    
+    camera()
     
     draw_cursor()
   end
@@ -160,7 +170,45 @@ do -- topbar
     print(str, GW - str_px_width(strc) - 5, 7, 29  )
     print(global_score .. " ", GW - str_px_width(global_score .. " ") - 5, 7 + y_offset, 29  )
   end
+  
+  function draw_topbar()
+    S.camera()
+    --rectfill(0, 0, GAME_WIDTH-1, TOPBAR_HEIGHT-1, 16)
+    
+    spritesheet("topbar")
+    palt(0, false)
+    spr(0, 0, 0, 16, 1)
+    
+    print(_title, 2, 0, 19)
+    print(_title, 2, -1, 29)
+    
+    
+    local str = flr(battery_level)..'%'
+    print(str, 215 - str_px_width(str), 0, 19)
+    print(str, 215 - str_px_width(str), -1, 29)
+    
+    --todo:
+    -- show battery power
+    -- animate battery
+    -- highlight pause button on hover and on press
+    
+    spritesheet("glyphs")
+    palt(0, true)
+  end
 
+  
+  -- overloading sugar functions
+  function camera(x, y)
+    S.camera(x or 0, (y or 0) - TOPBAR_HEIGHT)
+  end
+  
+  function screen_h()
+    return GAME_HEIGHT
+  end
+  
+  function screen_size()
+    return GAME_WIDTH, GAME_HEIGHT
+  end
 end
 
 
@@ -173,7 +221,7 @@ do -- controls screen
   end
   
   local control_mode = 0
-  local mode_x, mode_y, mode_hover = 128-32, 48, false
+  local mode_x, mode_y, mode_hover = 128-32, 30, false
   function update_controls_screen()
     if in_controls == 99 then
       if btnp("start") then
@@ -222,20 +270,20 @@ do -- controls screen
     printp(0x0000, 0x0100, 0x0200, 0x0300)
     printp_color(29, 19, 3)
     
-    local x,y = 0, 0
-    local space1, space2 = 16, 25
+    local x,y = 0, 8
+    local space1, space2 = 18, 28
     
-    x = (screen_w() - str_px_width(_title)) / 2
-  --  pprint(_title, x, y)
-    for i = 1, #_title do
-      local y = y + 1.5*cos(-t() + i/10)
-      local c = _title:sub(i,i)
-      pprint(c, x, y)
-      x = x + str_px_width(c)
-    end
+--    x = (screen_w() - str_px_width(_title)) / 2
+--  --  pprint(_title, x, y)
+--    for i = 1, #_title do
+--      local y = y + 1.5*cos(-t() + i/10)
+--      local c = _title:sub(i,i)
+--      pprint(c, x, y)
+--      x = x + str_px_width(c)
+--    end
     
     x = (screen_w() - str_px_width(_description)) / 2
-    y = y + space2
+--    y = y + space2
     pprint(_description, x, y)
   
     y = y + space2
@@ -290,7 +338,7 @@ do -- controls screen
       if control_mode == 2 then
         str = "Press START to continue!"
       else
-        str = "Press E/Enter to continue!"
+        str = "Press E / Enter to continue!"
       end
       
       x = (screen_w() - str_px_width(str)) / 2
@@ -475,7 +523,7 @@ do -- controls system
         
         local n_y = s_btnv("cur_y")
         if n_y ~= m_y then
-          m_y, d.value = n_y, n_y
+          m_y, d.value = n_y, n_y - TOPBAR_HEIGHT
           d.state = true
         end
       else
@@ -617,12 +665,12 @@ do -- misc
   function load_assets()
     load_palette()
   
-    load_font("framework/HungryPro.ttf", 16, "main", true)
-    load_font("sugarcoat/TeapotPro.ttf", 16, "second", true) -- obsolete, should be removed
+    load_font("framework/Awesome.ttf", 16, "main", true)
     
-    load_png("glyphs", "framework/glyphs.png", { 0x000000, 0xffffff, 0x888888}, true)
+    load_png("glyphs",        "framework/glyphs.png", { 0x000000, 0xffffff, 0x888888}, true)
     load_png("screen_dither", "framework/screen_dither.png", { 0x000000, 0xffffff })
-    load_png("controls", "framework/controls.png")
+    load_png("controls",      "framework/controls.png")
+    load_png("topbar",        "framework/topbar.png")
     
     spritesheet_grid(16, 16)
     palt(0, true)
