@@ -43,7 +43,9 @@ spawn_target_cooldown = .7
 
 remaining_targets = 20
 
-function _init()
+rope_speed = .5
+
+function _init(difficulty)
   GW = screen_w()
   GH = screen_h()
   
@@ -58,14 +60,13 @@ function _init()
   }
   
   printp_color (_palette[6], _palette[4], _palette[3])
+  local difficulty = difficulty or irnd(100)
+  log("Difficulty set to :" .. difficulty )
+  rope_speed = 1.45 / 100 * difficulty
   
   init_ground() 
   init_player() 
   init_ropes() 
-  
-  -- make_cursor_visible(false)
-  
-  -- began_game_over = true
   
 end
 
@@ -226,7 +227,7 @@ function new_target()
   
   if rope == 0 then dir = 1 else dir = -1 end
   
-  add(targets, { x = - 16 + (dir == -1 and GW + 16 or 0), rope = rope, dir = dir, speed = GW / 2, shot_at = false } )
+  add(targets, { x = - 16 + (dir == -1 and GW + 16 or 0), rope = rope, dir = dir, speed = GW / 2 * rope_speed, shot_at = false } )
 end
 
 function update_targets()
@@ -346,7 +347,7 @@ end
 
 function draw_rope(y, step, i)
    
-  local x_offset = 16 * ((t()* 7.8) % 1) * (i == 1 and 1 or -1 )
+  local x_offset = 16 * ((t()* 7.8 * rope_speed) % 1) * (i == 1 and 1 or -1 )
    
   for i = -1, GW/16 + 1 do
     outlined_glyph(g_spr.rope,x_offset +   i * 16 - 8, y + get_rope_y_offset( i * GW/16, step ) - 8, 16, 16, .25, _palette[0], _palette[0  ], 0)
