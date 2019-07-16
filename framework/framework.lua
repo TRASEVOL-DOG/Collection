@@ -100,8 +100,6 @@ do -- love overloads (load, update, draw)
     end
     battery_level = battery_level or 100
     global_score = global_score or 0
-    log(global_score)
-    log(battery_level)
     
     -- loading resources
     load_assets()
@@ -154,6 +152,18 @@ do -- love overloads (load, update, draw)
   end
 
 end
+
+do -- preloading games  
+
+  -- games have : 
+  -- link 
+  -- name
+  -- cursor 
+  -- preview.png  
+
+
+end
+
 
 
 do -- topbar
@@ -423,6 +433,7 @@ do -- pause
     
       castle.uiupdate = ui_panel
     end
+    make_cursor_visible(in_pause)
   end
   
   function update_pause()
@@ -749,6 +760,6 @@ do -- misc
     palt(0, true)
     
     log("All framework assets loaded!", "o7")
-  end
+  end  
 
 end
