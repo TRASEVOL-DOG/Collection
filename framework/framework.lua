@@ -373,7 +373,6 @@ do -- controls screen
       
       if in_controls <= 0 then
         in_controls = false
-        make_cursor_visible(false)
       end
     end
   end
