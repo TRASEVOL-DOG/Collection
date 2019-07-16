@@ -51,6 +51,7 @@ if CASTLE_PREFETCH then
     "framework/glyphs.png",
     "framework/controls.png",
     "framework/screen_dither.png",
+    "framework/topbar.png",
     "framework/Awesome.ttf"
   })
 end
@@ -178,14 +179,12 @@ do -- topbar
     spritesheet("topbar")
     palt(0, false)
     spr(0, 0, 0, 16, 1)
+    palt(0, true)
     
     print(_title, 2, 0, 19)
     print(_title, 2, -1, 29)
     
-    
-    local str = flr(battery_level)..'%'
-    print(str, 215 - str_px_width(str), 0, 19)
-    print(str, 215 - str_px_width(str), -1, 29)
+    draw_battery(216, 0)
     
     --todo:
     -- show battery power
@@ -193,7 +192,85 @@ do -- topbar
     -- highlight pause button on hover and on press
     
     spritesheet("glyphs")
-    palt(0, true)
+  end
+  
+  local battery_ramps = { -- color ramps for the battery icon
+    {5, 12, 22, 29},
+    {12, 13, 14, 29},
+    {10, 15, 25, 29},
+    {9, 10, 15, 29},
+    {19, 27, 29, 29} -- white ramp
+  }
+  local bubbles = {
+    [0]={2,34,66,77,101},{23,46,63,89,111,122},{15,53,93,116},{29,72,85,105},{7,38,79},{19,49,65,97,123},{0,31,60,76,114},{13,42,92,117},{5,27,56,70,81,106},{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127}
+  }
+    
+  function draw_battery(x, y)
+    local v = mid(battery_level / 100, 0, 1)
+    
+    pal(29, 19)
+    spr(16, x, y+1, 2, 1)
+    pal(29, 29)
+    
+    local rn
+    if     battery_level > 60 then rn = 4
+    elseif battery_level > 50 then rn = 3
+    elseif battery_level > 20 then rn = 2
+    else                           rn = 1
+    end
+    local ramp = battery_ramps[rn]
+    
+    clip(x+2, y+2, 20, 9)
+    S.camera(-x-2, -y-2)
+    
+    local w0 = v*20
+    local w1 = 0.85 * w0 - 1
+    local w2 = min(0.2 * w0, w1 - 2)
+    
+    local t = t()
+    for y = 0, 8 do
+      --local dx = 1.5 * sin(0.5*t + y/12 + 1.5*sin(-0.1*t + y/88 + 0.17)) * sin(-t*0.73 - y/16 + 0.63)
+      local dx = 2 * cos(0.25*t + y/12) * cos(0.6*t + y/18)
+    
+      line(w1+0.75*dx, y, w0+dx, y, ramp[3])
+      line(w2+0.5*dx, y, w1+0.75*dx, y, ramp[2])
+      line(0, y, w2+0.5*dx, y, ramp[1])
+      
+      for _,x in pairs(bubbles[y]) do
+        local x = (x + t*6) % 128
+        
+        if x < w0+dx then
+          x = sqr(sqr(x/20))*20
+        
+          local v = 2
+          if x > w1+0.75*dx then v = 4
+          elseif x > w2+0.5*dx then v = 3 end
+          
+          pset(x, y, ramp[v])
+        end
+      end
+      
+      pset(w0+dx, y, ramp[4])
+      pset(w0+dx, y+1, 19)
+      
+    end
+    
+    S.camera()
+    clip()
+    
+    spr(16, x, y, 2, 1)
+    
+    local str = flr(battery_level)..'%'
+    
+    if battery_level < 20 then
+      if battery_level > 5 or t%1.5 > 0.5 then
+        print(str, 215 - str_px_width(str), 0, 19)
+        print(str, 215 - str_px_width(str), -1, 12)
+      end
+    else
+      print(str, 215 - str_px_width(str), 0, 19)
+      print(str, 215 - str_px_width(str), -1, 29)
+    end
   end
 
   
