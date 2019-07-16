@@ -101,6 +101,8 @@ do -- love overloads (load, update, draw)
     battery_level = battery_level or 100
     global_score = global_score or 0
     log(global_score)
+    log(battery_level)
+    
     -- loading resources
     load_assets()
     load_controls()
