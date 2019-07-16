@@ -75,10 +75,10 @@ local in_controls, in_pause, in_pause_t, in_gameover
 local ctrl_descriptions, ctrl_active
 local light_table
 
-local battery_level
-local UI_battery_spr = 0x10
-local global_score
+local cursor_is_visible = true
 
+local battery_level
+local global_score
 
 do -- love overloads (load, update, draw)
 
@@ -100,7 +100,7 @@ do -- love overloads (load, update, draw)
     end
     battery_level = battery_level or 100
     global_score = global_score or 0
-  
+    log(global_score)
     -- loading resources
     load_assets()
     load_controls()
@@ -498,7 +498,7 @@ do -- pause
   
   function ui_panel()
     local ui = castle.ui
-    ui.markdown("### ".._title.."/n".._description)
+    ui.markdown("### ".._title.."\n".._description)
     ui.markdown(_description)
   
   end
@@ -716,6 +716,7 @@ end
 do -- misc
 
   function draw_cursor()
+    if not cursor_is_visible then return end
     palt(0, false)
     palt(16, true)
     spritesheet("controls")
@@ -731,6 +732,10 @@ do -- misc
     spritesheet("glyphs")
     palt(0, true)
     palt(16, false)
+  end
+  
+  function make_cursor_visible( bool )
+   cursor_is_visible = bool
   end
   
   function load_assets()
@@ -749,10 +754,4 @@ do -- misc
     log("All framework assets loaded!", "o7")
   end
 
-end
-
-
-function give_points( points)
-  if not points or not global_score then return end
-  global_score = global_score + points
 end

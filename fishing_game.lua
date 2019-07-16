@@ -24,9 +24,12 @@ _controls = {
   [ "cur_rb" ] = "Send movie to director!"
 }
 
+_score = 0
+
 local GW, GH = 0, 0
 local time_since_launch = 0
 local t = function() return time_since_launch or 0 end
+
 player = {x = 0, y = 0, w = 16, h = 16, a = 0}
 bubbles = {} -- bubbles around player
 bubble_timer = 1
@@ -62,6 +65,8 @@ function _init()
   init_ground() 
   init_ropes() 
   
+  -- make_cursor_visible(false)
+  
   -- began_game_over = true
   
 end
@@ -86,7 +91,9 @@ end
 
 
 function _update()
+
   time_since_launch = time_since_launch + dt()
+  
   update_player()
   
   update_targets()
@@ -95,25 +102,30 @@ function _update()
   
   update_bullets()
   
-  -- if btnp("A") or btnp("cur_rb") then
-    -- add(_objects, {spr = 0x03,  p = {x = btnv("cur_x"), y = btnv("cur_y")}})  
-  -- end
+ 
+  if btnp("A") or btnp("cur_rb") then
+    -- stop_targets = not stop_targets
+  end
   
-  -- if btnp("cur_lb") then
-    -- local i = 0
-    -- for id, game in pairs(get_game_list()) do
-      -- local x = GW / 6 + i * GW/3
-      -- local y = 50
+  if btnp("cur_lb") then
+    local i = 0
+    for id, game in pairs(get_game_list()) do
+      local x = GW / 6 + i * GW/3
+      local y = 50
       
-      -- local x_mouse = btnv("cur_x")
-      -- local y_mouse = btnv("cur_y")
+      local x_mouse = btnv("cur_x")
+      local y_mouse = btnv("cur_y")
       
-      -- if point_in_rect(x_mouse, y_mouse, x, y, x + 15, y + 15) then load_game(id) end  
+      if point_in_rect(x_mouse, y_mouse, x, y, x + 15, y + 15) then 
+        load_game(id, false, {battery_level = (battery_level or 100) - 10, 
+                              global_score =  (global_score or 0) + _score,
+                             })       
+      end  
       
-      -- i = i + 1
+      i = i + 1
       
-    -- end
-  -- end
+    end
+  end
   
   if remaining_targets == 0 and count(targets) == 0 and not began_game_over then
     began_game_over = true
@@ -174,7 +186,7 @@ function update_bullets()
     bullet.r = bullet.r - dt() * 2
     
     for i, target in pairs(targets) do
-      local t_y = get_rope_y_offset(ropes[target.rope + 1].y) + ropes[target.rope + 1].y + 8
+      local t_y = get_rope_y_offset(ropes[target.rope + 1].y) + ropes[target.rope + 1].y
       if dist(bullet.x, bullet.y, target.x + 8, t_y) < 16 then
         targets[i] = nil      
         bullets[ind] = nil      
@@ -193,7 +205,7 @@ function update_targets()
   end  
   
   for ind, target in pairs(targets) do
-    target.x = target.x + target.speed * dt() * target.dir
+    target.x = target.x + (stop_targets and 0 or (target.speed * dt() * target.dir))
     if target.x < -32 or target.x > GW + 32 then
       targets[ind] = nil
     end    
@@ -226,18 +238,18 @@ function _draw()
     
   -- list of games
   -- this should be in end screen of framework, testing purpose only
-    -- local i = 0
-    -- local col = _palette[5]
-    -- color(col)
-    -- for id, game in pairs(get_game_list()) do
-      -- local x = GW / 6 + i * GW/3
-      -- local y = 50
-      -- color(col)
-      -- print(id, x, y)
-      -- print(game.name, x - str_px_width(game.name)/2, y + 15)
-      -- rectfill(x, y, x + 15, y + 15, col)
-      -- i = i + 1
-    -- end
+    local i = 0
+    local col = _palette[5]
+    color(col)
+    for id, game in pairs(get_game_list()) do
+      local x = GW / 6 + i * GW/3
+      local y = 50
+      color(col)
+      print(id, x, y)
+      print(game.name, x - str_px_width(game.name)/2, y + 15)
+      rectfill(x, y, x + 15, y + 15, col)
+      i = i + 1
+    end
   --
   
   draw_ground()
@@ -246,12 +258,14 @@ function _draw()
   draw_player()  
   
   draw_remaining()
+  draw_score()
   
   draw_ropes()
   draw_targets()
   
   draw_bullets()  
   draw_bubbles()  
+  
   draw_mouse()
   
   if began_game_over then
@@ -344,7 +358,7 @@ function draw_targets()
     local y = get_rope_y_offset(target.x, ropes[target.rope + 1].step ) + ropes[target.rope + 1].y
     
     outlined_glyph(g_spr.target, target.x + 8, y + 2, 16, 16, 0, 0, 0, 0)
-    outlined_glyph(g_spr.target, target.x + 8, y , 16, 16, 0, _palette[2], _palette[3], 0)
+    outlined_glyph(g_spr.target, target.x + 8, y , 16, 16, 0, _palette[2], _palette[3], 0)    
   end
 end
 
@@ -379,12 +393,26 @@ function draw_remaining()
   
   x = x + 17
   
-  pprint(": " .. remaining_targets, x, y)
+  pprint(": " .. remaining_targets + count(targets), x, y)
 
+end
+
+function draw_score()
+
+  local x = GW / 2 - 60
+  local y = GH / 2 + sin(t() / 4) * 2 + 16
+
+  pprint("Score : " .. _score, x, y)
+  
 end
 
 function draw_mouse()
   outlined_glyph(g_spr.mouse, btnv("cur_x"), btnv("cur_y"), 8 , 8 , 0, _palette[4], _palette[5], 0)
+end
+
+function give_points( points)
+  if not points or not _score then return end
+  _score = _score + points
 end
 
 function point_in_rect(xp, yp, x1, y1, x2, y2)
