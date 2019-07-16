@@ -9,6 +9,7 @@
 -- - _title: name of the game
 -- - _description: a one sentence description/instruction for the game
 -- - _controls : table listing the controls you're using in this game
+-- - _cursor_info : table with a 'glyph' key and 'color_a', 'color_b', 'outline', 'anchor_x' and 'anchor_y' and 'angle' keys. This table lets the user replace the cursor with a glyph. Keep that table as nil if you prefer to keep the default cursor.
 -- - 
 -- - _init() : callback called on loading the game
 -- - _update() : callback called every frame to update the game
@@ -74,8 +75,6 @@ local pause, update_pause, draw_pause
 local in_controls, in_pause, in_pause_t, in_gameover
 local ctrl_descriptions, ctrl_active
 local light_table
-
-local cursor_is_visible = true
 
 local battery_level
 local global_score
@@ -433,7 +432,6 @@ do -- pause
     
       castle.uiupdate = ui_panel
     end
-    make_cursor_visible(in_pause)
   end
   
   function update_pause()
@@ -716,7 +714,34 @@ end
 do -- misc
 
   function draw_cursor()
-    if not cursor_is_visible then return end
+    if _cursor_info and _cursor_info.glyph then
+      local mx, my = btnv("cur_x"), btnv("cur_y")
+      
+      if _cursor_info.outline then
+        outlined_glyph(
+          _cursor_info.glyph,
+          mx + 8 - (_cursor_info.point_x or 0),
+          my + 8 - (_cursor_info.point_y or 0),
+          16, 16,
+          _cursor_info.angle or 0,
+          _cursor_info.color_a or 29,
+          _cursor_info.color_b or 27,
+          _cursor_info.outline
+        )
+      else
+        outlined_glyph(
+          _cursor_info.glyph,
+          mx - (_cursor_info.anchor_x or 0),
+          my - (_cursor_info.anchor_y or 0),
+          16, 16,
+          _cursor_info.angle or 0,
+          _cursor_info.color_a or 29,
+          _cursor_info.color_b or 27
+        )
+      end
+      return
+    end
+  
     palt(0, false)
     palt(16, true)
     spritesheet("controls")
@@ -732,10 +757,6 @@ do -- misc
     spritesheet("glyphs")
     palt(0, true)
     palt(16, false)
-  end
-  
-  function make_cursor_visible( bool )
-   cursor_is_visible = bool
   end
   
   function get_battery_level()
