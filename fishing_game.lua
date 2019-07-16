@@ -8,7 +8,6 @@ _description = "Some test indeed !"
 
 _palette = { ["0"] = 0, 17, 14, 13, 20, 4}
 
-
 _controls = {
   [ "up"     ] = "Move!",
   [ "down"   ] = "Move!",
@@ -91,20 +90,14 @@ function _update()
     local i = 0
     for id, game in pairs(get_game_list()) do
       local x = GW / 6 + i * GW/3
-      local y = 50
-      
+      local y = 50      
       local x_mouse = btnv("cur_x")
       local y_mouse = btnv("cur_y")
       
-      if point_in_rect(x_mouse, y_mouse, x, y, x + 15, y + 15) then 
-        load_game(id, false, {battery_level = (get_battery_level() or 100) - 10, 
-                              global_score =  (get_global_score() or 0) + _score,
-                             })    
-                              log((battery_level or 100) - 10)
-      end  
-      
-      i = i + 1
-      
+      if point_in_rect(x_mouse, y_mouse, x, y, x + 16, y + 16) then 
+        load_game(id, false, {battery_level = (get_battery_level() or 100) - 10, global_score =  (get_global_score() or 0) + _score })
+      end        
+      i = i + 1      
     end
   end
   
@@ -126,13 +119,17 @@ function _draw()
     local i = 0
     local col = _palette[5]
     color(col)
-    for id, game in pairs(get_game_list()) do
+    for id, game in pairs(get_game_over_game_list()) do
       local x = GW / 6 + i * GW/3
       local y = 50
       color(col)
       print(id, x, y)
-      print(game.name, x - str_px_width(game.name)/2, y + 15)
-      rectfill(x, y, x + 15, y + 15, col)
+      print(game.name, x - str_px_width(game.name)/2, y + 16)
+      
+      -- rectfill(x, y, x + 16, y + 16, col)
+      if game.preview then
+        spr_sheet(game.preview, x, y, 16, 16)
+      end
       i = i + 1
     end
   --
@@ -443,13 +440,6 @@ end
 
 function point_in_rect(xp, yp, x1, y1, x2, y2)
   return xp > x1 and xp < x2 and yp > y1 and yp < y2
-end
-
-function count(tab)
-  if not tab then return end
-  local nb = 0
-  for i, j in pairs(tab) do nb = nb + 1 end
-  return nb  
 end
 
 function easeInOut (timer, value_a, value_b, duration)

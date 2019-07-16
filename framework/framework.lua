@@ -110,6 +110,8 @@ do -- love overloads (load, update, draw)
       reset_game_list_copy()
     --
     
+    init_shown_games_game_over()
+    
     init_controls_screen()
     
     log("Done initializing Collection framework, launching game!", "o7")
@@ -131,14 +133,9 @@ do -- love overloads (load, update, draw)
   function love.draw()
     camera()
     
-  	--love.graphics.push()
-  	--	love.graphics.translate(0,UI_H)
     if _draw then _draw() end
-  	--love.graphics.pop()
     
     use_font("main")
-    
-    --draw_ui()
     
     if in_pause_t then draw_pause() end
     
@@ -154,6 +151,8 @@ do -- love overloads (load, update, draw)
 
 end
 
+local g_o_games = {} -- game over games
+
 do -- preloading games  
 
   -- games have : 
@@ -162,7 +161,15 @@ do -- preloading games
   -- cursor 
   -- preview.png  
 
-
+  function init_shown_games_game_over()
+    local choosen_games = pick_different(2, get_game_list())
+    for i, g in pairs(choosen_games) do
+      add(g_o_games, { name = g.name, player_spr = g.player_spr, preview = load_png(nil, g.preview) } )    
+    end
+  end
+  function get_game_over_game_list()
+    return g_o_games  
+  end
 end
 
 
@@ -170,7 +177,7 @@ do -- gameover
   local end_score, end_info, end_rank
   local gameover_t = 0
   
-  local ranks = { "F", "E", "D", "C", "B", "A" }
+  local ranks = { "F", "E", "D", "C", "B", "A", "SM" }
   
   -- score has to be between 0 and 100
   -- info (optional) is a table of strings to display on gameover
@@ -184,7 +191,7 @@ do -- gameover
     if score == 100 then
       end_rank = "A++"
     else
-      local n = score / 100 * 6
+      local n = score / 100 * count(ranks)
       
       end_rank = ranks[flr(n + 1)]
       
@@ -807,6 +814,33 @@ do -- misc
     spritesheet("glyphs")
     palt(0, true)
     palt(16, false)
+  end
+
+  function count(tab)
+    if not tab then return end
+    local nb = 0
+    for i, j in pairs(tab) do nb = nb + 1 end
+    return nb  
+  end
+  
+  function pick_different( number, tab )
+    choosen = {}    
+    for i = 1, number do
+      local picked = pick(tab)
+      
+      while check_in(picked, choosen) do 
+        picked = pick(tab)
+      end
+      choosen[i] = picked
+    end    
+    return choosen
+  end
+  
+  function check_in(value, tab)
+    for index, val in pairs(tab) do
+      if val == value then return true end
+    end
+    return false
   end
   
   function get_battery_level()

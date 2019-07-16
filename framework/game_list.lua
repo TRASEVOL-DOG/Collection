@@ -1,11 +1,22 @@
 
 _game_list = {
-  -- {name = "fishing_game", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/fishing_game.lua"},
-  -- {name = "game_template", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.lua"},
-  -- {name = "game_template2", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template2.lua"},
-  {name = "fishing_game", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/fishing_game.castle"},
-  {name = "game_template", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle"},
-  {name = "game_template2", path = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template2.castle"},
+
+  {name       = "Fishing Game",   
+   path       = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/fishing_game.castle",
+   player_spr = 0x30,
+   preview    = "fishing_game_preview.png",
+  },
+  {name       = "Game Template",   
+   path       = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
+   player_spr = 0x30,
+   preview    = "game_template_preview.png",
+  },
+  {name       = "Game Template 2",   
+   path       = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template2.castle",
+   player_spr = 0x30,
+   preview    = "game_template2_preview.png",
+  },
+  
 }
 
 -- a copy of game_list that will be given when list will be read (security purpose + no need to copy table every frame or to store copy in games)
@@ -40,22 +51,11 @@ function load_game(key, loading_with_name, params)
   else   
     path = get_path_from_id(key)
   end
-  if path then
-  
-    -- local params = castle.game.getInitialParams()
-    -- local battery_level
-    -- local global_score
-    
-    -- if params then 
-      -- battery_level = params.battery_level or 100
-      -- global_score = params.global_score or 0    
-    -- end
-    
+  if path then  
     castle.game.load(
         path, 
         params
-    )
-    
+    )    
   end
 end
 
