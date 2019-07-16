@@ -727,6 +727,14 @@ do -- misc
    cursor_is_visible = bool
   end
   
+  function get_battery_level()
+    return battery_level
+  end
+  
+  function get_global_score()
+    return global_score
+  end
+  
   function load_assets()
     load_palette()
   
