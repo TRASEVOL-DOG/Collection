@@ -9,6 +9,7 @@
 -- - _title: name of the game
 -- - _description: a one sentence description/instruction for the game
 -- - _controls : table listing the controls you're using in this game
+-- - _cursor_info : table with a 'glyph' key and 'color_a', 'color_b', 'outline', 'anchor_x' and 'anchor_y' and 'angle' keys. This table lets the user replace the cursor with a glyph. Keep that table as nil if you prefer to keep the default cursor.
 -- - 
 -- - _init() : callback called on loading the game
 -- - _update() : callback called every frame to update the game
@@ -75,8 +76,6 @@ local in_controls, in_pause, in_pause_t, in_gameover
 local ctrl_descriptions, ctrl_active
 local light_table
 
-local cursor_is_visible = true
-
 local battery_level
 local global_score
 
@@ -123,6 +122,7 @@ do -- love overloads (load, update, draw)
     update_pause()
     
     if in_controls then update_controls_screen() return end
+    if in_gameover then update_gameover() return end
     if in_pause then return end
   
     if _update then _update() end
@@ -143,6 +143,7 @@ do -- love overloads (load, update, draw)
     if in_pause_t then draw_pause() end
     
     if in_controls then draw_controls_screen() end
+    if in_gameover then draw_gameover() end
     
     draw_topbar()
     
@@ -164,6 +165,53 @@ do -- preloading games
 
 end
 
+
+do -- gameover
+  local end_score, end_info, end_rank
+  local gameover_t = 0
+  
+  local ranks = { "F", "E", "D", "C", "B", "A" }
+  
+  -- score has to be between 0 and 100
+  -- info (optional) is a table of strings to display on gameover
+  function gameover(score, info)
+    in_gameover = true
+    gameover_t = 0
+    
+    end_score = mid(score, 0, 100)
+    end_info = info
+    
+    if score == 100 then
+      end_rank = "A++"
+    else
+      local n = score / 100 * 6
+      
+      end_rank = ranks[flr(n + 1)]
+      
+      if n % 1 < 0.25 then
+        end_rank = end_rank.."-"
+      elseif n % 1 > 0.75 then
+        end_rank = end_rank.."+"
+      end
+    end
+  end
+
+  function update_gameover()
+    gameover_t = min(gameover_t + dt(), 1)
+    
+    -- manage 'continue' button here
+  end
+  
+  function draw_gameover()
+    -- todo:
+    --- draw "game over" (or "you win" on 100/100)
+    --- draw score
+    --- draw rank
+    --- continue (to next game selection)
+    
+  end
+  
+end
 
 
 do -- topbar
@@ -437,7 +485,7 @@ do -- pause
   end
   
   function update_pause()
-    if btnp("start") and in_controls ~= 99 then
+    if btnp("start") and in_controls ~= 99 and not in_gameover then
       pause()
     end
     
@@ -716,7 +764,34 @@ end
 do -- misc
 
   function draw_cursor()
-    if not cursor_is_visible then return end
+    if _cursor_info and _cursor_info.glyph then
+      local mx, my = btnv("cur_x"), btnv("cur_y")
+      
+      if _cursor_info.outline then
+        outlined_glyph(
+          _cursor_info.glyph,
+          mx + 8 - (_cursor_info.point_x or 0),
+          my + 8 - (_cursor_info.point_y or 0),
+          16, 16,
+          _cursor_info.angle or 0,
+          _cursor_info.color_a or 29,
+          _cursor_info.color_b or 27,
+          _cursor_info.outline
+        )
+      else
+        glyph(
+          _cursor_info.glyph,
+          mx + 8 - (_cursor_info.point_x or 0),
+          my + 8 - (_cursor_info.point_y or 0),
+          16, 16,
+          _cursor_info.angle or 0,
+          _cursor_info.color_a or 29,
+          _cursor_info.color_b or 27
+        )
+      end
+      return
+    end
+  
     palt(0, false)
     palt(16, true)
     spritesheet("controls")
@@ -732,10 +807,6 @@ do -- misc
     spritesheet("glyphs")
     palt(0, true)
     palt(16, false)
-  end
-  
-  function make_cursor_visible( bool )
-   cursor_is_visible = bool
   end
   
   function get_battery_level()

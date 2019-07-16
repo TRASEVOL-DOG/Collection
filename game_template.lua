@@ -24,6 +24,17 @@ _controls = {
   [ "cur_rb" ] = "Send movie to director!"
 }
 
+_cursor_info = {
+  glyph = 0x06,
+  color_a = 29,
+  color_b = 27,
+  outline = 0, -- outline color - set nil for no outline
+  point_x = 8,
+  point_y = 8,
+  angle = 0
+}
+
+
 _score = 0
 
 local GW, GH = 0, 0
