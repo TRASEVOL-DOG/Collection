@@ -195,7 +195,6 @@ do -- topbar
   }
     
   function draw_battery(x, y)
-    battery_level = 75
     local v = mid(battery_level / 100, 0, 1)
     
     pal(29, 19)
@@ -219,7 +218,6 @@ do -- topbar
     
     local t = t()
     for y = 0, 8 do
-      --local dx = 1.5 * sin(0.5*t + y/12 + 1.5*sin(-0.1*t + y/88 + 0.17)) * sin(-t*0.73 - y/16 + 0.63)
       local dx = 2 * cos(0.25*t + y/12) * cos(0.6*t + y/18)
     
       line(w1+0.75*dx, y, w0+dx, y, ramp[3])
@@ -241,7 +239,6 @@ do -- topbar
       
       pset(w0+dx, y, ramp[4])
       pset(w0+dx, y+1, 19)
-      
     end
     
     S.camera()
@@ -339,17 +336,8 @@ do -- controls screen
     local x,y = 0, 8
     local space1, space2 = 18, 28
     
---    x = (screen_w() - str_px_width(_title)) / 2
---  --  pprint(_title, x, y)
---    for i = 1, #_title do
---      local y = y + 1.5*cos(-t() + i/10)
---      local c = _title:sub(i,i)
---      pprint(c, x, y)
---      x = x + str_px_width(c)
---    end
-    
     x = (screen_w() - str_px_width(_description)) / 2
---    y = y + space2
+
     pprint(_description, x, y)
   
     y = y + space2
@@ -498,9 +486,8 @@ do -- pause
   
   function ui_panel()
     local ui = castle.ui
-    ui.markdown("### ".._title.."\n".._description)
+    ui.markdown("### ".._title)
     ui.markdown(_description)
-  
   end
 
 end
