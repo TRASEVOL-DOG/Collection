@@ -729,10 +729,10 @@ do -- misc
           _cursor_info.outline
         )
       else
-        outlined_glyph(
+        glyph(
           _cursor_info.glyph,
-          mx - (_cursor_info.anchor_x or 0),
-          my - (_cursor_info.anchor_y or 0),
+          mx + 8 - (_cursor_info.point_x or 0),
+          my + 8 - (_cursor_info.point_y or 0),
           16, 16,
           _cursor_info.angle or 0,
           _cursor_info.color_a or 29,
