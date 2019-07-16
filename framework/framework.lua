@@ -155,22 +155,6 @@ end
 
 
 do -- topbar
-
-  function draw_ui() -- placeholder + to be renamed
-    color(flr(t() * 10) + 1)
-    
-    local y_offset = sin(t() / 2)*2
-    
-    rectfill(0, 0, GW, UI_H)
-    rectfill(3, 3, GW-3, UI_H-3, 0)
-    outlined_glyph(UI_battery_spr, 16, 16, 16, 16, a, _palette[2], _palette[3], 0)
-    print(":", 7 + 16, 7, 29)  
-    print(" " .. battery_level .. "%", 7 + 16, 7 + y_offset, 29)  
-    local str = "SCORE:"
-    local strc = "SCORE:" .. global_score .. " "
-    print(str, GW - str_px_width(strc) - 5, 7, 29  )
-    print(global_score .. " ", GW - str_px_width(global_score .. " ") - 5, 7 + y_offset, 29  )
-  end
   
   function draw_topbar()
     S.camera()
@@ -186,9 +170,14 @@ do -- topbar
     
     draw_battery(216, 0)
     
+    local mx, my = btnv("cur_x"), btnv("cur_y")
+    if mx >= 256 - 15 and mx < 256 and my >= -16 and my < -1 then
+      spr(btn("cur_lb") and 21 or 20, 240, 0)
+    else
+      spr(19, 240, 0)
+    end
+    
     --todo:
-    -- show battery power
-    -- animate battery
     -- highlight pause button on hover and on press
     
     spritesheet("glyphs")
@@ -206,6 +195,7 @@ do -- topbar
   }
     
   function draw_battery(x, y)
+    battery_level = 75
     local v = mid(battery_level / 100, 0, 1)
     
     pal(29, 19)
@@ -239,9 +229,8 @@ do -- topbar
       for _,x in pairs(bubbles[y]) do
         local x = (x + t*6) % 128
         
+        x = sqr(sqr(x/20))*20
         if x < w0+dx then
-          x = sqr(sqr(x/20))*20
-        
           local v = 2
           if x > w1+0.75*dx then v = 4
           elseif x > w2+0.5*dx then v = 3 end
@@ -448,6 +437,11 @@ do -- pause
   
   function update_pause()
     if btnp("start") and in_controls ~= 99 then
+      pause()
+    end
+    
+    local mx, my = btnv("cur_x"), btnv("cur_y")
+    if mx >= 256 - 15 and mx < 256 and my >= -16 and my < -1 and btnr("cur_lb") then
       pause()
     end
   
