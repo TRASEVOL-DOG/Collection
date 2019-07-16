@@ -122,6 +122,7 @@ do -- love overloads (load, update, draw)
     update_pause()
     
     if in_controls then update_controls_screen() return end
+    if in_gameover then update_gameover() return end
     if in_pause then return end
   
     if _update then _update() end
@@ -142,6 +143,7 @@ do -- love overloads (load, update, draw)
     if in_pause_t then draw_pause() end
     
     if in_controls then draw_controls_screen() end
+    if in_gameover then draw_gameover() end
     
     draw_topbar()
     
@@ -163,6 +165,53 @@ do -- preloading games
 
 end
 
+
+do -- gameover
+  local end_score, end_info, end_rank
+  local gameover_t = 0
+  
+  local ranks = { "F", "E", "D", "C", "B", "A" }
+  
+  -- score has to be between 0 and 100
+  -- info (optional) is a table of strings to display on gameover
+  function gameover(score, info)
+    in_gameover = true
+    gameover_t = 0
+    
+    end_score = mid(score, 0, 100)
+    end_info = info
+    
+    if score == 100 then
+      end_rank = "A++"
+    else
+      local n = score / 100 * 6
+      
+      end_rank = ranks[flr(n + 1)]
+      
+      if n % 1 < 0.25 then
+        end_rank = end_rank.."-"
+      elseif n % 1 > 0.75 then
+        end_rank = end_rank.."+"
+      end
+    end
+  end
+
+  function update_gameover()
+    gameover_t = min(gameover_t + dt(), 1)
+    
+    -- manage 'continue' button here
+  end
+  
+  function draw_gameover()
+    -- todo:
+    --- draw "game over" (or "you win" on 100/100)
+    --- draw score
+    --- draw rank
+    --- continue (to next game selection)
+    
+  end
+  
+end
 
 
 do -- topbar
@@ -435,7 +484,7 @@ do -- pause
   end
   
   function update_pause()
-    if btnp("start") and in_controls ~= 99 then
+    if btnp("start") and in_controls ~= 99 and not in_gameover then
       pause()
     end
     
