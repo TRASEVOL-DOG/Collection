@@ -90,14 +90,15 @@ function _update()
   if btnp("cur_lb") then
     local i = 0
     for id, game in pairs(get_game_list()) do
-      local x = GW / 6 + i * GW/3
-      local y = 50      
+      local x = GW/4 - GW/6 + i * GW/2
+      local y = 50 - flr(cos(t() / 3) * 8) - flr(sin(t() / 3) * 4) 
       local x_mouse = btnv("cur_x")
       local y_mouse = btnv("cur_y")
       
-      if point_in_rect(x_mouse, y_mouse, x, y, x + 16, y + 16) then 
+      if point_in_rect(x_mouse, y_mouse, x, y, x + GW/3, y + GH/3) then 
         load_game(id, false, {battery_level = (get_battery_level() or 100) - 10, global_score =  (get_global_score() or 0) + _score })
       end        
+      
       i = i + 1      
     end
   end
@@ -114,26 +115,6 @@ end
 
 function _draw()
   cls(_palette[1])
-    
-  -- list of games
-  -- this should be in end screen of framework, testing purpose only
-    local i = 0
-    local col = _palette[5]
-    color(col)
-    for id, game in pairs(get_game_over_game_list()) do
-      local x = GW / 6 + i * GW/3
-      local y = 50
-      color(col)
-      print(id, x, y)
-      print(game.name, x - str_px_width(game.name)/2, y + 16)
-      
-      -- rectfill(x, y, x + 16, y + 16, col)
-      if game.preview then
-        spr_sheet(game.preview, x, y, 16, 16)
-      end
-      i = i + 1
-    end
-  --
   
   draw_ground()
   
@@ -143,8 +124,34 @@ function _draw()
   draw_remaining()
   draw_score()
   
-  draw_ropes()
-  draw_targets()
+  -- draw_ropes()
+  -- draw_targets()
+    
+  -- list of games
+  -- this should be in end screen of framework, testing purpose only
+    local i = 0
+    local col = _palette[5]
+    color(col)
+    for id, game in pairs(get_game_over_game_list()) do
+      local x = GW/4 - GW/6 + i * GW/2
+      local y = 50 - flr(cos(t() / 3) * 8) 
+      color(col)
+      print(id, x, y)
+      pprint(game.name, GW/4 - 2 + i * GW/2 - str_px_width(game.name)/2, y - 16 - 8)
+      
+      -- rectfill(x, y, x + 16, y + 16, col)
+      if game.preview then
+        local y = y - flr(sin(t() / 3) * 4) 
+        local x_mouse = btnv("cur_x")
+        local y_mouse = btnv("cur_y")
+        
+        if point_in_rect(x_mouse, y_mouse, x, y, x + GW/3, y + GH/3) then color(_palette[4]) else color(_palette[5]) end
+        rectfill(x - 2, y - 2, x + GW/3 + 2, y + GH/3 + 2)
+        spr_sheet(game.preview, x, y, GW/3, GH/3)
+      end
+      i = i + 1
+    end
+  --
   
   draw_bullets()  
   draw_bubbles()  
