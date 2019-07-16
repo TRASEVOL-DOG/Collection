@@ -318,6 +318,7 @@ do -- controls screen
       
       if in_controls <= 0 then
         in_controls = false
+        make_cursor_visible(false)
       end
     end
   end
@@ -433,7 +434,6 @@ do -- pause
     
       castle.uiupdate = ui_panel
     end
-    make_cursor_visible(in_pause)
   end
   
   function update_pause()
