@@ -96,7 +96,7 @@ function _update()
       local y_mouse = btnv("cur_y")
       
       if point_in_rect(x_mouse, y_mouse, x, y, x + GW/3, y + GH/3) then 
-        load_game(id, false, {battery_level = (get_battery_level() or 100) - 10, global_score =  (get_global_score() or 0) + _score })
+        next_game(id)
       end        
       
       i = i + 1      

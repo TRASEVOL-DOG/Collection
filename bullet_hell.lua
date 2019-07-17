@@ -1,8 +1,8 @@
 require("framework/framework")
 
--- _title = "Fishing Game"
--- _name = "Game Template"
-_title = "Game Template 2"
+_title = "Fishing Game"
+-- _title = "Game Template"
+-- _title = "Game Template 2"
 
 _description = "Some test indeed !"
 
@@ -30,20 +30,10 @@ local time_since_launch = 0
 local t = function() return time_since_launch or 0 end
 
 player = {x = 0, y = 0, w = 16, h = 16, a = 0}
-bubbles = {} -- bubbles around player
-bubble_timer = 1
 
-bullets = {}
-bullet_timer = .1
-bullet_cooldown = .5
+remaining_targets = 1
 
-targets = {}
-spawn_target_timer = 1
-spawn_target_cooldown = .7
-
-remaining_targets = 20
-
-rope_speed = .5
+game_speed = .5
 
 function _init(difficulty)
   GW = screen_w()
@@ -52,15 +42,11 @@ function _init(difficulty)
   g_spr = {
     mouse  = 0x00,
     player = 0x20,
-    bubble = 0x30,
-    rope   = 0x50,
-    target = 0x31,
-    fence  = 0x33,
-    ground = 0x34
+    bullet = 
   }
   
   printp_color (_palette[6], _palette[4], _palette[3])
-  local difficulty = difficulty or irnd(100)
+  local difficulty = difficulty or (25 + irnd(75))
   log("Difficulty set to :" .. difficulty )
   rope_speed = 1.45 / 100 * difficulty
   
@@ -88,22 +74,22 @@ function _update()
   end
   
   if btnp("cur_lb") then
-    local i = 0
-    for id, game in pairs(get_game_list()) do
-      local x = GW/4 - GW/6 + i * GW/2
-      local y = 50 - flr(cos(t() / 3) * 8) - flr(sin(t() / 3) * 4) 
-      local x_mouse = btnv("cur_x")
-      local y_mouse = btnv("cur_y")
+    -- local i = 0
+    -- for id, game in pairs(get_game_list()) do
+      -- local x = GW/4 - GW/6 + i * GW/2
+      -- local y = 50 - flr(cos(t() / 3) * 8) - flr(sin(t() / 3) * 4) 
+      -- local x_mouse = btnv("cur_x")
+      -- local y_mouse = btnv("cur_y")
       
-      if point_in_rect(x_mouse, y_mouse, x, y, x + GW/3, y + GH/3) then 
-        load_game(id, false, {battery_level = (get_battery_level() or 100) - 10, global_score =  (get_global_score() or 0) + _score })
-      end        
+      -- if point_in_rect(x_mouse, y_mouse, x, y, x + GW/3, y + GH/3) then 
+        -- load_game(id, false, {battery_level = (get_battery_level() or 100) - 10, global_score =  (get_global_score() or 0) + _score })
+      -- end        
       
-      i = i + 1      
-    end
+      -- i = i + 1      
+    -- end
   end
   
-  if remaining_targets == 0 and #targets == 0 and not began_game_over then
+  if remaining_targets == 0 and count(targets) == 0 and not began_game_over then
     began_game_over = true
     begin_game_over()
   end
@@ -112,6 +98,12 @@ function _update()
   end
 end
 
+function count(tab)
+  if not tab then return end
+  local nb = 0
+  for i, j in pairs(tab) do nb = nb + 1 end
+  return nb  
+end
 
 function _draw()
   cls(_palette[1])
@@ -124,33 +116,32 @@ function _draw()
   draw_remaining()
   draw_score()
   
-  -- draw_ropes()
-  -- draw_targets()
+  draw_ropes()
+  draw_targets()
     
   -- list of games
   -- this should be in end screen of framework, testing purpose only
-    local i = 0
-    local col = _palette[5]
-    color(col)
-    for id, game in pairs(get_game_over_game_list()) do
-      local x = GW/4 - GW/6 + i * GW/2
-      local y = 50 - flr(cos(t() / 3) * 8) 
-      color(col)
-      print(id, x, y)
-      pprint(game.name, GW/4 - 2 + i * GW/2 - str_px_width(game.name)/2, y - 16 - 8)
+    -- local i = 0
+    -- local col = _palette[5]
+    -- color(col)
+    -- for id, game in pairs(get_game_over_game_list()) do
+      -- local x = GW/4 - GW/6 + i * GW/2
+      -- local y = 50 - flr(cos(t() / 3) * 8) 
+      -- color(col)
+      -- print(id, x, y)
+      -- pprint(game.name, GW/4 - 2 + i * GW/2 - str_px_width(game.name)/2, y - 16 - 8)
       
-      -- rectfill(x, y, x + 16, y + 16, col)
-      if game.preview then
-        local y = y - flr(sin(t() / 3) * 4) 
-        local x_mouse = btnv("cur_x")
-        local y_mouse = btnv("cur_y")
+      -- if game.preview then
+        -- local y = y - flr(sin(t() / 3) * 4) 
+        -- local x_mouse = btnv("cur_x")
+        -- local y_mouse = btnv("cur_y")
         
-        if point_in_rect(x_mouse, y_mouse, x, y, x + GW/3, y + GH/3) then color(_palette[4]) else color(_palette[5]) end
-        rectfill(x - 2, y - 2, x + GW/3 + 2, y + GH/3 + 2)
-        spr_sheet(game.preview, x, y, GW/3, GH/3)
-      end
-      i = i + 1
-    end
+        -- if point_in_rect(x_mouse, y_mouse, x, y, x + GW/3, y + GH/3) then color(_palette[4]) else color(_palette[5]) end
+        -- rectfill(x - 2, y - 2, x + GW/3 + 2, y + GH/3 + 2)
+        -- spr_sheet(game.preview, x, y, GW/3, GH/3)
+      -- end
+      -- i = i + 1
+    -- end
   --
   
   draw_bullets()  
@@ -247,6 +238,7 @@ function update_targets()
   for ind, target in pairs(targets) do
     target.x = target.x + (stop_targets and 0 or (target.speed * dt() * target.dir))
     if target.x < -32 or target.x > GW + 32 then
+      log("deleting target")
       targets[ind] = nil
     end    
   end
@@ -266,23 +258,15 @@ end
 -- ground -------------
 
 function init_ground()
-  ground = {}
-  for i = 1, 3 do
-    local strip = {}
-    for j = 1, GW/16 do
-      add(strip, { v = - 1 + irnd(4) * (irnd(3) == 0 and 1 or 0), a = rnd(1)})
-    end
-    add(ground, strip)
-  end
+  ground = {}  
+  for i = 0, 150 do
+    add(ground, { x = irnd(GW), y = GH - irnd(16*3)})  
+  end  
 end
 
 function draw_ground()
-  for i, strip in pairs(ground) do
-    for j, rect in pairs(strip) do
-      if rect.v ~= -1 then
-        glyph(g_spr.ground + rect.v, j * 16 - 8, GH + (i - 3) * 16, 16, 16, rect.a, _palette[0])
-      end
-    end
+  for i, p in pairs(ground) do
+    rectfill(p.x, p.y, p.x + 1, p.y + 1, _palette[0])
   end
 end
 -- xxxxx -------------
@@ -393,7 +377,7 @@ function draw_remaining()
   outlined_glyph(g_spr.target, x + 8, y + 8 + 2, 16, 16, 0, 0, 0, 0)  
   outlined_glyph(g_spr.target, x + 8, y + 8, 16, 16, 0, _palette[2], _palette[3], 0)  
   x = x + 17  
-  pprint(": " .. remaining_targets + #targets, x, y)
+  pprint(": " .. remaining_targets + count(targets), x, y)
 
 end
 
@@ -430,6 +414,11 @@ function draw_game_over()
     local str = "Game over!"
     pprint(str, GW/2 - str_px_width(str)/2 , y + sin(t() / 3) * 3)
 
+  else
+    if not game_over then 
+      gameover(_score, {"Targets : " .. _score/20})
+    end
+    game_over = true
   end
 end
 

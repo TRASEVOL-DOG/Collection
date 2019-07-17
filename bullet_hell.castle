@@ -1,6 +1,6 @@
 ---
-main: game_template2.lua
-title: template
+main: bullet_hell.lua
+title: Bullet Hell
 owner: spaceling
 primaryColor: 000000
 dimensions: full

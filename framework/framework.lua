@@ -81,6 +81,7 @@ local shake_power, shake_x, shake_y
 
 local battery_level
 local global_score
+local BATTERY_COST = 10
 
 do -- love overloads (load, update, draw)
 
@@ -173,6 +174,13 @@ do -- preloading games
   function get_game_over_game_list()
     return g_o_games  
   end
+  
+  function next_game(id)
+     load_game(id, false, 
+     {battery_level = (get_battery_level() or 100) - BATTERY_COST,
+      global_score =  (get_global_score() or 0) + _score })
+  end
+  
   
 end
 
