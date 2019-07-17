@@ -159,25 +159,21 @@ do -- love overloads (load, update, draw)
 
 end
 
-local g_o_games = {} -- game over games
+local g_o_games = {} -- game over games { {name, player_spr, preview}, .. }
 
 do -- preloading games  
-
-  -- games have : 
-  -- link 
-  -- name
-  -- cursor 
-  -- preview.png  
-
+  
+  
   function init_shown_games_game_over()
     local choosen_games = pick_different(2, get_game_list())
     for i, g in pairs(choosen_games) do
-      add(g_o_games, { name = g.name, player_spr = g.player_spr, preview = load_png(nil, g.preview) } )    
+      add(g_o_games, { name = g.name, player_spr = g.player_spr, preview = load_png(nil, "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/" .. g.code_name.."_preview.png") } )    
     end
   end
   function get_game_over_game_list()
     return g_o_games  
   end
+  
 end
 
 

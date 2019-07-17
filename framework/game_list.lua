@@ -1,20 +1,17 @@
 
 _game_list = {
 
-  {name       = "Fishing Game",   
-   path       = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/fishing_game.castle",
+  {name       = "Shooting Range",   
+   code_name  = "shooting_range",   
    player_spr = 0x30,
-   preview    = "fishing_game_preview.png",
   },
   {name       = "Game Template",   
-   path       = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template.castle",
+   code_name  = "game_template",   
    player_spr = 0x30,
-   preview    = "game_template_preview.png",
   },
   {name       = "Game Template 2",   
-   path       = "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/game_template2.castle",
+   code_name  = "game_template2",  
    player_spr = 0x30,
-   preview    = "game_template2_preview.png",
   },
   
 }
@@ -24,13 +21,13 @@ _game_list_copy = {}
 
 function get_path_from_id(game_id)
   if not game_id then return end
-  return _game_list[game_id].path  
+  return "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/" .. _game_list[game_id].code_name..".castle"  
 end
   
-function get_id_from_name(game_name)
-  if not game_name then return end
+function get_id_from_code_name(game_code_name)
+  if not game_code_name then return end
   for ind, game in pairs(_game_list) do
-    if game.name == game_name then return ind end  
+    if game.code_name == game_code_name then return ind end  
   end  
 end
 
@@ -42,12 +39,12 @@ function get_game_list()
   return _game_list_copy
 end
 
-function load_game(key, loading_with_name, params)
+function load_game(key, loading_with_code_name, params)
 
   local path
     
-  if loading_with_name then 
-    path = get_path_from_id(get_id_from_name(key)) 
+  if loading_with_code_name then 
+    path = get_path_from_id(get_id_from_code_name(key)) 
   else   
     path = get_path_from_id(key)
   end
