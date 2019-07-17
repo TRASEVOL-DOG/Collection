@@ -69,7 +69,7 @@ local TOPBAR_HEIGHT = 16
 local load_palette, load_controls, load_assets, load_settings
 local update_controls, draw_cursor
 local init_controls_screen, update_controls_screen, draw_controls_screen
-local update_topbar, draw_topbar
+local update_topbar, draw_topbar, add_battery
 local pause, update_pause, draw_pause
 local update_gameover, draw_gameover
 local transition_a, transition_b, update_screenshake
@@ -100,9 +100,11 @@ do -- love overloads (load, update, draw)
     if params then 
       battery_level = params.battery_level
       global_score = params.global_score
+      
     end
     battery_level = battery_level or 100
     global_score = global_score or 0
+      add_battery(-BATTERY_COST)
     
     -- screen shake initialization
     shake_x, shake_y = 0, 0
@@ -130,6 +132,7 @@ do -- love overloads (load, update, draw)
   function love.update()
     update_screenshake()
     update_controls()
+    update_topbar()
     update_pause()
     
     if in_controls then update_controls_screen() return end
@@ -171,14 +174,16 @@ do -- preloading games
       add(g_o_games, { name = g.name, player_spr = g.player_spr, preview = load_png(nil, "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/" .. g.code_name.."_preview.png") } )    
     end
   end
+  
   function get_game_over_game_list()
-    return g_o_games  
+    return g_o_games
   end
   
   function next_game(id)
-     load_game(id, false, 
-     {battery_level = (get_battery_level() or 100) - BATTERY_COST,
-      global_score =  (get_global_score() or 0) + _score })
+    load_game(id, false, {
+      battery_level = battery_level or 100,
+      global_score  = global_score  or 0
+    })
   end
   
   
@@ -192,7 +197,7 @@ do -- gameover
   local ranks = { "F", "E", "D", "C", "B", "A" }
   
   -- score has to be between 0 and 100
-  -- info (optional) is a table of strings to display on gameover
+  -- info (optional) is a table of up-to-5 strings to display on gameover
   function gameover(score, info)
     screenshake(16)
   
@@ -200,7 +205,17 @@ do -- gameover
     gameover_t = 0
     
     end_score = mid(score, 0, 100)
-    end_info = copy_table(info)
+    
+    if info then
+      end_info = {}
+      
+      for i,str in ipairs(info) do
+        if i > 5 then break end
+        end_info[i] = str
+      end
+    end
+    
+    log("Game Over! Score is "..end_score.."/100.", "o7")
     
     if score > 50 then
       if score == 100 then
@@ -225,28 +240,59 @@ do -- gameover
     end
   end
 
+  local ogameover_t
   function update_gameover()
-    gameover_t = min(gameover_t + dt(), 999)
+    ogameover_t = gameover_t
+    gameover_t = gameover_t + dt()
+    
+    if btnp("start") then
+      gameover_t = 999
+    end
+    
+    local wait_t
     
     if end_info then
       for i,_ in ipairs(end_info) do
         local nt = 1 + (i - 1) * 0.4
-        if nt < gameover_t and nt > gameover_t - dt() then
+        if nt < gameover_t and nt > ogameover_t then
           screenshake(4)
         end
       end
       
       local nt = 1 + #end_info * 0.4
-      if nt < gameover_t and nt > gameover_t - dt() then
+      if nt < gameover_t and nt > ogameover_t then
         screenshake(8)
       end
+      
+      wait_t = 1 + #end_info * 0.4
     else
-      if gameover_t >= 1 and gameover_t - dt() < 1 then
+      if gameover_t >= 1 and ogameover_t < 1 then
         screenshake(8)
+      end
+      
+      wait_t = 1
+    end
+    
+    wait_t = wait_t + 1.1
+    if gameover_t >= wait_t and ogameover_t < wait_t then
+      global_score = global_score + end_score
+    end
+    
+    if end_battery then
+      wait_t = wait_t + 1.5
+      if gameover_t >= wait_t and ogameover_t < wait_t then
+        add_battery(end_battery)
       end
     end
     
-    -- manage 'continue' button here
+    wait_t = wait_t + 1
+    if ogameover_t > wait_t then
+      if btnp("start") then
+        -- move on to next-game selection
+      
+      
+      end
+    end
   end
   
   local rank_ramps = {
@@ -263,8 +309,7 @@ do -- gameover
     transition_a(gameover_t)
   
     printp(0x0100, 0x0200, 0x0300, 0x0)
-    --printp(0x3330, 0x3130, 0x3230, 0x3330)
-    
+
     local space1, space2 = 16, 30
     
     local timepoint = 1
@@ -288,9 +333,6 @@ do -- gameover
       y = y - space1 + space2
     end
     
-    
-    -- to be replaced with sprites (bigger letters)
-    
     local str
     if end_score == 100 then
       str = "YOU WIN!"
@@ -309,7 +351,7 @@ do -- gameover
       x = x + str_px_width(ch)
     end
     
-    y = y + space2
+    y = y + 0.75 * space2
     
     timepoint = timepoint + 0.1
     if gameover_t < timepoint then return end
@@ -352,7 +394,7 @@ do -- gameover
     
     
     if end_battery then
-      y = y + space1
+      y = y + 1.5 * space1
       
       timepoint = timepoint + 1
       if gameover_t < timepoint then return end
@@ -382,17 +424,39 @@ do -- gameover
     
     y = y + space2
     
+    timepoint = timepoint + 1
+    if gameover_t < timepoint then return end
     
-    -- todo:
-    --- battery saved/bonus
-    --- continue (to next game selection)
-    
+    if gameover_t%1 < 0.75 then
+      local str = "Press E / ENTER / START to continue!"
+      
+      x = (screen_w() - str_px_width(str)) / 2
+      y = screen_h() - 16
+      pprint(str, x, y)
+    end
   end
   
 end
 
 
 do -- topbar
+  local battery_t = 0
+
+  function add_battery(n)
+    battery_level = mid(battery_level + n, 0, 100)
+    battery_t = 2
+  end
+  
+  function update_topbar()
+    local mx, my = btnv("cur_x"), btnv("cur_y")
+    if mx >= 256 - 15 and mx < 256 and my >= -16 and my < -1 and btnr("cur_lb") then
+      pause()
+    end
+    
+    if battery_t > 0 then
+      battery_t = battery_t - dt()
+    end
+  end
   
   function draw_topbar()
     S.camera()
@@ -440,7 +504,8 @@ do -- topbar
     pal(29, 29)
     
     local rn
-    if     battery_level > 60 then rn = 4
+    if battery_t > 1.5 or battery_t % 0.2 < 0.1 then rn = 5 
+    elseif battery_level > 60 then rn = 4
     elseif battery_level > 50 then rn = 3
     elseif battery_level > 20 then rn = 2
     else                           rn = 1
@@ -527,6 +592,7 @@ do -- controls screen
     if in_controls == 99 then
       if btnp("start") then
         in_controls = 1
+        log("Leaving controls screen.", "o7")
       end
       
       local mx, my = btnv("cur_x"), btnv("cur_y")
@@ -613,7 +679,7 @@ do -- controls screen
       if control_mode == 2 then
         str = "Press START to continue!"
       else
-        str = "Press E / Enter to continue!"
+        str = "Press E / ENTER to continue!"
       end
       
       x = (screen_w() - str_px_width(str)) / 2
@@ -634,11 +700,13 @@ do -- pause
   function pause()
     if in_pause then
       in_pause = false
+      log("Unpause!", "o7")
   
       castle.uiupdate = false
     else
       in_pause = true
       in_pause_t = in_pause_t or 0
+      log("Pause!", "o7")
     
       castle.uiupdate = ui_panel
     end
@@ -649,11 +717,6 @@ do -- pause
       pause()
     end
     
-    local mx, my = btnv("cur_x"), btnv("cur_y")
-    if mx >= 256 - 15 and mx < 256 and my >= -16 and my < -1 and btnr("cur_lb") then
-      pause()
-    end
-  
     if in_pause then
       in_pause_t = min(in_pause_t + 2 * dt(), 1)
     elseif in_pause_t then
@@ -1038,14 +1101,6 @@ do -- misc
       if val == value then return true end
     end
     return false
-  end
-  
-  function get_battery_level()
-    return battery_level
-  end
-  
-  function get_global_score()
-    return global_score
   end
   
   function load_assets()
