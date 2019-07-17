@@ -101,7 +101,7 @@ function _update()
     end
   end
   
-  if remaining_targets == 0 and count(targets) == 0 and not began_game_over then
+  if remaining_targets == 0 and #targets == 0 and not began_game_over then
     began_game_over = true
     begin_game_over()
   end
@@ -385,7 +385,7 @@ function draw_remaining()
   outlined_glyph(g_spr.target, x + 8, y + 8 + 2, 16, 16, 0, 0, 0, 0)  
   outlined_glyph(g_spr.target, x + 8, y + 8, 16, 16, 0, _palette[2], _palette[3], 0)  
   x = x + 17  
-  pprint(": " .. remaining_targets + count(targets), x, y)
+  pprint(": " .. remaining_targets + #targets, x, y)
 
 end
 
