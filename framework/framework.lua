@@ -66,15 +66,18 @@ local GAME_WIDTH, GAME_HEIGHT = 256, 192
 local TOPBAR_HEIGHT = 16
 
 -- forward declarations (local):
-local load_palette, load_controls, load_assets
+local load_palette, load_controls, load_assets, load_settings
 local update_controls, draw_cursor
 local init_controls_screen, update_controls_screen, draw_controls_screen
 local update_topbar, draw_topbar
 local pause, update_pause, draw_pause
+local update_gameover, draw_gameover
+local transition_a, transition_b, update_screenshake
 
 local in_controls, in_pause, in_pause_t, in_gameover
 local ctrl_descriptions, ctrl_active
 local light_table
+local shake_power, shake_x, shake_y
 
 local battery_level
 local global_score
@@ -100,9 +103,13 @@ do -- love overloads (load, update, draw)
     battery_level = battery_level or 100
     global_score = global_score or 0
     
+    -- screen shake initialization
+    shake_x, shake_y = 0, 0
+    
     -- loading resources
     load_assets()
     load_controls()
+    load_settings()
     
     -- futur games will be defined in init
     -- for now, only return copy on game_list
@@ -120,6 +127,7 @@ do -- love overloads (load, update, draw)
   end
   
   function love.update()
+    update_screenshake()
     update_controls()
     update_pause()
     
@@ -174,7 +182,7 @@ end
 
 
 do -- gameover
-  local end_score, end_info, end_rank
+  local end_score, end_info, end_rank, end_battery
   local gameover_t = 0
   
   local ranks = { "F", "E", "D", "C", "B", "A" }
@@ -182,11 +190,21 @@ do -- gameover
   -- score has to be between 0 and 100
   -- info (optional) is a table of strings to display on gameover
   function gameover(score, info)
+    screenshake(16)
+  
     in_gameover = true
     gameover_t = 0
     
     end_score = mid(score, 0, 100)
-    end_info = info
+    end_info = copy_table(info)
+    
+    if score > 50 then
+      if score == 100 then
+        end_battery = 15
+      else
+        end_battery = ceil((score-50) / 50 * 10)
+      end
+    end
     
     if score == 100 then
       end_rank = "A++"
@@ -204,16 +222,165 @@ do -- gameover
   end
 
   function update_gameover()
-    gameover_t = min(gameover_t + dt(), 1)
+    gameover_t = min(gameover_t + dt(), 999)
+    
+    if end_info then
+      for i,_ in ipairs(end_info) do
+        local nt = 1 + (i - 1) * 0.4
+        if nt < gameover_t and nt > gameover_t - dt() then
+          screenshake(4)
+        end
+      end
+      
+      local nt = 1 + #end_info * 0.4
+      if nt < gameover_t and nt > gameover_t - dt() then
+        screenshake(8)
+      end
+    else
+      if gameover_t >= 1 and gameover_t - dt() < 1 then
+        screenshake(8)
+      end
+    end
     
     -- manage 'continue' button here
   end
   
+  local rank_ramps = {
+    { 1, 2,  5,  4,  12 },
+    { 1, 3,  19, 20, 22 },
+    { 2, 5,  6,  13, 14 },
+    { 1, 3,  18, 17, 26 },
+    { 8, 9,  10, 15, 25 },
+    { 1, 8,  9,  10, 15 },
+    { 1, 3,  19, 27, 29 }
+  }
+  
   function draw_gameover()
+    transition_a(gameover_t)
+  
+    printp(0x0100, 0x0200, 0x0300, 0x0)
+    --printp(0x3330, 0x3130, 0x3230, 0x3330)
+    
+    local space1, space2 = 16, 30
+    
+    local timepoint = 1
+    if gameover_t < timepoint then return end
+    
+    local y = 32
+    if end_info then
+      y = 4
+      
+      printp_color(17, 18, 3)
+      for i,str in ipairs(end_info) do
+        local x = (screen_w() - str_px_width(str)) / 2
+        pprint(str, x, y)
+        
+        y = y + space1
+        
+        timepoint = timepoint + 0.4
+        if gameover_t < timepoint then return end
+      end
+
+      y = y - space1 + space2
+    end
+    
+    
+    -- to be replaced with sprites (bigger letters)
+    
+    local str
+    if end_score == 100 then
+      str = "YOU WIN!"
+      printp_color(14, 13, 6)
+    else
+      str = "GAME OVER"
+      printp_color(12, 4, 5)
+    end
+    
+    local x = (screen_w() - str_px_width(str)) / 2
+    
+    for i = 1, #str do
+      local ch = str:sub(i,i)
+      pprint(ch, x, y + 3*cos(i/9 - 2*t()))
+      
+      x = x + str_px_width(ch)
+    end
+    
+    y = y + space2
+    
+    timepoint = timepoint + 0.1
+    if gameover_t < timepoint then return end
+    
+    local v = cos(min(gameover_t - timepoint, 1)*0.25 - 0.25)
+    local ramp = { 0, 1, 3, 19, 27 }
+    if v < 1 then
+      local n = flr(v * #ramp + 1)
+      printp_color(ramp[n], ramp[max(n-1, 1)], ramp[max(n-2, 1)])
+    else
+      printp_color(27, 19, 3)
+    end
+    
+    local str = "Score: "..flr(v * end_score).."/100"
+    local x = screen_w()/4 - str_px_width(str)/2
+    pprint(str, x, y + v * 8)
+    
+    
+    timepoint = timepoint + 0.5
+    if gameover_t < timepoint then return end
+    
+    local v = cos(min(gameover_t - timepoint, 1)*0.25 - 0.25)
+    local ramp
+    if end_score == 100 then
+      ramp = rank_ramps[7]
+    else
+      ramp = rank_ramps[flr(end_score/100 * 6) + 1]
+    end
+    
+    if v < 1 then
+      local n = flr(v * #ramp + 1)
+      printp_color(ramp[n], ramp[max(n-1, 1)], ramp[max(n-2, 1)])
+    else
+      printp_color(ramp[5], ramp[4], ramp[3])
+    end
+    
+    local str = "Rank: "..end_rank
+    local x = 3*screen_w()/4 - str_px_width(str)/2
+    pprint(str, x, y + v * 8)
+    
+    
+    if end_battery then
+      y = y + space1
+      
+      timepoint = timepoint + 1
+      if gameover_t < timepoint then return end
+      
+      local v = cos(min(gameover_t - timepoint, 1)*0.25 - 0.25)
+      local ramp = rank_ramps[3]
+      
+      local ca, cb, cc
+      if v < 1 then
+        local n = flr(v * #ramp + 1)
+        ca, cb, cc = ramp[n], ramp[max(n-1, 1)], ramp[max(n-2, 1)]
+        printp_color(ca, cb, cc)
+      else
+        ca, cb, cc = ramp[5], ramp[4], ramp[3]
+        printp_color(ca, cb, cc)
+      end
+      
+      local str = "+"..end_battery.."%"
+      local w = str_px_width(str)
+      local x = screen_w()/2 - (w + 20)/2
+      
+      pprint(str, x, y + v * 8)
+      
+      glyph(0x70, x+w+4+8, y+8 + v * 8, 16, 16, 0, cc, cc)
+      glyph(0x70, x+w+4+8, y+8 + v * 8 - 1, 16, 16, 0, ca, cb)
+    end
+    
+    y = y + space2
+    
+    
     -- todo:
-    --- draw "game over" (or "you win" on 100/100)
-    --- draw score
-    --- draw rank
+    --- battery saved/bonus
     --- continue (to next game selection)
     
   end
@@ -313,23 +480,23 @@ do -- topbar
     
     spr(16, x, y, 2, 1)
     
-    local str = flr(battery_level)..'%'
+    local str = flr(battery_level)..""
     
     if battery_level < 20 then
       if battery_level > 5 or t%1.5 > 0.5 then
-        print(str, 215 - str_px_width(str), 0, 19)
-        print(str, 215 - str_px_width(str), -1, 12)
+        print(str, 207 - str_px_width(str), 0, 19)
+        print(str, 207 - str_px_width(str), -1, 12)
       end
     else
-      print(str, 215 - str_px_width(str), 0, 19)
-      print(str, 215 - str_px_width(str), -1, 29)
+      print(str, 207 - str_px_width(str), 0, 19)
+      print(str, 207 - str_px_width(str), -1, 29)
     end
   end
 
   
   -- overloading sugar functions
   function camera(x, y)
-    S.camera(x or 0, (y or 0) - TOPBAR_HEIGHT)
+    S.camera(x or 0 + shake_power/100 * shake_x, (y or 0) - TOPBAR_HEIGHT + shake_power/100 * shake_y)
   end
   
   function screen_h()
@@ -356,7 +523,6 @@ do -- controls screen
     if in_controls == 99 then
       if btnp("start") then
         in_controls = 1
-        --in_controls = false
       end
       
       local mx, my = btnv("cur_x"), btnv("cur_y")
@@ -379,23 +545,7 @@ do -- controls screen
   
   
   function draw_controls_screen() -- /!\ messy code
-    if in_controls == 99 then
-      cls(0)
-    else
-      local h = (2 * in_controls) * 192
-      
-      for y = 0, 192, 32 do
-        local r = min((h - y) / 4, 32)
-        if r > 0 then
-          for x = y%64 / 2, 256, 32 do
-            circfill(x, y, r, 0)
-          end
-        end
-      end
-      
-      local y = cos(0.3 - in_controls * 0.3) * 200 - 200
-      camera(0, -y)
-    end
+    transition_a(in_controls)
     
     printp(0x0000, 0x0100, 0x0200, 0x0300)
     printp_color(29, 19, 3)
@@ -511,31 +661,7 @@ do -- pause
   end
   
   function draw_pause()
-    spritesheet("screen_dither")
-    pal(1, 0)
-    palt(0, true)
-    
-    if in_pause_t < 1 then
-      local h = 1.2 * in_pause_t * 192 * 2 - 32
-      
-      -- do the transition here
-      for y = h%32 - 32, min(h, 192)-1, 32 do
-        local v = mid(flr((h - y) / 32), 0, 3)
-        
-        spr(v * 32, 0, y, 16, 2)
-      end
-      
-      local y = sqr(cos(0.3 - in_pause_t * 0.3)) * 192 - 192
-      camera(0, -y)
-    else
-      -- do the complete screen obscuring here
-      for y = 0, 192-1, 32 do
-        spr(96, 0, y, 16, 2)
-      end
-    end
-    
-    pal(1, 1)
-    spritesheet("glyphs")
+    transition_b(in_pause_t)
     
     printp(0x3330, 0x3130, 0x3230, 0x3330)
     printp_color(29, 19, 0)
@@ -768,6 +894,81 @@ end
 
 
 do -- misc
+
+  function screenshake(power)
+    local a = rnd(1)
+    
+    shake_x = shake_x + power * cos(a)
+    shake_y = shake_y + power * sin(a)
+  end
+  
+  local shake_t = 0
+  function update_screenshake()
+    shake_t = shake_t - dt()
+    if shake_t < 0 then
+      if abs(shake_x) + abs(shake_y) < 0.5 then
+        shake_x, shake_y = 0, 0
+      else
+        shake_x = shake_x * (-0.5 - rnd(0.2))
+        shake_y = shake_y * (-0.5 - rnd(0.2))
+      end
+      
+      shake_t = 0.03
+    end
+  end
+
+  function transition_a(t)
+    if t < 1 then
+      local h = 2 * t * 192
+      
+      for y = 0, 192, 32 do
+        local r = min((h - y) / 4, 32)
+        if r > 0 then
+          for x = y%64 / 2, 256, 32 do
+            circfill(x, y, r, 0)
+          end
+        end
+      end
+      
+      local y = cos(0.3 - t * 0.3) * 200 - 200
+      camera(0, -y)
+    else
+      cls(0)
+    end
+  end
+  
+  function transition_b(t)
+    spritesheet("screen_dither")
+    pal(1, 0)
+    palt(0, true)
+    
+    if t < 1 then
+      local h = 1.2 * t * 192 * 2 - 32
+      
+      -- do the transition here
+      for y = h%32 - 32, min(h, 192)-1, 32 do
+        local v = mid(flr((h - y) / 32), 0, 3)
+        
+        spr(v * 32, 0, y, 16, 2)
+      end
+      
+      local y = sqr(cos(0.3 - t * 0.3)) * 192 - 192
+      camera(0, -y)
+    else
+      for y = 0, 192-1, 32 do
+        spr(96, 0, y, 16, 2)
+      end
+    end
+    
+    pal(1, 1)
+    spritesheet("glyphs")
+  end
+  
+  function load_settings()
+    -- to-do: load user settings from storage
+    
+    shake_power = 100
+  end
 
   function draw_cursor()
     if _cursor_info and _cursor_info.glyph then
