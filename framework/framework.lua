@@ -101,10 +101,10 @@ do -- love overloads (load, update, draw)
       battery_level = params.battery_level
       global_score = params.global_score
       
+      add_battery(-BATTERY_COST)
     end
     battery_level = battery_level or 100
     global_score = global_score or 0
-      add_battery(-BATTERY_COST)
     
     -- screen shake initialization
     shake_x, shake_y = 0, 0
