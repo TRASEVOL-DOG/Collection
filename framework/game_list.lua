@@ -9,10 +9,10 @@ _game_list = {
    code_name  = "game_template",   
    player_spr = 0x30,
   },
-  {name       = "Speed Plumber",   
-   code_name  = "speed_plumber",  
-   player_spr = 0x30,
-  },
+  -- {name       = "Speed Plumber",   
+   -- code_name  = "speed_plumber",  
+   -- player_spr = 0x30,
+  -- },
   
 }
 
