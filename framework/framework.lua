@@ -177,7 +177,7 @@ do -- gameover
   local end_score, end_info, end_rank
   local gameover_t = 0
   
-  local ranks = { "F", "E", "D", "C", "B", "A", "SM" }
+  local ranks = { "F", "E", "D", "C", "B", "A" }
   
   -- score has to be between 0 and 100
   -- info (optional) is a table of strings to display on gameover
@@ -191,7 +191,7 @@ do -- gameover
     if score == 100 then
       end_rank = "A++"
     else
-      local n = score / 100 * count(ranks)
+      local n = score / 100 * #ranks
       
       end_rank = ranks[flr(n + 1)]
       
@@ -813,13 +813,6 @@ do -- misc
     spritesheet("glyphs")
     palt(0, true)
     palt(16, false)
-  end
-
-  function count(tab)
-    if not tab then return end
-    local nb = 0
-    for i, j in pairs(tab) do nb = nb + 1 end
-    return nb  
   end
   
   function pick_different( number, tab )
