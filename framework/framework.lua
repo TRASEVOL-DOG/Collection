@@ -94,7 +94,7 @@ do -- love overloads (load, update, draw)
     _description = _description or "[please set a description!]"
     _controls = _controls or {}
     
-    local params = castle.game.getInitialParams()
+    local params = castle.game.getInitialParams() or {}
     
     if params then 
       battery_level = params.battery_level
