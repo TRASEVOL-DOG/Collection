@@ -1,8 +1,8 @@
 require("framework/framework")
 
-_title = "Fishing Game"
--- _name = "Game Template"
--- _name = "Game Template 2"
+-- _title = "Fishing Game"
+_title = "Game Template"
+-- _title = "Game Template 2"
 
 _description = "Some test indeed !"
 
@@ -43,7 +43,9 @@ spawn_target_cooldown = .7
 
 remaining_targets = 20
 
-function _init()
+rope_speed = .5
+
+function _init(difficulty)
   GW = screen_w()
   GH = screen_h()
   
@@ -58,14 +60,13 @@ function _init()
   }
   
   printp_color (_palette[6], _palette[4], _palette[3])
+  local difficulty = difficulty or irnd(100)
+  log("Difficulty set to :" .. difficulty )
+  rope_speed = 1.45 / 100 * difficulty
   
   init_ground() 
   init_player() 
   init_ropes() 
-  
-  -- make_cursor_visible(false)
-  
-  -- began_game_over = true
   
 end
 
@@ -89,14 +90,15 @@ function _update()
   if btnp("cur_lb") then
     local i = 0
     for id, game in pairs(get_game_list()) do
-      local x = GW / 6 + i * GW/3
-      local y = 50      
+      local x = GW/4 - GW/6 + i * GW/2
+      local y = 50 - flr(cos(t() / 3) * 8) - flr(sin(t() / 3) * 4) 
       local x_mouse = btnv("cur_x")
       local y_mouse = btnv("cur_y")
       
-      if point_in_rect(x_mouse, y_mouse, x, y, x + 16, y + 16) then 
+      if point_in_rect(x_mouse, y_mouse, x, y, x + GW/3, y + GH/3) then 
         load_game(id, false, {battery_level = (get_battery_level() or 100) - 10, global_score =  (get_global_score() or 0) + _score })
       end        
+      
       i = i + 1      
     end
   end
@@ -113,26 +115,6 @@ end
 
 function _draw()
   cls(_palette[1])
-    
-  -- list of games
-  -- this should be in end screen of framework, testing purpose only
-    local i = 0
-    local col = _palette[5]
-    color(col)
-    for id, game in pairs(get_game_over_game_list()) do
-      local x = GW / 6 + i * GW/3
-      local y = 50
-      color(col)
-      print(id, x, y)
-      print(game.name, x - str_px_width(game.name)/2, y + 16)
-      
-      -- rectfill(x, y, x + 16, y + 16, col)
-      if game.preview then
-        spr_sheet(game.preview, x, y, 16, 16)
-      end
-      i = i + 1
-    end
-  --
   
   draw_ground()
   
@@ -142,8 +124,34 @@ function _draw()
   draw_remaining()
   draw_score()
   
-  draw_ropes()
-  draw_targets()
+  -- draw_ropes()
+  -- draw_targets()
+    
+  -- list of games
+  -- this should be in end screen of framework, testing purpose only
+    local i = 0
+    local col = _palette[5]
+    color(col)
+    for id, game in pairs(get_game_over_game_list()) do
+      local x = GW/4 - GW/6 + i * GW/2
+      local y = 50 - flr(cos(t() / 3) * 8) 
+      color(col)
+      print(id, x, y)
+      pprint(game.name, GW/4 - 2 + i * GW/2 - str_px_width(game.name)/2, y - 16 - 8)
+      
+      -- rectfill(x, y, x + 16, y + 16, col)
+      if game.preview then
+        local y = y - flr(sin(t() / 3) * 4) 
+        local x_mouse = btnv("cur_x")
+        local y_mouse = btnv("cur_y")
+        
+        if point_in_rect(x_mouse, y_mouse, x, y, x + GW/3, y + GH/3) then color(_palette[4]) else color(_palette[5]) end
+        rectfill(x - 2, y - 2, x + GW/3 + 2, y + GH/3 + 2)
+        spr_sheet(game.preview, x, y, GW/3, GH/3)
+      end
+      i = i + 1
+    end
+  --
   
   draw_bullets()  
   draw_bubbles()  
@@ -226,7 +234,7 @@ function new_target()
   
   if rope == 0 then dir = 1 else dir = -1 end
   
-  add(targets, { x = - 16 + (dir == -1 and GW + 16 or 0), rope = rope, dir = dir, speed = GW / 2, shot_at = false } )
+  add(targets, { x = - 16 + (dir == -1 and GW + 16 or 0), rope = rope, dir = dir, speed = GW / 2 * rope_speed, shot_at = false } )
 end
 
 function update_targets()
@@ -346,7 +354,7 @@ end
 
 function draw_rope(y, step, i)
    
-  local x_offset = 16 * ((t()* 7.8) % 1) * (i == 1 and 1 or -1 )
+  local x_offset = 16 * ((t()* 7.8 * rope_speed) % 1) * (i == 1 and 1 or -1 )
    
   for i = -1, GW/16 + 1 do
     outlined_glyph(g_spr.rope,x_offset +   i * 16 - 8, y + get_rope_y_offset( i * GW/16, step ) - 8, 16, 16, .25, _palette[0], _palette[0  ], 0)
