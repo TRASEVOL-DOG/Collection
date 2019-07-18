@@ -2,16 +2,14 @@
 --
 --
 
--- here's some values the framework gives out:
--- - _difficulty : 0 is super easy, 100 should be near-impossible (we'll scale it internally - game 25 would have a difficulty of 100)
-
--- here's what the player should define (as global)
+-- here's what the user should define (as global)
 -- - _title: name of the game
--- - _description: a one sentence description/instruction for the game
--- - _controls : table listing the controls you're using in this game
--- - _cursor_info : table with a 'glyph' key and 'color_a', 'color_b', 'outline', 'anchor_x' and 'anchor_y' and 'angle' keys. This table lets the user replace the cursor with a glyph. Keep that table as nil if you prefer to keep the default cursor.
+-- - _description  : a one sentence description/instruction for the game
+-- - _controls     : table listing the controls you're using in this game
+-- - _cursor_info  : table with a 'glyph' key and 'color_a', 'color_b', 'outline', 'anchor_x' and 'anchor_y' and 'angle' keys. This table lets the user replace the cursor with a glyph. Keep that table as nil if you prefer to keep the default cursor.
+-- - _player_glyph : glyph index representing the player in the game
 -- - 
--- - _init() : callback called on loading the game
+-- - _init(difficulty) : callback called on loading the game. difficulty is passed as argument; 0 is super easy, 100 should be near-impossible (we'll scale it internally - game 25 would have a difficulty of 100)
 -- - _update() : callback called every frame to update the game
 -- - _draw() : callback called every frame to draw the game
 --
@@ -39,12 +37,7 @@
 ---
 ----- shader?
 ---
------ pause/settings button + panel
----
------ game over screen
----
------ ui bar
----
+
 
 if CASTLE_PREFETCH then
   CASTLE_PREFETCH({
@@ -69,7 +62,7 @@ local TOPBAR_HEIGHT = 16
 local load_palette, load_controls, load_assets, load_settings
 local update_controls, draw_cursor
 local init_controls_screen, update_controls_screen, draw_controls_screen
-local update_topbar, draw_topbar
+local update_topbar, draw_topbar, add_battery
 local pause, update_pause, draw_pause
 local update_gameover, draw_gameover
 local transition_a, transition_b, update_screenshake
@@ -91,18 +84,22 @@ do -- love overloads (load, update, draw)
     log("Initializing Collection framework.", "o7")
     
     -- setting default game info
-    _title = _title or "[please set a title!]"
-    _description = _description or "[please set a description!]"
-    _controls = _controls or {}
+    _title        = _title or "[please set a title!]"
+    _description  = _description or "[please set a description!]"
+    _controls     = _controls or {}
+    _player_glyph = _player_glyph or 0
     
-    local params = castle.game.getInitialParams() or {}
+    local params = castle.game.getInitialParams()
     
     if params then 
       battery_level = params.battery_level
       global_score = params.global_score
+      
+      add_battery(-BATTERY_COST)
+    else
+      battery_level = 100
+      global_score = 0
     end
-    battery_level = battery_level or 100
-    global_score = global_score or 0
     
     -- screen shake initialization
     shake_x, shake_y = 0, 0
@@ -130,6 +127,7 @@ do -- love overloads (load, update, draw)
   function love.update()
     update_screenshake()
     update_controls()
+    update_topbar()
     update_pause()
     
     if in_controls then update_controls_screen() return end
@@ -160,39 +158,57 @@ do -- love overloads (load, update, draw)
 
 end
 
-local g_o_games = {} -- game over games { {name, player_spr, preview}, .. }
 
 do -- preloading games  
   
+  local g_o_games -- game over games { {name, player_spr, preview}, .. }
   
   function init_shown_games_game_over()
+    g_o_games = {}
     local choosen_games = pick_different(2, get_game_list())
     for i, g in pairs(choosen_games) do
-      add(g_o_games, { name = g.name, player_spr = g.player_spr, preview = load_png(nil, "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/" .. g.code_name.."_preview.png") } )    
+      local data = {
+        name = g.name,
+        player_spr = g.player_spr,
+        code_name = g.code_name
+      }
+      
+      network.async(function()
+        data.preview = load_png(nil, "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/"..g.code_name.."_preview.png")
+      end)
+      
+      add(g_o_games, data)
+      add(g_o_games, data) -- tmp: duplicate cause we need 4 games
     end
+    
+    log("Initialized info for next games.", "o7")
   end
+  
   function get_game_over_game_list()
-    return g_o_games  
+    return g_o_games
   end
   
-  function next_game(id)
-     load_game(id, false, 
-     {battery_level = (get_battery_level() or 100) - BATTERY_COST,
-      global_score =  (get_global_score() or 0) + _score })
-  end
+  function next_game(code_name)
+    log("Launching next game!", "o/")
   
+    load_game(code_name, true, {
+      battery_level = battery_level or 100,
+      global_score  = global_score  or 0
+    })
+  end
   
 end
 
 
 do -- gameover
   local end_score, end_info, end_rank, end_battery
-  local gameover_t = 0
+  local gameover_t, ogameover_t = 0
+  local in_select, select_t, update_select, draw_select
   
   local ranks = { "F", "E", "D", "C", "B", "A" }
   
   -- score has to be between 0 and 100
-  -- info (optional) is a table of strings to display on gameover
+  -- info (optional) is a table of up-to-5 strings to display on gameover
   function gameover(score, info)
     screenshake(16)
   
@@ -200,7 +216,17 @@ do -- gameover
     gameover_t = 0
     
     end_score = mid(score, 0, 100)
-    end_info = copy_table(info)
+    
+    if info then
+      end_info = {}
+      
+      for i,str in ipairs(info) do
+        if i > 5 then break end
+        end_info[i] = str
+      end
+    end
+    
+    log("Game Over! Score is "..end_score.."/100.", "o7")
     
     if score > 50 then
       if score == 100 then
@@ -226,27 +252,63 @@ do -- gameover
   end
 
   function update_gameover()
-    gameover_t = min(gameover_t + dt(), 999)
+    if in_select then
+      update_select()
+      return
+    end
+  
+    ogameover_t = gameover_t
+    gameover_t = gameover_t + dt()
+    
+    if btnp("start") then
+      gameover_t = 999
+    end
+    
+    local wait_t
     
     if end_info then
       for i,_ in ipairs(end_info) do
         local nt = 1 + (i - 1) * 0.4
-        if nt < gameover_t and nt > gameover_t - dt() then
+        if nt < gameover_t and nt > ogameover_t then
           screenshake(4)
         end
       end
       
       local nt = 1 + #end_info * 0.4
-      if nt < gameover_t and nt > gameover_t - dt() then
+      if nt < gameover_t and nt > ogameover_t then
         screenshake(8)
       end
+      
+      wait_t = 1 + #end_info * 0.4
     else
-      if gameover_t >= 1 and gameover_t - dt() < 1 then
+      if gameover_t >= 1 and ogameover_t < 1 then
         screenshake(8)
+      end
+      
+      wait_t = 1
+    end
+    
+    wait_t = wait_t + 1.1
+    if gameover_t >= wait_t and ogameover_t < wait_t then
+      global_score = global_score + end_score
+    end
+    
+    if end_battery then
+      wait_t = wait_t + 1.5
+      if gameover_t >= wait_t and ogameover_t < wait_t then
+        add_battery(end_battery)
       end
     end
     
-    -- manage 'continue' button here
+    wait_t = wait_t + 1
+    if ogameover_t > wait_t then
+      if btnp("start") then
+        -- move on to next-game selection
+      
+        in_select = true
+        select_t = 0
+      end
+    end
   end
   
   local rank_ramps = {
@@ -260,11 +322,27 @@ do -- gameover
   }
   
   function draw_gameover()
-    transition_a(gameover_t)
-  
-    printp(0x0100, 0x0200, 0x0300, 0x0)
-    --printp(0x3330, 0x3130, 0x3230, 0x3330)
+    if in_select then
+      cls()
+      
+      if select_t < 1.5 then
+        local y = -cos(0.3 - max(select_t-0.5, 0) * 0.3) * 200 + 200
+        camera(0, -y)
+        
+        draw_select()
+        
+        local y = cos(0.3 - max(1-select_t, 0) * 0.3) * 200 - 200
+        camera(0, -y)
+      else
+        draw_select()
+        return
+      end
+    else
+      transition_a(gameover_t)
+    end
     
+    printp(0x0100, 0x0200, 0x0300, 0x0)
+
     local space1, space2 = 16, 30
     
     local timepoint = 1
@@ -288,9 +366,6 @@ do -- gameover
       y = y - space1 + space2
     end
     
-    
-    -- to be replaced with sprites (bigger letters)
-    
     local str
     if end_score == 100 then
       str = "YOU WIN!"
@@ -309,7 +384,7 @@ do -- gameover
       x = x + str_px_width(ch)
     end
     
-    y = y + space2
+    y = y + 0.75 * space2
     
     timepoint = timepoint + 0.1
     if gameover_t < timepoint then return end
@@ -352,7 +427,7 @@ do -- gameover
     
     
     if end_battery then
-      y = y + space1
+      y = y + 1.5 * space1
       
       timepoint = timepoint + 1
       if gameover_t < timepoint then return end
@@ -382,17 +457,181 @@ do -- gameover
     
     y = y + space2
     
+    timepoint = timepoint + 1
+    if gameover_t < timepoint then return end
     
-    -- todo:
-    --- battery saved/bonus
-    --- continue (to next game selection)
-    
+    if gameover_t%1 < 0.75 then
+      local str = "Press E / ENTER / START to continue!"
+      
+      printp_color(29, 19, 3)
+      x = (screen_w() - str_px_width(str)) / 2
+      y = screen_h() - 16
+      pprint(str, x, y)
+    end
   end
   
+  
+  -- game selection screen
+  
+  local game_w, game_h = 86, 64
+  local space_w, space_h = 48, 20
+  
+  local wave_print, for_games_do
+  local rainbow_ramps = {
+    { 14, 13, 6 },
+    { 15, 10, 9 },
+    { 17, 18, 3 },
+    { 20, 19, 3 },
+    { 12, 4,  2 },
+    { 13, 6,  2 }
+  }
+  
+  function update_select()
+    select_t = select_t + dt()
+    
+    local mx, my, mb = btnv("cur_x"), btnv("cur_y")
+    for_games_do(function(game, x, y)
+      if mx > x and mx < x+game_w and my > y and my < y+game_h and btnr("cur_lb") then
+        next_game(game.code_name)
+        _player_glyph = game.player_spr
+      end
+    end)
+  end
+  
+  function draw_select()
+    printp(0x0100, 0x0200, 0x0300, 0x0)
+  
+    wave_pprint("Select Next Game!", screen_w()/2, 5, true)
+    
+    local p_glyph = _player_glyph
+    local n_glyph
+    
+    local mx, my, mb = btnv("cur_x"), btnv("cur_y"), btn("cur_lb")
+    for_games_do(function(game, x, y)
+      local sp, dy
+      if mx > x and mx < x+game_w and my > y and my < y+game_h then
+        n_glyph = game.player_spr
+        
+        if mb then
+          sp, dy = 12, 2
+          p_glyph = n_glyph
+        else
+          sp, dy = 6, 1
+        end
+      else
+        sp, dy = 0, 0 
+      end
+      
+      palt(0, false)
+      if game.preview then
+        spr_sheet(game.preview, x, y + dy, 86, 64)
+      end
+      
+      spritesheet("select")
+      
+      palt(15, true)
+      spr(sp, x-5, y-8, 6, 5)
+      palt(15, false)
+      
+      spritesheet("glyphs")
+      palt(0, true)
+      
+      if dy == 0 then
+        printp_color(29, 19, 3)
+        
+        pprint(game.name, x + 43 - str_px_width(game.name)/2, y-15)
+      else
+        wave_pprint(game.name, x + 43, y-15, true)
+      end
+    end)
+    
+    local x,y = screen_w()/2, screen_h()/2 - 16
+    local t = t()
+    
+    glyph(p_glyph or 0, x, y, 16, 16, 0.1*cos(t), 29, 27)
+    
+    if n_glyph then
+      for i = 1,6 do
+        local a = i/6 + 0.25*t
+        local x = x + 20*cos(a)
+        local y = y + 20*sin(a)
+        
+        local ramp = rainbow_ramps[flr(i - t*8) % 6 + 1]
+        
+        glyph(n_glyph or 0, x, y, 16, 16, a - 0.5*t, ramp[1], ramp[2])
+      end
+    end
+  end
+  
+
+  function for_games_do(foo) -- foo takes in 'game', 'x' and 'y'
+    local games = get_game_over_game_list()
+    
+    local nh = ceil(#games/2)
+    local nw = min(#games, 2)
+    
+    local wspace = space_w + 16
+    
+    local ox = screen_w()/2 - nw/2 * game_w - (nw - 1)/2 * wspace
+    local x, y = ox, screen_h()/2 + 16 - nh/2 * game_h - (nh - 1)/2 * space_h
+    
+    for i, game in ipairs(games) do
+      foo(game, x, y)
+      
+      if (i-1) % nw == nw-1 then
+        wspace = wspace - 32
+        ox = ox + (nw-1)/2 * 32
+        x = ox
+        y = y + game_h + space_h
+      else
+        x = x + game_w + wspace
+      end
+    end
+  end
+  
+  function wave_pprint(str, x, y, rainbow)
+    local x = x - str_px_width(str)/2
+    local t = t()
+    
+    if rainbow then
+      for i = 1, #str do
+        printp_color(unpack(rainbow_ramps[flr(i-t*8) % #rainbow_ramps +1]))
+      
+        local ch = str:sub(i,i)
+        pprint(ch, x, y + 3 * cos(-t + i/8))
+        
+        x = x + str_px_width(ch)
+      end
+    else
+      for i = 1, #str do
+        local ch = str:sub(i,i)
+        pprint(ch, x, y + 3 * cos(-t + i/8))
+        
+        x = x + str_px_width(ch)
+      end
+    end
+  end
 end
 
 
 do -- topbar
+  local battery_t = 0
+
+  function add_battery(n)
+    battery_level = mid(battery_level + n, 0, 100)
+    battery_t = 2
+  end
+  
+  function update_topbar()
+    local mx, my = btnv("cur_x"), btnv("cur_y")
+    if mx >= 256 - 15 and mx < 256 and my >= -16 and my < -1 and btnr("cur_lb") then
+      pause()
+    end
+    
+    if battery_t > 0 then
+      battery_t = battery_t - dt()
+    end
+  end
   
   function draw_topbar()
     S.camera()
@@ -440,7 +679,8 @@ do -- topbar
     pal(29, 29)
     
     local rn
-    if     battery_level > 60 then rn = 4
+    if battery_t > 1.5 or (battery_t > 0 and battery_t % 0.2 < 0.1) then rn = 5 
+    elseif battery_level > 60 then rn = 4
     elseif battery_level > 50 then rn = 3
     elseif battery_level > 20 then rn = 2
     else                           rn = 1
@@ -527,6 +767,7 @@ do -- controls screen
     if in_controls == 99 then
       if btnp("start") then
         in_controls = 1
+        log("Leaving controls screen.", "o7")
       end
       
       local mx, my = btnv("cur_x"), btnv("cur_y")
@@ -613,7 +854,7 @@ do -- controls screen
       if control_mode == 2 then
         str = "Press START to continue!"
       else
-        str = "Press E / Enter to continue!"
+        str = "Press E / ENTER to continue!"
       end
       
       x = (screen_w() - str_px_width(str)) / 2
@@ -634,11 +875,13 @@ do -- pause
   function pause()
     if in_pause then
       in_pause = false
+      log("Unpause!", "o7")
   
       castle.uiupdate = false
     else
       in_pause = true
       in_pause_t = in_pause_t or 0
+      log("Pause!", "o7")
     
       castle.uiupdate = ui_panel
     end
@@ -649,11 +892,6 @@ do -- pause
       pause()
     end
     
-    local mx, my = btnv("cur_x"), btnv("cur_y")
-    if mx >= 256 - 15 and mx < 256 and my >= -16 and my < -1 and btnr("cur_lb") then
-      pause()
-    end
-  
     if in_pause then
       in_pause_t = min(in_pause_t + 2 * dt(), 1)
     elseif in_pause_t then
@@ -899,6 +1137,20 @@ end
 
 do -- misc
 
+  function screenshot()
+    local surf = new_surface(256, 192, "screenshot")
+    
+    target(surf)
+    palt(0, false)
+    spr_sheet("__screen__", 0, -16)
+    
+    surfshot(surf, 1, _title..".png")
+    
+    target()
+    delete_surface(surf)
+    palt(0, true)
+  end
+
   function screenshake(power)
     local a = rnd(1)
     
@@ -1040,14 +1292,6 @@ do -- misc
     return false
   end
   
-  function get_battery_level()
-    return battery_level
-  end
-  
-  function get_global_score()
-    return global_score
-  end
-  
   function load_assets()
     load_palette()
   
@@ -1057,6 +1301,7 @@ do -- misc
     load_png("screen_dither", "framework/screen_dither.png", { 0x000000, 0xffffff })
     load_png("controls",      "framework/controls.png")
     load_png("topbar",        "framework/topbar.png")
+    load_png("select",        "framework/select.png")
     
     spritesheet_grid(16, 16)
     palt(0, true)

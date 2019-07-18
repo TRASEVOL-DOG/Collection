@@ -71,6 +71,9 @@ function _init(difficulty)
 end
 
 function _update()
+  if btnp("cur_rb") then
+    gameover(95, {"hello!", "yess", "what?", "oh no", "O K", "aaaaaaaaaaaa", "bbbbbbbbbb"})
+  end
 
   time_since_launch = time_since_launch + dt()
   
