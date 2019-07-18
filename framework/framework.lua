@@ -886,29 +886,29 @@ do -- controls screen
   }
   function init_bg_glyphs()   
     bg_glyphs = {}
+    bg_timer = 0
     for i = 1, #bg_g_color_pairs do add( bg_glyphs, {}) end
-    for i = 0, 25 do
-      local g = new_bg_g()
-      add( bg_glyphs[g.d] , g )
-    end  
   end
   
   function new_bg_g()
-    local g = {spr = irnd(16),x = irnd(GAME_WIDTH), y = GAME_HEIGHT + irnd(GAME_HEIGHT/2), a = rnd(1), r_speed = irnd(3) - 1 }
+    local g = {spr = irnd(16),x = irnd(GAME_WIDTH), y = GAME_HEIGHT + 16, a = rnd(1), r_speed = irnd(3) - 1 }
     g.d = 1 + irnd(#bg_g_color_pairs)
     g.size = 8 + g.d
     g.vspeed =  3 + (11.5 * (g.d/ #bg_g_color_pairs))
-    return g
+    add( bg_glyphs[g.d], g)
   end
   
   function update_bg_glyphs()  
+    bg_timer = bg_timer - dt()
+    if bg_timer < 0 then 
+      new_bg_g()
+      bg_timer = .35 + rnd(1.15)
+    end
     for i = 1, #bg_glyphs do
       for j, g in pairs(bg_glyphs[i]) do
       g.y = g.y - g.vspeed * dt()
-      g.a = g.a + g.r_speed * dt() / 10
-      
-      if g.y < -16 then bg_glyphs[i][j] = new_bg_g() end
-      
+      g.a = g.a + g.r_speed * dt() / 10      
+      if g.y < -16 then del_at(bg_glyphs[i], j) end      
       end    
     end    
   end
