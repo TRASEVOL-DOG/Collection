@@ -477,7 +477,7 @@ do -- gameover
   local space_w, space_h = 48, 20
   
   local wave_print, for_games_do
-  local rainbow_ramps = {
+  rainbow_ramps = {
     { 14, 13, 6 },
     { 15, 10, 9 },
     { 17, 18, 3 },
@@ -757,13 +757,15 @@ do -- controls screen
 
   function init_controls_screen()
     in_controls = 99
-  
+    
+    init_bg_glyphs()
   
   end
   
   local control_mode = 0
   local mode_x, mode_y, mode_hover = 128-32, 30, false
   function update_controls_screen()
+    update_bg_glyphs()
     if in_controls == 99 then
       if btnp("start") then
         in_controls = 1
@@ -790,7 +792,11 @@ do -- controls screen
   
   
   function draw_controls_screen() -- /!\ messy code
+    
+    
     transition_a(in_controls)
+    
+    draw_bg_glyphs()
     
     printp(0x0000, 0x0100, 0x0200, 0x0300)
     printp_color(29, 19, 3)
@@ -863,8 +869,56 @@ do -- controls screen
     end
     
     spritesheet("glyphs")
-    
+        
     camera()
+  end
+  
+  bg_g_color_pairs = {
+    { 8, 1 },
+    { 3, 1 },
+    { 2, 1 },
+    { 5, 2 },
+    { 18, 3 },
+    { 19, 5 },
+    { 6, 5 },
+    { 9, 8 },
+    { 4, 5 },
+  }
+  function init_bg_glyphs()   
+    bg_glyphs = {}
+    for i = 1, #bg_g_color_pairs do add( bg_glyphs, {}) end
+    for i = 0, 100 do
+      local g = new_bg_g()
+      add( bg_glyphs[g.d] , g )
+    end  
+  end
+  
+  function new_bg_g()
+    local g = {spr = irnd(16),x = irnd(GAME_WIDTH), y = GAME_HEIGHT + irnd(GAME_HEIGHT/2), a = rnd(1),  size = 8 + irnd(9), vspeed = 3 + irnd(15), r_speed = irnd(3) - 1 }
+    g.d = 1 + irnd(#bg_g_color_pairs)
+    g.size = 8 + g.d
+    g.vspeed =  3 + (15 * (g.d/ #bg_g_color_pairs))
+    return g
+  end
+  
+  function update_bg_glyphs()  
+    for i = 1, #bg_glyphs do
+      for j, g in pairs(bg_glyphs[i]) do
+      g.y = g.y - g.vspeed * dt()
+      g.a = g.a + g.r_speed * dt() / 10
+      
+      if g.y < -16 then bg_glyphs[i][j] = new_bg_g() end
+      
+      end    
+    end    
+  end
+  
+  function draw_bg_glyphs()
+    for i = 1, #bg_glyphs do
+      for j, g in pairs(bg_glyphs[i]) do
+        outlined_glyph(g.spr,  g.x, g.y, g.size, g.size, g.a, bg_g_color_pairs[g.d][1], bg_g_color_pairs[g.d][2], 0)
+      end    
+    end    
   end
 
 end
