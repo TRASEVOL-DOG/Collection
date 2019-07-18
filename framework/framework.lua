@@ -211,6 +211,7 @@ do -- gameover
   -- info (optional) is a table of up-to-5 strings to display on gameover
   function gameover(score, info)
     screenshake(16)
+    init_bg_glyphs(2)  
   
     in_gameover = true
     gameover_t = 0
@@ -257,6 +258,8 @@ do -- gameover
       return
     end
   
+    update_bg_glyphs() 
+    
     ogameover_t = gameover_t
     gameover_t = gameover_t + dt()
     
@@ -324,6 +327,7 @@ do -- gameover
   function draw_gameover()
     if in_select then
       cls()
+      -- draw_bg_glyphs()
       
       if select_t < 1.5 then
         local y = -cos(0.3 - max(select_t-0.5, 0) * 0.3) * 200 + 200
@@ -341,6 +345,8 @@ do -- gameover
       transition_a(gameover_t)
     end
     
+    draw_bg_glyphs()
+      
     printp(0x0100, 0x0200, 0x0300, 0x0)
 
     local space1, space2 = 16, 30
@@ -487,6 +493,9 @@ do -- gameover
   }
   
   function update_select()
+  
+    update_bg_glyphs() 
+    
     select_t = select_t + dt()
     
     local mx, my, mb = btnv("cur_x"), btnv("cur_y")
@@ -499,6 +508,8 @@ do -- gameover
   end
   
   function draw_select()
+  
+    draw_bg_glyphs()
     printp(0x0100, 0x0200, 0x0300, 0x0)
   
     wave_pprint("Select Next Game!", screen_w()/2, 5, true)
@@ -790,7 +801,6 @@ do -- controls screen
     end
   end
   
-  
   function draw_controls_screen() -- /!\ messy code
     
     
@@ -872,54 +882,6 @@ do -- controls screen
         
     camera()
   end
-  
-  bg_g_color_pairs = {
-    { 8, 1 },
-    { 3, 1 },
-    { 2, 1 },
-    { 5, 2 },
-    { 18, 3 },
-    { 19, 5 },
-    { 6, 5 },
-    { 9, 8 },
-    { 4, 5 },
-  }
-  function init_bg_glyphs()   
-    bg_glyphs = {}
-    bg_timer = 0
-    for i = 1, #bg_g_color_pairs do add( bg_glyphs, {}) end
-  end
-  
-  function new_bg_g()
-    local g = {spr = irnd(16),x = irnd(GAME_WIDTH), y = GAME_HEIGHT + 16, a = rnd(1), r_speed = irnd(3) - 1 }
-    g.d = 1 + irnd(#bg_g_color_pairs)
-    g.size = 8 + g.d
-    g.vspeed =  3 + (11.5 * (g.d/ #bg_g_color_pairs))
-    add( bg_glyphs[g.d], g)
-  end
-  
-  function update_bg_glyphs()  
-    bg_timer = bg_timer - dt()
-    if bg_timer < 0 then 
-      new_bg_g()
-      bg_timer = .35 + rnd(1.15)
-    end
-    for i = 1, #bg_glyphs do
-      for j, g in pairs(bg_glyphs[i]) do
-      g.y = g.y - g.vspeed * dt()
-      g.a = g.a + g.r_speed * dt() / 10      
-      if g.y < -16 then del_at(bg_glyphs[i], j) end      
-      end    
-    end    
-  end
-  
-  function draw_bg_glyphs()
-    for i = 1, #bg_glyphs do
-      for j, g in pairs(bg_glyphs[i]) do
-        outlined_glyph(g.spr,  g.x, g.y, g.size, g.size, g.a, bg_g_color_pairs[g.d][1], bg_g_color_pairs[g.d][2], 0)
-      end    
-    end    
-  end
 
 end
 
@@ -977,6 +939,60 @@ do -- pause
     local ui = castle.ui
     ui.markdown("### ".._title)
     ui.markdown(_description)
+  end
+
+end
+
+
+do -- background_glyphs  
+
+  bg_g_color_pairs = {
+    { 8, 1 },
+    { 3, 1 },
+    { 2, 1 },
+    { 5, 2 },
+    { 18, 3 },
+    { 19, 5 },
+    { 6, 5 },
+    { 9, 8 },
+    { 4, 5 },
+  }
+  
+  function init_bg_glyphs(timer)   
+    bg_glyphs = {}
+    bg_timer = timer or 0
+    for i = 1, #bg_g_color_pairs do add( bg_glyphs, {}) end
+  end
+  
+  function new_bg_g()
+    local g = {spr = irnd(16),x = irnd(GAME_WIDTH), y = GAME_HEIGHT + 16, a = rnd(1), r_speed = irnd(3) - 1 }
+    g.d = 1 + irnd(#bg_g_color_pairs)
+    g.size = 8 + g.d
+    g.vspeed =  3 + (11.5 * (g.d/ #bg_g_color_pairs))
+    add( bg_glyphs[g.d], g)
+  end
+  
+  function update_bg_glyphs()  
+    bg_timer = bg_timer - dt()
+    if bg_timer < 0 then 
+      new_bg_g()
+      bg_timer = .35 + rnd(.9)
+    end
+    for i = 1, #bg_glyphs do
+      for j, g in pairs(bg_glyphs[i]) do
+      g.y = g.y - g.vspeed * dt()
+      g.a = g.a + g.r_speed * dt() / 10      
+      if g.y < -16 then del_at(bg_glyphs[i], j) end      
+      end    
+    end    
+  end
+  
+  function draw_bg_glyphs()
+    for i = 1, #bg_glyphs do
+      for j, g in pairs(bg_glyphs[i]) do
+        outlined_glyph(g.spr,  g.x, g.y, g.size, g.size, g.a, bg_g_color_pairs[g.d][1], bg_g_color_pairs[g.d][2], 0)
+      end    
+    end    
   end
 
 end
