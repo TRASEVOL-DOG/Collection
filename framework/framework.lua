@@ -887,17 +887,17 @@ do -- controls screen
   function init_bg_glyphs()   
     bg_glyphs = {}
     for i = 1, #bg_g_color_pairs do add( bg_glyphs, {}) end
-    for i = 0, 100 do
+    for i = 0, 25 do
       local g = new_bg_g()
       add( bg_glyphs[g.d] , g )
     end  
   end
   
   function new_bg_g()
-    local g = {spr = irnd(16),x = irnd(GAME_WIDTH), y = GAME_HEIGHT + irnd(GAME_HEIGHT/2), a = rnd(1),  size = 8 + irnd(9), vspeed = 3 + irnd(15), r_speed = irnd(3) - 1 }
+    local g = {spr = irnd(16),x = irnd(GAME_WIDTH), y = GAME_HEIGHT + irnd(GAME_HEIGHT/2), a = rnd(1), r_speed = irnd(3) - 1 }
     g.d = 1 + irnd(#bg_g_color_pairs)
     g.size = 8 + g.d
-    g.vspeed =  3 + (15 * (g.d/ #bg_g_color_pairs))
+    g.vspeed =  3 + (11.5 * (g.d/ #bg_g_color_pairs))
     return g
   end
   
