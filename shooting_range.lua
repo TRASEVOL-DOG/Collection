@@ -358,7 +358,7 @@ function draw_rope(y, step, i)
     outlined_glyph(g_spr.rope,x_offset +   i * 16 - 8, y + get_rope_y_offset( i * GW/16, step ) - 8, 16, 16, .25, _palette[0], _palette[0  ], 0)
   end
   for i = -1, GW/16 + 1 do 
-    glyph(g_spr.rope, x_offset +  i * 16 - 8, y + get_rope_y_offset( i * GW/16, step ) - 8, 16, 16, .25, _palette[5], _palette[2], 0)
+    glyph(g_spr.rope, x_offset +  i * 16 - 8, y + get_rope_y_offset( i * GW/16, step ) - 8, 16, 16, .25, _palette[2], _palette[5], 0)
   end
   
 end
