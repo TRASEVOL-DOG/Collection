@@ -1136,6 +1136,21 @@ end
 
 
 do -- misc
+
+  function screenshot()
+    local surf = new_surface(256, 192, "screenshot")
+    
+    target(surf)
+    palt(0, false)
+    spr_sheet("__screen__", 0, -16)
+    
+    surfshot(surf, 1, _title..".png")
+    
+    target()
+    delete_surface(surf)
+    palt(0, true)
+  end
+
   function screenshake(power)
     local a = rnd(1)
     
