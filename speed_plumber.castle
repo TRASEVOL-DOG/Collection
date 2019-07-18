@@ -1,6 +1,6 @@
 ---
-main: shooting_range.lua
-title: Fishing
+main: speed_plumber.lua
+title: Speed Plumber
 owner: spaceling
 primaryColor: 000000
 dimensions: full
