@@ -1,6 +1,0 @@
----
-main: bullet_hell.lua
-title: Bullet Hell
-owner: spaceling
-primaryColor: 000000
-dimensions: full
