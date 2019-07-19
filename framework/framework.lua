@@ -355,7 +355,7 @@ do -- gameover
     local timepoint = 1
     if gameover_t < timepoint then return end
     
-    local y = 32
+    local y = 0
     if end_info then
       y = 4
       
@@ -370,8 +370,10 @@ do -- gameover
         if gameover_t < timepoint then return end
       end
 
-      y = y - space1 + space2
+      y = y - space1-- + space2
     end
+    
+    y = lerp(y, screen_h() - 16, 0.5) - 0.9 * space2
     
     local str
     if end_score == 100 then
@@ -802,8 +804,6 @@ do -- controls screen
   end
   
   function draw_controls_screen() -- /!\ messy code
-    
-    
     transition_a(in_controls)
     
     draw_bg_glyphs()
@@ -814,10 +814,27 @@ do -- controls screen
     local x,y = 0, 8
     local space1, space2 = 18, 28
     
-    x = (screen_w() - str_px_width(_description)) / 2
-
-    pprint(_description, x, y)
-  
+    local w = str_px_width(_description)
+    
+    if w >= 256 then
+      local i = #_description/2
+      while i > 1 and _description:sub(i,i) ~= " " do
+        i = i-1
+      end
+      
+      local str = _description:sub(1, i-1)
+      pprint(str, (screen_w() - str_px_width(str)) / 2, y)
+      
+      y = y + space1
+      local str = _description:sub(i+1, #_description)
+      pprint(str, (screen_w() - str_px_width(str)) / 2, y)
+      
+      mode_y = 30 + space1
+    else
+      x = (screen_w() - w) / 2
+      pprint(_description, x, y)
+    end
+    
     y = y + space2
     
     local controls_icons = { up = 0, left = 1, down = 2, right = 3, A = 4, B = 5, cur_x = 6, cur_y = 6, cur_lb = 7, cur_rb = 8 }
@@ -830,24 +847,28 @@ do -- controls screen
       spr(btn("cur_lb") and 60 or 56, mode_x, mode_y, 4, 1)
     end
     
-    y = y + space1
+    --y = y + space1
     
-    local mwa, mwb = 0, 0
+    local mwa, mwb, n = 0, 0, 0
     for _, d in ipairs(ctrl_descriptions) do
       local str, w = ": "..d[2], 0
       for _, v in ipairs(d[1]) do
         w = w + 17
       end
-      w = w - 7
+      w = w - 16
   
       mwa = max(mwa, w)
       mwb = max(mwb, str_px_width(str))
+      
+      n = n + 1
     end
     
     local x = (screen_w() - mwa - mwb) / 2 + mwa
     
+    y = lerp(y, screen_h() - 16, 0.5) - (n) * space1 * 0.5
+    
     for _, d in ipairs(ctrl_descriptions) do
-      local str, w = " : "..d[2], 0
+      local str, w = ": "..d[2], 0
       for _, v in ipairs(d[1]) do
         w = w + 17
       end
