@@ -66,6 +66,7 @@ local update_topbar, draw_topbar, add_battery
 local pause, update_pause, draw_pause
 local update_gameover, draw_gameover
 local transition_a, transition_b, update_screenshake
+local init_bg_glyphs, update_bg_glyphs, draw_bg_glyphs
 
 local in_controls, in_pause, in_pause_t, in_gameover
 local ctrl_descriptions, ctrl_active
@@ -770,7 +771,6 @@ do -- controls screen
     in_controls = 99
     
     init_bg_glyphs()
-  
   end
   
   local control_mode = 0
@@ -958,39 +958,39 @@ do -- background_glyphs
     { 4, 5 },
   }
   
-  function init_bg_glyphs(timer)   
+  function init_bg_glyphs(timer)
     bg_glyphs = {}
     bg_timer = timer or 0
     for i = 1, #bg_g_color_pairs do add( bg_glyphs, {}) end
   end
   
-  function new_bg_g()
-    local g = {spr = irnd(16),x = irnd(GAME_WIDTH), y = GAME_HEIGHT + 16, a = rnd(1), r_speed = irnd(3) - 1 }
+  local function new_bg_g()
+    local g = {spr = irnd(16),x = irnd(GAME_WIDTH), y = GAME_HEIGHT + 16, a = rnd(1), r_speed = (irnd(2) - 0.5) * (0.1 + rnd(2.4)) }
     g.d = 1 + irnd(#bg_g_color_pairs)
     g.size = 8 + g.d
-    g.vspeed =  3 + (11.5 * (g.d/ #bg_g_color_pairs))
+    g.vspeed =  3 + ((3 + rnd(5)) * (g.d/ #bg_g_color_pairs))
     add( bg_glyphs[g.d], g)
   end
   
-  function update_bg_glyphs()  
+  function update_bg_glyphs()
     bg_timer = bg_timer - dt()
-    if bg_timer < 0 then 
+    if bg_timer < 0 then
       new_bg_g()
-      bg_timer = .35 + rnd(.9)
+      bg_timer = .65 + rnd(1.5)
     end
     for i = 1, #bg_glyphs do
       for j, g in pairs(bg_glyphs[i]) do
       g.y = g.y - g.vspeed * dt()
-      g.a = g.a + g.r_speed * dt() / 10      
-      if g.y < -16 then del_at(bg_glyphs[i], j) end      
-      end    
-    end    
+      g.a = g.a + g.r_speed * dt() / 10
+      if g.y < -16 then del_at(bg_glyphs[i], j) end
+      end
+    end
   end
   
   function draw_bg_glyphs()
     for i = 1, #bg_glyphs do
       for j, g in pairs(bg_glyphs[i]) do
-        outlined_glyph(g.spr,  g.x, g.y, g.size, g.size, g.a, bg_g_color_pairs[g.d][1], bg_g_color_pairs[g.d][2], 0)
+        glyph(g.spr,  g.x, g.y, g.size, g.size, g.a, bg_g_color_pairs[g.d][1], bg_g_color_pairs[g.d][2], 0)
       end    
     end    
   end
