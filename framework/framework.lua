@@ -6,7 +6,7 @@
 -- - _title: name of the game
 -- - _description  : a one sentence description/instruction for the game
 -- - _controls     : table listing the controls you're using in this game
--- - _cursor_info  : table with a 'glyph' key and 'color_a', 'color_b', 'outline', 'anchor_x' and 'anchor_y' and 'angle' keys. This table lets the user replace the cursor with a glyph. Keep that table as nil if you prefer to keep the default cursor.
+-- - _cursor_info  : table with a 'glyph' key and 'color_a', 'color_b', 'outline', 'point_x' and 'point_y' and 'angle' keys. This table lets the user replace the cursor with a glyph. Keep that table as nil if you prefer to keep the default cursor.
 -- - _player_glyph : glyph index representing the player in the game
 -- - 
 -- - _init(difficulty) : callback called on loading the game. difficulty is passed as argument; 0 is super easy, 100 should be near-impossible (we'll scale it internally - game 25 would have a difficulty of 100)
@@ -66,6 +66,7 @@ local update_topbar, draw_topbar, add_battery
 local pause, update_pause, draw_pause
 local update_gameover, draw_gameover
 local transition_a, transition_b, update_screenshake
+local init_bg_glyphs, update_bg_glyphs, draw_bg_glyphs
 
 local in_controls, in_pause, in_pause_t, in_gameover
 local ctrl_descriptions, ctrl_active
@@ -74,6 +75,7 @@ local shake_power, shake_x, shake_y
 
 local battery_level
 local global_score
+local global_game_count
 local difficulty
 local BATTERY_COST = 10
 
@@ -81,6 +83,7 @@ do -- love overloads (load, update, draw)
 
   function love.load()
     init_sugar("Remy & Eliott's Collection", GAME_WIDTH, GAME_HEIGHT + TOPBAR_HEIGHT, 3)
+    set_frame_waiting(60)
     
     log("Initializing Collection framework.", "o7")
     
@@ -95,14 +98,18 @@ do -- love overloads (load, update, draw)
     if params then 
       battery_level = params.battery_level
       global_score = params.global_score
+      global_game_count = params.global_game_count + 1
       difficulty = params.global_score 
       
       add_battery(-BATTERY_COST)
     else
       battery_level = 100
       global_score = 0
+      global_game_count = 1
       difficulty = 10
     end
+    
+    difficulty = (global_game_count - 1) * 10
     
     -- screen shake initialization
     shake_x, shake_y = 0, 0
@@ -124,7 +131,7 @@ do -- love overloads (load, update, draw)
     
     log("Done initializing Collection framework, launching game!", "o7")
     
-    if _init then _init() end
+    if _init then _init(difficulty) end
   end
   
   function love.update()
@@ -195,8 +202,9 @@ do -- preloading games
     log("Launching next game!", "o/")
   
     load_game(code_name, true, {
-      battery_level = battery_level or 100,
-      global_score  = global_score  or 0
+      battery_level     = battery_level or 100,
+      global_score      = global_score  or 0,
+      global_game_count = global_game_count or 0
     })
   end
   
@@ -357,7 +365,7 @@ do -- gameover
     local timepoint = 1
     if gameover_t < timepoint then return end
     
-    local y = 32
+    local y = 0
     if end_info then
       y = 4
       
@@ -372,8 +380,10 @@ do -- gameover
         if gameover_t < timepoint then return end
       end
 
-      y = y - space1 + space2
+      y = y - space1-- + space2
     end
+    
+    y = lerp(y, screen_h() - 16, 0.5) - 0.9 * space2
     
     local str
     if end_score == 100 then
@@ -773,7 +783,6 @@ do -- controls screen
     in_controls = 99
     
     init_bg_glyphs()
-  
   end
   
   local control_mode = 0
@@ -805,8 +814,6 @@ do -- controls screen
   end
   
   function draw_controls_screen() -- /!\ messy code
-    
-    
     transition_a(in_controls)
     
     draw_bg_glyphs()
@@ -817,10 +824,27 @@ do -- controls screen
     local x,y = 0, 8
     local space1, space2 = 18, 28
     
-    x = (screen_w() - str_px_width(_description)) / 2
-
-    pprint(_description, x, y)
-  
+    local w = str_px_width(_description)
+    
+    if w >= 256 then
+      local i = #_description/2
+      while i > 1 and _description:sub(i,i) ~= " " do
+        i = i-1
+      end
+      
+      local str = _description:sub(1, i-1)
+      pprint(str, (screen_w() - str_px_width(str)) / 2, y)
+      
+      y = y + space1
+      local str = _description:sub(i+1, #_description)
+      pprint(str, (screen_w() - str_px_width(str)) / 2, y)
+      
+      mode_y = 30 + space1
+    else
+      x = (screen_w() - w) / 2
+      pprint(_description, x, y)
+    end
+    
     y = y + space2
     
     local controls_icons = { up = 0, left = 1, down = 2, right = 3, A = 4, B = 5, cur_x = 6, cur_y = 6, cur_lb = 7, cur_rb = 8 }
@@ -833,24 +857,28 @@ do -- controls screen
       spr(btn("cur_lb") and 60 or 56, mode_x, mode_y, 4, 1)
     end
     
-    y = y + space1
+    --y = y + space1
     
-    local mwa, mwb = 0, 0
+    local mwa, mwb, n = 0, 0, 0
     for _, d in ipairs(ctrl_descriptions) do
       local str, w = ": "..d[2], 0
       for _, v in ipairs(d[1]) do
         w = w + 17
       end
-      w = w - 7
+      w = w - 16
   
       mwa = max(mwa, w)
       mwb = max(mwb, str_px_width(str))
+      
+      n = n + 1
     end
     
     local x = (screen_w() - mwa - mwb) / 2 + mwa
     
+    y = lerp(y, screen_h() - 16, 0.5) - (n) * space1 * 0.5
+    
     for _, d in ipairs(ctrl_descriptions) do
-      local str, w = " : "..d[2], 0
+      local str, w = ": "..d[2], 0
       for _, v in ipairs(d[1]) do
         w = w + 17
       end
@@ -961,39 +989,39 @@ do -- background_glyphs
     { 4, 5 },
   }
   
-  function init_bg_glyphs(timer)   
+  function init_bg_glyphs(timer)
     bg_glyphs = {}
     bg_timer = timer or 0
     for i = 1, #bg_g_color_pairs do add( bg_glyphs, {}) end
   end
   
-  function new_bg_g()
-    local g = {spr = irnd(16),x = irnd(GAME_WIDTH), y = GAME_HEIGHT + 16, a = rnd(1), r_speed = irnd(3) - 1 }
+  local function new_bg_g()
+    local g = {spr = irnd(16),x = irnd(GAME_WIDTH), y = GAME_HEIGHT + 16, a = rnd(1), r_speed = (irnd(2) - 0.5) * (0.1 + rnd(2.4)) }
     g.d = 1 + irnd(#bg_g_color_pairs)
     g.size = 8 + g.d
-    g.vspeed =  3 + (11.5 * (g.d/ #bg_g_color_pairs))
+    g.vspeed =  3 + ((3 + rnd(5)) * (g.d/ #bg_g_color_pairs))
     add( bg_glyphs[g.d], g)
   end
   
-  function update_bg_glyphs()  
+  function update_bg_glyphs()
     bg_timer = bg_timer - dt()
-    if bg_timer < 0 then 
+    if bg_timer < 0 then
       new_bg_g()
-      bg_timer = .35 + rnd(.9)
+      bg_timer = .65 + rnd(1.5)
     end
     for i = 1, #bg_glyphs do
       for j, g in pairs(bg_glyphs[i]) do
       g.y = g.y - g.vspeed * dt()
-      g.a = g.a + g.r_speed * dt() / 10      
-      if g.y < -16 then del_at(bg_glyphs[i], j) end      
-      end    
-    end    
+      g.a = g.a + g.r_speed * dt() / 10
+      if g.y < -16 then del_at(bg_glyphs[i], j) end
+      end
+    end
   end
   
   function draw_bg_glyphs()
     for i = 1, #bg_glyphs do
       for j, g in pairs(bg_glyphs[i]) do
-        outlined_glyph(g.spr,  g.x, g.y, g.size, g.size, g.a, bg_g_color_pairs[g.d][1], bg_g_color_pairs[g.d][2], 0)
+        glyph(g.spr,  g.x, g.y, g.size, g.size, g.a, bg_g_color_pairs[g.d][1], bg_g_color_pairs[g.d][2], 0)
       end    
     end    
   end
@@ -1027,7 +1055,7 @@ do -- palette & glyphs
   
     pal(1, color_a or 0)
     pal(2, color_b or 0)
-    aspr(n, x, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+    aspr(n, flr(x), flr(y), angle, 1, 1, 0.5, 0.5, width/16, height/16)
     pal(1, 1)
     pal(2, 2)
   end
@@ -1036,6 +1064,9 @@ do -- palette & glyphs
     width = width or 16
     height = height or 16
     angle = angle or 0
+    
+    x = flr(x)
+    y = flr(y)
   
     pal(1, outline_color)
     pal(2, outline_color)

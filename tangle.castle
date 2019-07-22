@@ -1,0 +1,8 @@
+---
+main: tangle.lua
+title: Tangle
+owner: trasevol-dog
+primaryColor: bcb6e3
+coverImage: tangle_preview.png
+dimensions: full
+description: Untangle the ropes before the timer runs out!

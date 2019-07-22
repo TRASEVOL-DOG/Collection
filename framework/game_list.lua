@@ -14,6 +14,10 @@ _game_list = {
    -- player_spr = 0x30,
   -- },
   
+  {name       = "Tangle",
+   code_name  = "tangle",
+   player_spr = 0x50
+  }
 }
 
 -- a copy of game_list that will be given when list will be read (security purpose + no need to copy table every frame or to store copy in games)
