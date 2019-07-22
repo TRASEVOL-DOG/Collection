@@ -67,7 +67,7 @@ function _init(difficulty)
   difficulty = 50
   rope_speed = 1.45 / 100 * difficulty
   remaining_targets = 5 + ceil(( 75 - difficulty) /100 * 20)
-  _points_for_targets 100 / remaining_targets
+  _points_for_targets = 100 / remaining_targets
   
   init_ground() 
   init_player() 
