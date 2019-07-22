@@ -74,6 +74,7 @@ local shake_power, shake_x, shake_y
 
 local battery_level
 local global_score
+local difficulty
 local BATTERY_COST = 10
 
 do -- love overloads (load, update, draw)
@@ -94,11 +95,13 @@ do -- love overloads (load, update, draw)
     if params then 
       battery_level = params.battery_level
       global_score = params.global_score
+      difficulty = params.global_score 
       
       add_battery(-BATTERY_COST)
     else
       battery_level = 100
       global_score = 0
+      difficulty = 10
     end
     
     -- screen shake initialization
