@@ -14,16 +14,18 @@ _controls = {
   [ "left"   ] = "Move!",
   [ "right"  ] = "Move!",
 
-  [ "A"      ] = "Jump!",
-  [ "B"      ] = "Crouch!",
+  -- [ "A"      ] = "Jump!",
+  -- [ "B"      ] = "Crouch!",
 
   [ "cur_x"  ] = "Aim!",
   [ "cur_y"  ] = "Aim!",
   [ "cur_lb" ] = "Shoot!",
-  [ "cur_rb" ] = "Send movie to director!"
+  -- [ "cur_rb" ] = "Send movie to director!"
 }
 
 _score = 0
+displayed_score = 0
+punch = 1
 
 local GW, GH = 0, 0
 local time_since_launch = 0
@@ -60,9 +62,12 @@ function _init(difficulty)
   }
   
   printp_color (_palette[6], _palette[4], _palette[3])
-  local difficulty = difficulty or (25 + irnd(75))
-  log("Difficulty set to :" .. difficulty )
+  
+  -- difficulty = difficulty or (25 + irnd(75))
+  difficulty = 50
   rope_speed = 1.45 / 100 * difficulty
+  remaining_targets = 5 + ceil(( 75 - difficulty) /100 * 20)
+  _points_for_targets 100 / remaining_targets
   
   init_ground() 
   init_player() 
@@ -71,8 +76,14 @@ function _init(difficulty)
 end
 
 function _update()
-
+  
   time_since_launch = time_since_launch + dt()
+  punch = max(punch * 0.9615, .2)
+  if displayed_score < _score then 
+    displayed_score = displayed_score + 50 * dt() * punch 
+  else  
+    displayed_score = _score 
+  end
   
   update_player()
   
@@ -309,9 +320,9 @@ function update_bullets()
     for i, target in pairs(targets) do
       local t_y = get_rope_y_offset(ropes[target.rope + 1].y) + ropes[target.rope + 1].y
       if dist(bullet.x, bullet.y, target.x + 8, t_y) < 16 then
+        if not target.shot_at then give_points(_points_for_targets) end
         targets[i].shot_at = true      
         bullets[ind] = nil      
-        give_points(20)
       end  
     end  
   end
@@ -398,7 +409,7 @@ end
 function draw_score()
   local x = GW / 2 - 60
   local y = GH / 2 + sin(t() / 4) * 2 + 16
-  pprint("Score : " .. _score, x, y)  
+  pprint("Score : " .. flr(displayed_score), x, y)  
 end
 
 function draw_mouse()
@@ -430,7 +441,7 @@ function draw_game_over()
 
   else
     if not game_over then 
-      gameover(_score, {"Targets : " .. _score/20})
+      gameover(_score, {"Targets : " .. ceil(_score/20)})
     end
     game_over = true
   end
@@ -447,6 +458,7 @@ end
 function give_points( points)
   if not points or not _score then return end
   _score = _score + points
+  punch = 1
 end
 
 function point_in_rect(xp, yp, x1, y1, x2, y2)
