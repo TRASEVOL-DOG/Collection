@@ -6,7 +6,7 @@
 -- - _title: name of the game
 -- - _description  : a one sentence description/instruction for the game
 -- - _controls     : table listing the controls you're using in this game
--- - _cursor_info  : table with a 'glyph' key and 'color_a', 'color_b', 'outline', 'anchor_x' and 'anchor_y' and 'angle' keys. This table lets the user replace the cursor with a glyph. Keep that table as nil if you prefer to keep the default cursor.
+-- - _cursor_info  : table with a 'glyph' key and 'color_a', 'color_b', 'outline', 'point_x' and 'point_y' and 'angle' keys. This table lets the user replace the cursor with a glyph. Keep that table as nil if you prefer to keep the default cursor.
 -- - _player_glyph : glyph index representing the player in the game
 -- - 
 -- - _init(difficulty) : callback called on loading the game. difficulty is passed as argument; 0 is super easy, 100 should be near-impossible (we'll scale it internally - game 25 would have a difficulty of 100)
@@ -75,12 +75,15 @@ local shake_power, shake_x, shake_y
 
 local battery_level
 local global_score
+local global_game_count
+local difficulty
 local BATTERY_COST = 10
 
 do -- love overloads (load, update, draw)
 
   function love.load()
     init_sugar("Remy & Eliott's Collection", GAME_WIDTH, GAME_HEIGHT + TOPBAR_HEIGHT, 3)
+    set_frame_waiting(60)
     
     log("Initializing Collection framework.", "o7")
     
@@ -95,12 +98,16 @@ do -- love overloads (load, update, draw)
     if params then 
       battery_level = params.battery_level
       global_score = params.global_score
+      global_game_count = params.global_game_count + 1
       
       add_battery(-BATTERY_COST)
     else
       battery_level = 100
       global_score = 0
+      global_game_count = 1
     end
+    
+    difficulty = (global_game_count - 1) * 10
     
     -- screen shake initialization
     shake_x, shake_y = 0, 0
@@ -122,7 +129,7 @@ do -- love overloads (load, update, draw)
     
     log("Done initializing Collection framework, launching game!", "o7")
     
-    if _init then _init() end
+    if _init then _init(difficulty) end
   end
   
   function love.update()
@@ -193,8 +200,9 @@ do -- preloading games
     log("Launching next game!", "o/")
   
     load_game(code_name, true, {
-      battery_level = battery_level or 100,
-      global_score  = global_score  or 0
+      battery_level     = battery_level or 100,
+      global_score      = global_score  or 0,
+      global_game_count = global_game_count or 0
     })
   end
   
@@ -1045,7 +1053,7 @@ do -- palette & glyphs
   
     pal(1, color_a or 0)
     pal(2, color_b or 0)
-    aspr(n, x, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+    aspr(n, flr(x), flr(y), angle, 1, 1, 0.5, 0.5, width/16, height/16)
     pal(1, 1)
     pal(2, 2)
   end
@@ -1054,6 +1062,9 @@ do -- palette & glyphs
     width = width or 16
     height = height or 16
     angle = angle or 0
+    
+    x = flr(x)
+    y = flr(y)
   
     pal(1, outline_color)
     pal(2, outline_color)
