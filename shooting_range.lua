@@ -64,7 +64,7 @@ function _init(difficulty)
   printp_color (_palette[6], _palette[4], _palette[3])
   
   -- difficulty = difficulty or (25 + irnd(75))
-  difficulty = 50
+  -- difficulty = 50
   rope_speed = 1.45 / 100 * difficulty
   remaining_targets = 5 + ceil(( 75 - difficulty) /100 * 20)
   _points_for_targets = 100 / remaining_targets
@@ -441,7 +441,7 @@ function draw_game_over()
 
   else
     if not game_over then 
-      gameover(_score, {"Targets : " .. ceil(_score/20)})
+      gameover(_score, {"Targets shot : " .. ceil(_score/_points_for_targets)})
     end
     game_over = true
   end
