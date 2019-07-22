@@ -65,8 +65,9 @@ function _init(difficulty)
   
   -- difficulty = difficulty or (25 + irnd(75))
   -- difficulty = 50
-  rope_speed = 1.45 / 100 * difficulty
-  remaining_targets = 5 + ceil(( 75 - difficulty) /100 * 20)
+  
+  rope_speed = lerp( .3, 1.45, difficulty/100)
+  remaining_targets = 5 + ceil(( 75 - difficulty) /100 * 30)
   _points_for_targets = 100 / remaining_targets
   
   init_ground() 
@@ -74,7 +75,7 @@ function _init(difficulty)
   init_ropes() 
   
 end
-
+-- function lerp(a,b,t) return (1-t)*a + t*b end
 function _update()
   
   time_since_launch = time_since_launch + dt()
@@ -84,6 +85,8 @@ function _update()
   else  
     displayed_score = _score 
   end
+  
+
   
   update_player()
   
@@ -98,7 +101,8 @@ function _update()
     -- stop_targets = not stop_targets
   end
   
-  if btnp("cur_lb") then
+  if btnp("cur_rb") then
+    screenshot()
     -- local i = 0
     -- for id, game in pairs(get_game_list()) do
       -- local x = GW/4 - GW/6 + i * GW/2
