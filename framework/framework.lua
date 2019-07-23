@@ -1033,14 +1033,14 @@ do -- palette & glyphs
 
   function load_palette()
     local palette = {  -- "Glassworks", by Trasevol_Dog B-)
-      0x000000, 0x000020, 0x330818, 0x1a0f4d,
+      0x000000, 0x000029, 0x330818, 0x1a0f4d,
       0x990036, 0x660000, 0x992e00, 0x332708,
       0x001c12, 0x00591b, 0x118f45, 0x998a26,
       0xff2600, 0xff8c00, 0xffff33, 0x6de622,
       0x0fff9f, 0x00ace6, 0x2e00ff, 0x772e99,
       0xb319ff, 0xff4f75, 0xff9999, 0xffc8a3,
-      0xfeffad, 0xb1ff96, 0x99fff5, 0xbcb6e3,
-      0xebebeb, 0xffffff
+      0xfeffad, 0xb1ff96, 0x99fff5, 0x968fbf,
+      0xd0ced9, 0xffffff
     }
     
     use_palette(palette)
@@ -1055,7 +1055,7 @@ do -- palette & glyphs
   
     pal(1, color_a or 0)
     pal(2, color_b or 0)
-    aspr(n, flr(x), flr(y), angle, 1, 1, 0.5, 0.5, width/16, height/16)
+    aspr(n, x, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
     pal(1, 1)
     pal(2, 2)
   end
@@ -1064,10 +1064,7 @@ do -- palette & glyphs
     width = width or 16
     height = height or 16
     angle = angle or 0
-    
-    x = flr(x)
-    y = flr(y)
-  
+
     pal(1, outline_color)
     pal(2, outline_color)
     aspr(n, x-1, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
