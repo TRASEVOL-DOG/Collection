@@ -1,6 +1,7 @@
 ---
 main: game_template.lua
-title: template
-owner: spaceling
+title: Template
+owner: trasevol-dog
 primaryColor: 000000
+coverImage: game_template_preview.png
 dimensions: full
