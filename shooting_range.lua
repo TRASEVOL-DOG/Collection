@@ -8,6 +8,8 @@ _description = "Some test indeed !"
 
 _palette = { ["0"] = 0, 17, 14, 13, 20, 4}
 
+_player_glyph = 0x20
+
 _controls = {
   [ "up"     ] = "Move!",
   [ "down"   ] = "Move!",
@@ -53,7 +55,7 @@ function _init(difficulty)
   
   g_spr = {
     mouse  = 0x00,
-    player = 0x20,
+    player = _player_glyph,
     bubble = 0x30,
     rope   = 0x50,
     target = 0x31,
