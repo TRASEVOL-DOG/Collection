@@ -1,8 +1,6 @@
 require("framework/framework")
 
-_title = "Speed Plumber"
--- _title = "Game Template"
--- _title = "Game Template 2"
+_title = "Speed PlumberZ"
 
 _description = "Water flows, so does time !"
 
@@ -12,6 +10,8 @@ _controls = {
 
   [ "cur_x"  ] = "Hover on piece you want to move!",
   [ "cur_y"  ] = "Hover on piece you want to move!",
+  
+  [ "A"      ] = "Release the water!",
   
   [ "cur_lb" ] = "Rotate!",
   [ "cur_rb" ] = "Special Movement!"
@@ -134,13 +134,9 @@ function _update()
         if current_cell_id == flowing_path[#flowing_path] then counter_on = true end    
         
       elseif current_cell_id == p_end then 
-        -- level_completed = level_completed + 1
-        -- generate_path()
-        -- way = working_path[1]
-          -- g = working_path_to_full_grid(way)
         counter_on = true
         give_points(mid(0, time_left, 100))
-        gameover(_score, {"You the grid in " .. ceil(t_l_b - time_left) .. " seconds !"})
+        gameover(_score, {"","You took " .. ceil(t_l_b - time_left) .. " seconds !", "The water flows again thanks to you."})
       else
         if current_cell.piece == 3 or current_cell.piece == 5 then
           if     flow_incomming_from == 1 and flow_from_to(current_cell_id, current_cell_id + p_width) then
@@ -208,8 +204,6 @@ function _update()
     end      
   end
   
-  if btnp("A") or btnp("cur_rb") then   
-  end  
   
   if btnp("cur_lb") then  
     local xp = btnv"cur_x"
@@ -223,6 +217,13 @@ function _update()
       in_flow = false
     end
   end
+  
+  if btnp("A") then   
+    screenshake(3)
+    flowing_path = {p_start}
+    counter_on = false
+    in_flow = false
+  end  
   
 end
 
@@ -240,8 +241,6 @@ function draw_background()
       rectfill(i * s + cos(t() / 5) * 3, j * s + sin(t() / 5) * 3, i * s + r_size + cos(t() / 5) * 3, j * s + sin(t() / 5) * 3 + r_size , _palette[9])
     end
   end
-
-
 end
 
 local color_1 = _palette[2]
@@ -249,10 +248,8 @@ local color_2 = _palette[3]
 local color_3 = _palette[4]
 
 function _draw()
-  -- cls(_palette[1])
-  
+
   draw_background()
-  
   
   -- Bubble
   
@@ -570,5 +567,3 @@ function value_in_tab_in(tab1, tab2)
     end
   end
 end
-
-
