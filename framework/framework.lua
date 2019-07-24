@@ -52,8 +52,8 @@ end
 
 require("sugarcoat/sugarcoat")
 require("framework/game_list")
+local _debug = debug
 sugar.utility.using_package(sugar.S, true)
-local S = sugar.S
 
 local GAME_WIDTH, GAME_HEIGHT = 256, 192
 local TOPBAR_HEIGHT = 16
@@ -67,11 +67,14 @@ local pause, update_pause, draw_pause
 local update_gameover, draw_gameover
 local transition_a, transition_b, update_screenshake
 local init_bg_glyphs, update_bg_glyphs, draw_bg_glyphs
+local set_user_env, safe_call, reset_draw_environment
 
 local in_controls, in_pause, in_pause_t, in_gameover
 local ctrl_descriptions, ctrl_active
 local light_table
 local shake_power, shake_x, shake_y
+local user_env
+local env_copy
 
 local battery_level
 local global_score
@@ -131,7 +134,9 @@ do -- love overloads (load, update, draw)
     
     log("Done initializing Collection framework, launching game!", "o7")
     
-    if _init then _init(difficulty) end
+    set_user_env()
+    
+    safe_call(_init, difficulty)
   end
   
   function love.update()
@@ -144,13 +149,14 @@ do -- love overloads (load, update, draw)
     if in_gameover then update_gameover() return end
     if in_pause then return end
   
-    if _update then _update() end
+    safe_call(_update)
   end
   
   function love.draw()
     camera()
     
-    if _draw then _draw() end
+    safe_call(_draw)
+    reset_draw_environment()
     
     use_font("main")
     
@@ -1236,6 +1242,52 @@ do -- controls system
 end
 
 
+do -- user environment
+
+  function set_user_env()
+    for n,v in pairs(getfenv(1)) do
+      if env_copy[n] == nil then
+        if type(v) == "function" then
+          setfenv(v, user_env)
+        end
+        
+        user_env[n] = v
+      end
+    end
+  
+    if _init then
+      setfenv(_init, user_env)
+    end
+    
+    if _update then
+      setfenv(_update, user_env)
+    end
+    
+    if _draw then
+      setfenv(_draw, user_env)
+    end
+  end
+
+  function safe_call(foo, ...)
+    if not foo then return end
+  
+    local r,trace = xpcall(foo, _debug.traceback, ...)
+    
+    if not r then
+      sugar.debug.r_log(trace)
+    end
+  end
+
+  function reset_draw_environment()
+    camera()
+    clip()
+    pal()
+    palt()
+  end
+  
+end
+
+
 do -- misc
 
   function screenshot()
@@ -1273,7 +1325,7 @@ do -- misc
       shake_t = 0.03
     end
   end
-
+  
   function transition_a(t)
     if t < 1 then
       local h = 2 * t * 192
@@ -1411,3 +1463,105 @@ do -- misc
   end  
 
 end
+
+
+user_env = {
+  unpack          = unpack,
+  select          = select,
+  pairs           = pairs,
+  ipairs          = ipairs,
+  table           = table,
+  string          = string,
+  type            = type,
+  getmetatable    = getmetatable,
+  setmetatable    = setmetatable,
+  error           = error,
+  tostring        = tostring,
+  tonumber        = tonumber,
+  bit             = bit,
+  network         = network,
+  castle          = castle,
+  
+  log             = log,
+  w_log           = w_log,
+  r_log           = r_log,
+  assert          = assert,
+  write_clipboard = write_clipboard,
+  read_clipboard  = read_clipboard,
+  screen_size     = screen_size,
+  screen_w        = screen_w,
+  screen_h        = screen_h,
+  camera          = camera,
+  camera_move     = camera_move,
+  get_camera      = get_camera,
+  clip            = clip,
+  get_clip        = get_clip,
+  color           = color,
+  pal             = pal,
+  clear           = clear,
+  cls             = cls,
+  rectfill        = rectfill,
+  rect            = rect,
+  circfill        = circfill,
+  circ            = circ,
+  trifill         = trifill,
+  tri             = tri,
+  line            = line,
+  pset            = pset,
+  pget            = pget,
+  btn             = btn,
+  btnp            = btnp,
+  btnr            = btnr,
+  btnv            = btnv,
+  cos             = cos,
+  sin             = sin,
+  atan2           = atan2,
+  angle_diff      = angle_diff,
+  dist            = dist,
+  sqrdist         = sqrdist,
+  lerp            = lerp,
+  sqr             = sqr,
+  cub             = cub,
+  pow             = pow,
+  sqrt            = sqrt,
+  flr             = flr,
+  round           = round,
+  ceil            = ceil,
+  abs             = abs,
+  sgn             = sgn,
+  min             = min,
+  max             = max,
+  mid             = mid,
+  srand           = srand,
+  raw_rnd         = raw_rnd,
+  rnd             = rnd,
+  irnd            = irnd,
+  pick            = pick,
+  str_px_width    = str_px_width,
+  print           = print,
+  printp          = printp,
+  printp_color    = printp_color,
+  pprint          = pprint,
+  t               = t,
+  time            = time,
+  dt              = dt,
+  delta_time      = delta_time,
+  sys_ltime       = sys_ltime,
+  sys_gtime       = sys_gtime,
+  freeze          = freeze,
+  all             = all,
+  del             = del,
+  del_at          = del_at,
+  add             = add,
+  sort            = sort,
+  merge_tables    = merge_tables,
+  copy_table      = copy_table,
+  
+  gameover        = gameover,
+  glyph           = glyph,
+  outlined_glyph  = outlined_glyph,
+  screenshot      = screenshot,
+  screenshake     = screenshake
+}
+
+env_copy = copy_table(getfenv(1))
