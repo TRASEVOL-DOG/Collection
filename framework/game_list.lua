@@ -6,10 +6,10 @@ _game_list = {
    player_spr = 0x30,
   },
   
-  -- {name       = "Speed Plumber",   
-   -- code_name  = "speed_plumber",  
-   -- player_spr = 0x30,
-  -- },
+  {name       = "Speed PlumberZ",   
+   code_name  = "speed_plumberz",  
+   player_spr = 0x30,
+  },
   
   {name       = "Tangle",
    code_name  = "tangle",
