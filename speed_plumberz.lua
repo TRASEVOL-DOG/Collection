@@ -23,12 +23,12 @@ local GW, GH = 0, 0
 local time_since_launch = 0
 local t = function() return time_since_launch or 0 end
 
-
 local time_per_piece = .5
 local flow_anim_timer
 
 local flow_incomming_from -- 1 for up, 2 for right, 3 for down, 4 for left
 local flowing_path
+local diff
 
 function _init(difficulty)
   GW = screen_w()
@@ -41,11 +41,8 @@ function _init(difficulty)
     bubble = {0x4A, 0x4B},    
     water  = 0x4C,    
   }  
-  
-  local difficulty = difficulty or (25 + irnd(75))    
-  
-  
-  
+  diff = difficulty or (25 + irnd(75))    
+    
   generate_path()
   way = working_path[1]
     g = working_path_to_full_grid(way)  
@@ -53,7 +50,8 @@ function _init(difficulty)
   
   in_flow = false
   counter_on = true
-  time_left = 100 + ceil(20 * (difficulty * difficulty / 100 * 100 ) )
+  
+  time_left = 120 - ceil(20 * (diff/100 * diff / 100) )
   t_l_b = time_left
   time_per_piece = .1
   flow_anim_timer = time_per_piece
@@ -66,7 +64,6 @@ local index = 1
 function flow_to_(grid_id)
   local c = g[grid_id]
   if not c then return end
-  log(((c.angle+.25)* 4) + 1)
   local t = {grid_id - p_width, grid_id + 1, grid_id + p_width, grid_id - 1}
   if c.piece == 1 or c.piece == 2 then return {t[c.angle == .25 and 1 or c.angle == .5 and 2 or c.angle == .75 and 3 or 4]}
   elseif c.piece == 3 or c.piece == 5 then
@@ -97,7 +94,7 @@ function _update()
 
   time_since_launch = time_since_launch + dt()
   if counter_on then
-    time_left = time_left - dt()
+    time_left = time_left - (dt() * (1 + diff/100 / 3))
     if time_left < 0 then gameover(_score, {"Time's up :(", "Better luck next time!"}) end
   else
     flow_anim_timer = flow_anim_timer - dt()
@@ -119,7 +116,6 @@ function _update()
             add(flowing_path, p_start - p_width)
           end 
         elseif current_cell.angle == .5 then
-          log("here")
           if flow_from_to(p_start, p_start + 1) then
             flow_incomming_from = 4
             add(flowing_path, p_start + 1)
@@ -134,7 +130,7 @@ function _update()
         if current_cell_id == flowing_path[#flowing_path] then counter_on = true end    
         
       elseif current_cell_id == p_end then 
-        counter_on = true
+        -- counter_on = true
         give_points(mid(0, time_left, 100))
         gameover(_score, {"","You took " .. ceil(t_l_b - time_left) .. " seconds !", "The water flows again thanks to you."})
       else
