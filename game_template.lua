@@ -42,7 +42,7 @@ function _update()
   end
 
   if btnp("cur_rb") then
-     screenshot() -- use this to make a preview for the game!
+    screenshot() -- use this to make a preview for the game!
     gameover(100, {"hello!", "yess", "you did it!"})
   end
 
