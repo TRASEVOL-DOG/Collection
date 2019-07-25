@@ -32,7 +32,7 @@ local new_tangles = 0
 function _init(difficulty)
   _difficulty = difficulty
   
-  length = 16 + flr(_difficulty/100 * 176)
+  length = 32 + flr(_difficulty/100 * 176)
 
   init_background()
   init_tangles()
@@ -435,8 +435,8 @@ function draw_progression()
   
   y = y + (1 - v) * h
   
-  outlined_glyph(0x07, x, y, 8, 8, 0.1, 27, 19, 0)
-  outlined_glyph(0x07, x, y-2, 8, 8, 0.1, 29, 27, 0)
+  outlined_glyph(0x07, flr(x), flr(y), 8, 8, 0.1, 27, 19, 0)
+  outlined_glyph(0x07, flr(x), flr(y)-2, 8, 8, 0.1, 29, 27, 0)
 end
 
 function draw_timer()
