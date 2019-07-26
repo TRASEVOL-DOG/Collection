@@ -1054,33 +1054,38 @@ do -- palette & glyphs
     log("Using the Glassworks palette.", "o7")
   end
   
-  function glyph(n, x, y, width, height, angle, color_a, color_b)
+  function glyph(n, x, y, width, height, angle, color_a, color_b, anchor_x, anchor_y) -- anchor_x and anchor_y are optional and are pixel coordinates
     width = width or 16
     height = height or 16
     angle = angle or 0
+    anchor_x = anchor_x or 8
+    anchor_y = anchor_y or 8
   
     pal(1, color_a or 0)
     pal(2, color_b or 0)
-    aspr(n, x, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+    aspr(n, x, y, angle, 1, 1, anchor_x/16, anchor_y/16, width/16, height/16)
     pal(1, 1)
     pal(2, 2)
   end
   
-  function outlined_glyph(n, x, y, width, height, angle, color_a, color_b, outline_color)
+  function outlined_glyph(n, x, y, width, height, angle, color_a, color_b, outline_color, anchor_x, anchor_y)
     width = width or 16
     height = height or 16
     angle = angle or 0
+    
+    local ax = (anchor_x or 8)/16
+    local ay = (anchor_y or 8)/16
 
     pal(1, outline_color)
     pal(2, outline_color)
-    aspr(n, x-1, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
-    aspr(n, x+1, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
-    aspr(n, x, y-1, angle, 1, 1, 0.5, 0.5, width/16, height/16)
-    aspr(n, x, y+1, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+    aspr(n, x-1, y, angle, 1, 1, ax, ay, width/16, height/16)
+    aspr(n, x+1, y, angle, 1, 1, ax, ay, width/16, height/16)
+    aspr(n, x, y-1, angle, 1, 1, ax, ay, width/16, height/16)
+    aspr(n, x, y+1, angle, 1, 1, ax, ay, width/16, height/16)
   
     pal(1, color_a or 0)
     pal(2, color_b or 0)
-    aspr(n, x, y, angle, 1, 1, 0.5, 0.5, width/16, height/16)
+    aspr(n, x, y, angle, 1, 1, ax, ay, width/16, height/16)
     pal(1, 1)
     pal(2, 2)
   end
