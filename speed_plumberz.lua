@@ -2,7 +2,7 @@ require("framework/framework")
 
 _title = "Speed PlumberZ"
 
-_description = "Water flows, so does time ! From (S)tart to (F)inish !"
+_description = "Water flows, so does time !   From (S)tart to (F)inish!  "
 
 _player_glyph = 0x4C
 
@@ -16,7 +16,7 @@ _controls = {
   [ "A"      ] = "Release the water!",
   
   [ "cur_lb" ] = "Rotate pieces!",
-  [ "cur_rb" ] = "Change angle ! ( Y shaped pipes)"
+  [ "cur_rb" ] = "Change angle ! (Blue pipes only)"
 }
 
 _score = 0
