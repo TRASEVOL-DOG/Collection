@@ -972,10 +972,52 @@ do -- pause
     camera()
   end
   
+  
+  
+  local ui = castle.ui
+  local function slider_react(label, value, min, max, foo)
+    local nv = ui.slider(label, value, min, max)
+  
+    if nv ~= value then
+      foo(nv)
+    end
+  
+    return nv
+  end
+  
   function ui_panel()
-    local ui = castle.ui
-    ui.markdown("### ".._title)
+    ui.markdown("## ".._title)
     ui.markdown(_description)
+
+    ui.markdown([[&#160;
+### Settings]])
+  
+    slider_react("Screenshake", shake_power, 0, 200, function(nv)
+      shake_power = nv
+      screenshake(2)
+    end)
+  
+    ui.markdown("*To-do: implement vvv*")
+  
+    slider_react("Sfx Volume", sfx_volume()*100, 0, 100, function(nv)
+      sfx_volume(nv * 100)
+    end)
+  
+    slider_react("Music Volume", music_volume()*100, 0, 100, function(nv)
+      music_volume(nv * 100)
+    end)
+  
+    ui.toggle("Shader OFF", "Shader ON", false, { onToggle = function()
+      -- do the shader things, i dunno
+    end})
+  
+    ui.markdown(
+[[&#160;
+### Info
+Collection (working title) is a project by [Eliott](https://twitter.com/Eliott_MacR) and [Trasevol_Dog](https://twitter.com/TRASEVOL_DOG)!
+]]
+    )
+
   end
 
 end
