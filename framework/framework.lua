@@ -833,7 +833,7 @@ do -- controls screen
     local w = str_px_width(_description)
     
     if w >= 256 then
-      local i = #_description/2
+      local i = flr(#_description/2)
       while i > 1 and _description:sub(i,i) ~= " " do
         i = i-1
       end
@@ -916,7 +916,7 @@ do -- controls screen
     end
     
     spritesheet("glyphs")
-        
+    
     camera()
   end
 
