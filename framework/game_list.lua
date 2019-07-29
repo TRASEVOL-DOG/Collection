@@ -3,12 +3,12 @@ _game_list = {
 
   {name       = "Shooting Range",   
    code_name  = "shooting_range",   
-   player_spr = 0x30,
+   player_spr = 0x20,
   },
   
   {name       = "Speed PlumberZ",   
    code_name  = "speed_plumberz",  
-   player_spr = 0x30,
+   player_spr = 0x4C,
   },
   
   {name       = "Tangle",
