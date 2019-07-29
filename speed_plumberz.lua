@@ -2,7 +2,7 @@ require("framework/framework")
 
 _title = "Speed PlumberZ"
 
-_description = "Water flows, so does time !"
+_description = "Water flows, so does time ! From (S)tart to (F)inish !"
 
 _palette = { ["0"] = 0, 8, 14, 13, 20, 4, 10, 15, 17, 29, 30}
 
@@ -13,8 +13,8 @@ _controls = {
   
   [ "A"      ] = "Release the water!",
   
-  [ "cur_lb" ] = "Rotate!",
-  [ "cur_rb" ] = "Special Movement!"
+  [ "cur_lb" ] = "Rotate pieces!",
+  [ "cur_rb" ] = "Change angle ! ( Y shaped pipes)"
 }
 
 _score = 0
