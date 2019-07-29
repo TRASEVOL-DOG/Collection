@@ -292,12 +292,12 @@ function _draw()
         end      
       end      
       
-      glyph(g_spr.pieces[c.piece],x + 8, y + 8, 16, 16,c.piece > 2 and c.angle or 0, c.piece < 7 and color_1 or color_3, color_2, 0)
+      glyph(g_spr.pieces[c.piece],x + 8, y + 8, 16, 16,c.piece > 2 and c.angle or 0, c.piece < 7 and color_1 or color_3, color_2)
       
       if c.piece == 1 then 
-        glyph(g_spr.pieces[11],x + 8, y + 8, 16, 16, c.angle, color_1, color_2, 0)
+        glyph(g_spr.pieces[11],x + 8, y + 8, 16, 16, c.angle, color_1, color_2)
       elseif c.piece == 2 then
-        glyph(g_spr.pieces[11],x + 8, y + 8, 16, 16, c.angle, color_1, color_2, 0)
+        glyph(g_spr.pieces[11],x + 8, y + 8, 16, 16, c.angle, color_1, color_2)
       end
     end
   end
@@ -370,32 +370,32 @@ function draw_bubble(x, y, width, height, rect_size, c1, c2)
       if i == 0 then
         if j == 0 then
           -- ul        
-          glyph(g_spr.bubble[1], x, y, r_size, r_size, 0, c1, c2, 0) 
+          glyph(g_spr.bubble[1], x, y, r_size, r_size, 0, c1, c2) 
         elseif j == ceil(total_h / r_size) then
           -- bl
-          glyph(g_spr.bubble[1], x, y, r_size, r_size, -.25, c1, c2, 0)
+          glyph(g_spr.bubble[1], x, y, r_size, r_size, -.25, c1, c2)
         else
           -- vertical filling_rect (left border)
-          glyph(g_spr.bubble[2], x, y, r_size, r_size, -.25, c1, c2, 0)
+          glyph(g_spr.bubble[2], x, y, r_size, r_size, -.25, c1, c2)
         end
       elseif i == ceil(total_w / r_size) then
         if j == 0 then
           -- ur
-          glyph(g_spr.bubble[1], x, y, r_size, r_size, .25, c1, c2, 0)
+          glyph(g_spr.bubble[1], x, y, r_size, r_size, .25, c1, c2)
         elseif j == ceil(total_h / r_size) then
           -- br
-          glyph(g_spr.bubble[1], x, y, r_size, r_size, .5,  c1, c2, 0)
+          glyph(g_spr.bubble[1], x, y, r_size, r_size, .5,  c1, c2)
         else
           -- vertical filling_rect (right border)
-          glyph(g_spr.bubble[2], x, y, r_size, r_size, .25, c1, c2, 0)
+          glyph(g_spr.bubble[2], x, y, r_size, r_size, .25, c1, c2)
         end
       else
         if j == 0 then
           -- horizontal filling_rect (top border)
-            glyph(g_spr.bubble[2], x, y, r_size, r_size, 0, c1, c2, 0)
+            glyph(g_spr.bubble[2], x, y, r_size, r_size, 0, c1, c2)
         elseif j == ceil(total_h / r_size) then
           -- horizontal filling_rect (bottom border)
-            glyph(g_spr.bubble[2], x, y, r_size, r_size, .5, c1, c2, 0)
+            glyph(g_spr.bubble[2], x, y, r_size, r_size, .5, c1, c2)
         else
           rectfill(x - r_size/2, y - r_size/2, x + r_size/2, y + r_size/2, c1)
         end

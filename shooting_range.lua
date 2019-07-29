@@ -4,7 +4,7 @@ _title = "Fishing Game"
 -- _title = "Game Template"
 -- _title = "Game Template 2"
 
-_description = "Some test indeed !"
+_description = "Shoot the targets!"
 
 _palette = { ["0"] = 0, 17, 14, 13, 20, 4}
 
@@ -16,13 +16,9 @@ _controls = {
   [ "left"   ] = "Move!",
   [ "right"  ] = "Move!",
 
-  -- [ "A"      ] = "Jump!",
-  -- [ "B"      ] = "Crouch!",
-
   [ "cur_x"  ] = "Aim!",
   [ "cur_y"  ] = "Aim!",
   [ "cur_lb" ] = "Shoot!",
-  -- [ "cur_rb" ] = "Send movie to director!"
 }
 
 _score = 0
@@ -350,7 +346,7 @@ function draw_fences()
     outlined_glyph(g_spr.fence,  i * 16 - 8, GH - 16 * 2 - 8, 16, 16, 0, _palette[0], _palette[0], 0)
   end
   for i = 0, GW/16 do
-    glyph(g_spr.fence,  i * 16 - 8, GH - 16 * 2 - 8, 16, 16, 0, _palette[2], _palette[3], 0)
+    glyph(g_spr.fence,  i * 16 - 8, GH - 16 * 2 - 8, 16, 16, 0, _palette[2], _palette[3])
   end
 end
 -- xxxxx -------------
@@ -375,7 +371,7 @@ function draw_rope(y, step, i)
     outlined_glyph(g_spr.rope,x_offset +   i * 16 - 8, y + get_rope_y_offset( i * GW/16, step ) - 8, 16, 16, .25, _palette[0], _palette[0  ], 0)
   end
   for i = -1, GW/16 + 1 do 
-    glyph(g_spr.rope, x_offset +  i * 16 - 8, y + get_rope_y_offset( i * GW/16, step ) - 8, 16, 16, .25, _palette[2], _palette[5], 0)
+    glyph(g_spr.rope, x_offset +  i * 16 - 8, y + get_rope_y_offset( i * GW/16, step ) - 8, 16, 16, .25, _palette[2], _palette[5])
   end
   
 end
