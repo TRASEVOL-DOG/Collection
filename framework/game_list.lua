@@ -14,6 +14,11 @@ _game_list = {
   {name       = "Tangle",
    code_name  = "tangle",
    player_spr = 0x50
+  },
+  
+  {name       = "Rocky Fishing",
+   code_name  = "fishing",
+   player_spr = 0x22
   }
 }
 

@@ -1,0 +1,7 @@
+---
+main: fishing.lua
+title: Rocky Fishing
+owner: trasevol-dog
+primaryColor: 2e00ff
+coverImage: fishing_preview.png
+dimensions: full
