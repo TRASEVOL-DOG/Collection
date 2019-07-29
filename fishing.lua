@@ -162,12 +162,12 @@ function _draw()
   
   if end_it then
     if treasure then
-      circfill(hook_x, hook_y, 24, 29)
-      circfill(chest_x, chest_y, 32, 29)
+      circfill(hook_x, hook_y, 12, 29)
+      circfill(chest_x, chest_y, 48, 29)
       draw_hook()
       draw_chest()
     else
-      circfill(hook_x, hook_y, 24, 29)
+      circfill(hook_x, hook_y, 12, 29)
       draw_hook()
     end
   end
@@ -266,7 +266,7 @@ function the_end()
   end
   
   if treasure then
-    add(stats, "You got the treasure!! (+ 50)")
+    add(stats, "You got the treasure!! (+ 50pts)")
   end
   
   local score = f*5 + fb*15 - b*20 + (treasure and 50 or 0)
@@ -866,6 +866,10 @@ local function new_algae(x, y, a)
         {27, 3},
       }
     })
+  end
+  
+  if s.g ~= 0x19 and chance(50) then
+    s.w = -s.w
   end
   
   add(algae, s)
