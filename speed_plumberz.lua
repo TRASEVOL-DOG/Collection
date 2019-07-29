@@ -39,7 +39,7 @@ function _init(difficulty)
   g_spr = {
     arrow  = 0x43,    
     flag   = 0x44,    
-    pieces = {0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4D},    
+    pieces = {0x40, 0x41, 0x42, 0x43, 0x42, 0x43, 0x46, 0x47, 0x48, 0x49, 0x4D},    
     bubble = {0x4A, 0x4B},    
     water  = 0x4C,    
   }  
@@ -244,6 +244,7 @@ end
 local color_1 = _palette[2]
 local color_2 = _palette[3]
 local color_3 = _palette[4]
+local color_4 = _palette[8]
 
 function _draw()
 
@@ -292,7 +293,7 @@ function _draw()
         end      
       end      
       
-      glyph(g_spr.pieces[c.piece],x + 8, y + 8, 16, 16,c.piece > 2 and c.angle or 0, c.piece < 7 and color_1 or color_3, color_2)
+      glyph(g_spr.pieces[c.piece],x + 8, y + 8, 16, 16,c.piece > 2 and c.angle or 0, c.piece > 6 and color_3 or (c.piece < 5 and color_1 or color_4), color_2)
       
       if c.piece == 1 then 
         glyph(g_spr.pieces[11],x + 8, y + 8, 16, 16, c.angle, color_1, color_2)
