@@ -233,7 +233,8 @@ do -- gameover
     in_gameover = true
     gameover_t = 0
     
-    end_score = mid(score, 0, 100)
+    score = mid(score, 0, 100)
+    end_score = score
     
     if info then
       end_info = {}
