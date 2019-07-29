@@ -4,6 +4,8 @@ _title = "Speed PlumberZ"
 
 _description = "Water flows, so does time ! From (S)tart to (F)inish !"
 
+_player_glyph = 0x4C
+
 _palette = { ["0"] = 0, 8, 14, 13, 20, 4, 10, 15, 17, 29, 30}
 
 _controls = {
