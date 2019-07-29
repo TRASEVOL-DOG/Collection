@@ -181,7 +181,7 @@ do -- preloading games
   
   function init_shown_games_game_over()
     g_o_games = {}
-    local choosen_games = pick_different(2, get_game_list())
+    local choosen_games = pick_different(4, get_game_list())
     for i, g in pairs(choosen_games) do
       local data = {
         name = g.name,
@@ -194,7 +194,6 @@ do -- preloading games
       end)
       
       add(g_o_games, data)
-      add(g_o_games, data) -- tmp: duplicate cause we need 4 games
     end
     
     log("Initialized info for next games.", "o7")
