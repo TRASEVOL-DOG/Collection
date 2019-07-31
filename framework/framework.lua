@@ -46,7 +46,7 @@ if CASTLE_PREFETCH then
     "framework/controls.png",
     "framework/screen_dither.png",
     "framework/topbar.png",
-    "framework/Awesome.ttf"
+    "framework/AwesomePro.ttf"
   })
 end
 
