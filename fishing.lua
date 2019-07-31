@@ -76,9 +76,9 @@ function _init(difficulty)
 end
 
 function _update()
-  if btnp("cur_rb") then
-    screenshot()
-  end
+--  if btnp("cur_rb") then
+--    screenshot()
+--  end
   
   if end_it then
     freeze(0.5)

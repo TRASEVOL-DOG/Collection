@@ -46,7 +46,7 @@ if CASTLE_PREFETCH then
     "framework/controls.png",
     "framework/screen_dither.png",
     "framework/topbar.png",
-    "framework/Awesome.ttf"
+    "framework/AwesomePro.ttf"
   })
 end
 
@@ -1495,7 +1495,7 @@ do -- misc
   function load_assets()
     load_palette()
   
-    load_font("framework/Awesome.ttf", 16, "main", true)
+    load_font("framework/AwesomePro.ttf", 16, "main", true)
     
     load_png("glyphs",        "framework/glyphs.png", { 0x000000, 0xffffff, 0x888888}, true)
     load_png("screen_dither", "framework/screen_dither.png", { 0x000000, 0xffffff })
