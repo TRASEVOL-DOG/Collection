@@ -241,7 +241,7 @@ do -- gameover
     in_gameover = true
     gameover_t = 0
     
-    score = mid(score, 0, 100)
+    score = mid(score, 0, 100) or 0
     end_score = score
     
     if info then
@@ -1617,7 +1617,7 @@ user_env = {
   glyph           = glyph,
   outlined_glyph  = outlined_glyph,
   screenshot      = screenshot,
-  screenshake     = screenshake
+  screenshake     = screenshake,
 }
 
 env_copy = copy_table(getfenv(1))
