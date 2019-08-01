@@ -1,0 +1,6 @@
+---
+main: game_editor.lua
+title: Collection Game Editor
+owner: trasevol-dog
+primaryColor: 000000
+dimensions: full

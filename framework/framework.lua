@@ -63,7 +63,7 @@ local load_palette, load_controls, load_assets, load_settings
 local update_controls, draw_cursor
 local init_controls_screen, update_controls_screen, draw_controls_screen
 local update_topbar, draw_topbar, add_battery
-local pause, update_pause, draw_pause
+local pause, update_pause, draw_pause, ui_panel
 local update_gameover, draw_gameover
 local transition_a, transition_b, update_screenshake
 local init_bg_glyphs, update_bg_glyphs, draw_bg_glyphs
@@ -84,9 +84,13 @@ local BATTERY_COST = 10
 
 do -- love overloads (load, update, draw)
 
-  function love.load()
-    init_sugar("Remy & Eliott's Collection", GAME_WIDTH, GAME_HEIGHT + TOPBAR_HEIGHT, 3)
-    set_frame_waiting(60)
+  function love.load(from_editor)
+    from_editor = (from_editor == "yes")
+  
+    if not from_editor then
+      init_sugar("Remy & Eliott's Collection", GAME_WIDTH, GAME_HEIGHT + TOPBAR_HEIGHT, 3)
+      set_frame_waiting(60)
+    end
     
     log("Initializing Collection framework.", "o7")
     
@@ -118,7 +122,10 @@ do -- love overloads (load, update, draw)
     shake_x, shake_y = 0, 0
     
     -- loading resources
-    load_assets()
+    if not from_editor then
+      load_assets()
+    end
+    
     load_controls()
     load_settings()
     
@@ -134,7 +141,9 @@ do -- love overloads (load, update, draw)
     
     log("Done initializing Collection framework, launching game!", "o7")
     
-    set_user_env()
+    if not from_editor then
+      set_user_env()
+    end
     
     safe_call(_init, difficulty)
   end
