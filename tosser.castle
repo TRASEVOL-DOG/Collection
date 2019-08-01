@@ -1,6 +1,6 @@
 ---
 main: tosser.lua
-title: Tosser
+title: Bar Invaders
 owner: spaceling
 primaryColor: bcb6e3
 coverImage: tosser_preview.png
