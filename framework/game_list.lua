@@ -11,6 +11,11 @@ _game_list = {
    player_spr = 0x4C,
   },
   
+  {name       = "Bar Invaders",   
+   code_name  = "tosser",  
+   player_spr = 0x60,
+  },
+  
   {name       = "Tangle",
    code_name  = "tangle",
    player_spr = 0x50

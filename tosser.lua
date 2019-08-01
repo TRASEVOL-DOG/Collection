@@ -4,7 +4,7 @@ _title = "Bar Invaders"
 
 _description = "It's summer, and people are really thirsty."
 
-_palette = { [0] = 0, 11, 7, 29, 20, 4, 21, 17}
+_palette = { [0] = 0, 11, 7, 29, 20, 4, 21, 17, 26, 19}
 
 _player_glyph = 0x60
 
@@ -73,7 +73,7 @@ function _update()
   
   if thirst_remaining < displayed_thirst then displayed_thirst = displayed_thirst - dt() * t_p end
   
-  if displayed_thirst < 1 then 
+  if displayed_thirst < 0 then 
   gameover(get_score(), get_str_score())
   end
   
@@ -125,7 +125,7 @@ function draw_ui()
   pprint("Crowd's thirst-o-meter", 0, sin(t()))
   round_rectfill(2, 18 + sin(t()), GW - 4, 16, 8, _palette[0])  
   round_rectfill(4, 20 + sin(t()), GW - 8, 12, 6, _palette[3])  
-  if displayed_thirst > 0 then
+  if displayed_thirst > .5 then
     round_rectfill(4, 20 + sin(t()), (GW - 8) * displayed_thirst/ max_thirst + 2, 12, 6, _palette[0]) 
     round_rectfill(4, 20 + sin(t()), (GW - 8) * displayed_thirst/ max_thirst , 12, 6, ui_bar_col) 
   end
@@ -133,7 +133,7 @@ end
 
 function init_props()
   for i = 0, 75 do
-    add(props, { x = bar_x + bar_w + irnd(GW - bar_x - bar_w), y = bar_y + irnd(bar_h), angle = rnd(1), color = 4 + irnd(2)})
+    add(props, { x = bar_x + bar_w + irnd(GW - bar_x - bar_w), y = bar_y + irnd(bar_h), angle = rnd(1), color = 4 + irnd(6)})
   end
 end
 
@@ -253,7 +253,7 @@ function update_drinks()
 end
 
 function new_drink()
-  add(drinks, { x = drink_start_x, y = drink_start_y, angle = 0, vx = 0, vy = 0, color = 4 + irnd(2), status = "spawning"})
+  add(drinks, { x = drink_start_x, y = drink_start_y, angle = 0, vx = 0, vy = 0, color = 4 + irnd(6), status = "spawning"})
 end
 
 function new_hand()
@@ -322,7 +322,7 @@ function hurt(hand)
   thirst_remaining = thirst_remaining - 3
   stolen = stolen + 1
   hand.caught = true         
-  add(drinks, { x = hand.x, y = hand.y, angle = rnd(1), vx = 0, vy = 0, color = 4 + irnd(2), status = "is_caught"})
+  add(drinks, { x = hand.x, y = hand.y, angle = rnd(1), vx = 0, vy = 0, color = 4 + irnd(6), status = "is_caught"})
 end
 
 
