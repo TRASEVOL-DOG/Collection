@@ -1565,7 +1565,6 @@ user_env = {
   tri             = tri,
   line            = line,
   pset            = pset,
-  pget            = pget,
   btn             = btn,
   btnp            = btnp,
   btnr            = btnr,
