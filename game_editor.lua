@@ -718,6 +718,7 @@ local chosen = ui.dropdown("Function", cur_function.def, function_list)
   ui.markdown("`function "..cur_function.def.."`")
   cur_function.code = ui.codeEditor("code", cur_function.code, { hideLabel = true })
   ui.markdown("`end`")
+  
   ui.markdown("&#160;")
   
   if compile_error then
@@ -748,6 +749,11 @@ local chosen = ui.dropdown("Function", cur_function.def, function_list)
         deleting_function = true
       end
     end
+  end
+
+  ui.markdown("&#160;\r\n\r\n---\r\n\r\n&#160;")
+  if ui.button("Open Documentation") then
+    love.system.openURL("https://github.com/TRASEVOL-DOG/Collection/blob/master/game_editor.md#game-editor-api-documentation")
   end
 end
 
