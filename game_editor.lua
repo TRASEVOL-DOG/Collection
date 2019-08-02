@@ -276,7 +276,6 @@ function define_user_env()
     tonumber        = tonumber,
     bit             = bit,
     network         = network,
-    castle          = castle,
     
     log             = log,
     w_log           = w_log,
@@ -460,7 +459,6 @@ function castle.uiupdate()
     testing_ui()
   end
   
-
 --  ui.markdown("~~~")
 --  ui_code = ui.codeEditor("Ui", ui_code)
 --  if compile_soon then compile_soon = false compile() end

@@ -1536,7 +1536,6 @@ user_env = {
   tonumber        = tonumber,
   bit             = bit,
   network         = network,
-  castle          = castle,
   
   log             = log,
   w_log           = w_log,
