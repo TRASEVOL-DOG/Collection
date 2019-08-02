@@ -469,6 +469,23 @@ function castle.uiupdate()
 end
 ui_panel = castle.uiupdate
 
+do -- setting castle.uiupdate in stone (figuratively)
+  local s_castle = castle
+  castle = setmetatable({}, {
+    __index = s_castle,
+    __newindex = function(t, k, v)
+      if k ~= "uiupdate" then
+        s_castle[k] = v
+      end
+    end
+  })
+  
+  function remove_editor_panel()
+    castle = s_castle
+    castle.uiupdate = nil
+  end
+end
+
 
 -- project panel
 
