@@ -1229,9 +1229,11 @@ do -- controls system
       
       A =      { input_id("keyboard_scancode", "z"),
                  input_id("keyboard_scancode", "rshift"),
+                 input_id("keyboard_scancode", "lshift"),
                  input_id("controller_button", "a") },
       B =      { input_id("keyboard_scancode", "x"),
-                 input_id("keyboard_scancode", "return"),
+                 input_id("keyboard_scancode", "rctrl"),
+                 input_id("keyboard_scancode", "lctrl"),
                  input_id("controller_button", "b") },
   
       cur_x  = { input_id("mouse_position", "x") },
