@@ -20,6 +20,14 @@ love.update = nil
 love.draw = nil
 
 
+-- local function definitions
+
+local load_game, save_game, delete_game, gen_game_id
+local test_game, stop_testing, compile_foo, define_user_env
+local find_foo, new_foo, update_def, delete_foo
+local ui_panel, remove_editor_panel, project_panel, info_editor, controls_edit, cursor_edit, function_editor, testing_ui
+
+
 ---- Game data + function data
 
 local game_info = {
