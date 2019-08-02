@@ -1,34 +1,13 @@
---require("sugarcoat/sugarcoat.lua")
 local _debug = debug
---sugar.utility.using_package(sugar.S, true)
-
-
---local old_love = love
---local new_love = {}
---love = setmetatable({}, {
---  __index = old_love,
---  __newindex = function(t, k, v)
---    if k == "draw" or k == "update" or k == "load" then
---      new_love[k] = v
---    else
---      old_love[k] = v
---    end
---  end
---})
 
 require("framework/framework.lua")
 
-local base_env = copy_table(getfenv(0))
-merge_tables(base_env, getfenv(1))
-
+---- Dodging environment restrictions
 
 local getfenv, setfenv = getfenv, setfenv
 local env_save = getfenv(1)
---new_love.load()
---setfenv(1, env_save)
 
 love.load()
-
 
 local new_love = {
   load   = love.load,
@@ -40,6 +19,8 @@ love.load = nil
 love.update = nil
 love.draw = nil
 
+
+---- Game data + function data
 
 local game_info = {
   _title         = "<Set a title>",
@@ -79,9 +60,14 @@ local function_list = {
   "_draw()"
 }
 
+local function_names = {}
+for _,f in pairs(functions) do function_names[f.name] = f end
+
 local cur_function = functions[1]
 
 
+
+---- Game saving + loading
 
 local user_info = castle.user.isLoggedIn and castle.user.getMe()
 local user_registry
@@ -101,6 +87,13 @@ function load_game(id)
     for _,f in ipairs(functions) do
       add(function_list, f.def)
     end
+    
+    function_names = {}
+    for _,f in pairs(functions) do
+      function_names[f.name] = f
+    end
+    
+    cur_function = functions[1]
   end)
 end
 
@@ -171,6 +164,10 @@ function delete_game(id)
   
   network.async(castle.storage.setGlobal, nil, "info_"..id, nil)
   network.async(castle.storage.setGlobal, nil, "game_"..id, nil)
+  
+  if id == game_info._id then
+    game_info._id = nil
+  end
 end
 
 function gen_game_id()
@@ -188,9 +185,13 @@ end
 
 
 
+---- Game compiling + testing
+
 local testing
 local compile_error
 local runtime_error
+
+local user_env
 
 local ui_panel
 function test_game()
@@ -198,20 +199,13 @@ function test_game()
     stop_testing()
   end
 
-  local n_env = copy_table(base_env)
-  
---  setfenv(love.update, n_env)
---  setfenv(love.draw, n_env)
-  
---  setfenv(compile_foo, n_env)
-
   local env = getfenv(1)
   env_save = copy_table(env)
   
-  --env_save._description = "hello"
+  define_user_env()
   
   for _, f in ipairs(functions) do
-    compile_foo(f, env)
+    compile_foo(f)
   end
   
   for k, v in pairs(game_info) do
@@ -221,16 +215,10 @@ function test_game()
   testing = true
   
   runtime_error = nil
-  
---  env_save = getfenv(1)
 
   love.update = new_love.update
   love.draw = new_love.draw
-  
---  setfenv(old_love.update, n_env)
---  setfenv(old_love.draw, n_env)
 
---  _init()
   new_love.load("yes")
   
   log("Now testing.", "O")
@@ -241,15 +229,6 @@ function stop_testing()
     return
   end
   
-  local env = getfenv(1)
-  for k, v in pairs(env) do
-    env[k] = env_save[k]
-  end
-  
-  for k, v in pairs(env_save) do
-    env[k] = env_save[k]
-  end
-  
   love.update = nil
   love.draw = nil
   
@@ -258,19 +237,19 @@ function stop_testing()
   log("No longer testing.", "O")
 end
 
-function compile_foo(foo, env)
+function compile_foo(foo)
   local code = "function "..foo.def.." "..foo.code.." end"
   
-  local env = env or getfenv(1)
+  local env = getfenv(1)
   
-  local comp, err = load(code, nil, "t", env)
+  local comp, err = load(code, nil, "t", user_env)
   compile_error = err
   
   if err then
     log(foo.def.." compilation failed: "..err, "X")
   else
     comp()
-    env[foo.name] = getfenv(1)[foo.name]
+    env[foo.name] = user_env[foo.name]
     log("Compiled "..foo.def.."!", "O")
   end
 end
@@ -281,11 +260,180 @@ catch_logs(function(str)
   end
 end)
 
+function define_user_env()
+  user_env = {
+    unpack          = unpack,
+    select          = select,
+    pairs           = pairs,
+    ipairs          = ipairs,
+    table           = table,
+    string          = string,
+    type            = type,
+    getmetatable    = getmetatable,
+    setmetatable    = setmetatable,
+    error           = error,
+    tostring        = tostring,
+    tonumber        = tonumber,
+    bit             = bit,
+    network         = network,
+    castle          = castle,
+    
+    log             = log,
+    w_log           = w_log,
+    r_log           = r_log,
+    assert          = assert,
+    write_clipboard = write_clipboard,
+    read_clipboard  = read_clipboard,
+    screen_size     = screen_size,
+    screen_w        = screen_w,
+    screen_h        = screen_h,
+    camera          = camera,
+    camera_move     = camera_move,
+    get_camera      = get_camera,
+    clip            = clip,
+    get_clip        = get_clip,
+    color           = color,
+    pal             = pal,
+    clear           = clear,
+    cls             = cls,
+    rectfill        = rectfill,
+    rect            = rect,
+    circfill        = circfill,
+    circ            = circ,
+    trifill         = trifill,
+    tri             = tri,
+    line            = line,
+    pset            = pset,
+    pget            = pget,
+    btn             = btn,
+    btnp            = btnp,
+    btnr            = btnr,
+    btnv            = btnv,
+    cos             = cos,
+    sin             = sin,
+    atan2           = atan2,
+    angle_diff      = angle_diff,
+    dist            = dist,
+    sqrdist         = sqrdist,
+    lerp            = lerp,
+    sqr             = sqr,
+    cub             = cub,
+    pow             = pow,
+    sqrt            = sqrt,
+    flr             = flr,
+    round           = round,
+    ceil            = ceil,
+    abs             = abs,
+    sgn             = sgn,
+    min             = min,
+    max             = max,
+    mid             = mid,
+    srand           = srand,
+    raw_rnd         = raw_rnd,
+    rnd             = rnd,
+    irnd            = irnd,
+    pick            = pick,
+    str_px_width    = str_px_width,
+    print           = print,
+    printp          = printp,
+    printp_color    = printp_color,
+    pprint          = pprint,
+    t               = t,
+    time            = time,
+    dt              = dt,
+    delta_time      = delta_time,
+    sys_ltime       = sys_ltime,
+    sys_gtime       = sys_gtime,
+    freeze          = freeze,
+    all             = all,
+    del             = del,
+    del_at          = del_at,
+    add             = add,
+    sort            = sort,
+    merge_tables    = merge_tables,
+    copy_table      = copy_table,
+    
+    gameover        = gameover,
+    glyph           = glyph,
+    outlined_glyph  = outlined_glyph,
+    screenshot      = screenshot,
+    screenshake     = screenshake,
+  }
+  
+  return user_env
+end
+define_user_env()
 
 
+---- Function editing
+
+function find_foo(def)
+  for _, d in pairs(functions) do
+    if d.def == def then
+      return d
+    end
+  end
+end
+
+function new_foo()
+  local name, i, b = "new_function", 1, false
+  while not b do
+    for _, f in pairs(functions) do
+      if f.name == name then
+        i = i+1
+        name = "new_function"..i
+        goto try_again
+      end
+    end
+
+    b = true
+    ::try_again::
+  end
+
+  local nf = {
+    name = name,
+    def  = name.."()",
+    code = "",
+    args = {}
+  }
+
+  add(functions, nf)
+  add(function_list, nf.def)
+  return nf
+end
+
+function update_def(foo)
+  local old_def = foo.def
+
+  if #foo.args == 0 then
+    foo.def = foo.name.."()"
+  else
+    foo.def = foo.name.."("
+    for _,arg in ipairs(foo.args) do
+      foo.def = foo.def..arg..", "
+    end
+
+    foo.def = foo.def:sub(1, #foo.def-2)..")"
+  end
+
+  for i, d in pairs(function_list) do
+    if d == old_def then
+      function_list[i] = foo.def
+    end
+  end
+end
+
+function delete_foo(foo)
+  log("Deleting function "..foo.def, "O")
+        
+  del(function_list, foo.def)
+  del(functions, foo)
+  function_names[foo.name] = nil
+  foo = functions[1]
+end
 
 
-local find_foo, new_foo, update_def
+---- UI definitions
 
 local tab, tabs = "Projects", {"Projects", "Game Info", "Code", "Play"}
 
@@ -322,8 +470,10 @@ end
 ui_panel = castle.uiupdate
 
 
-function project_panel()
+-- project panel
 
+local deleting_project = {}
+function project_panel()
   ui.markdown("Current game:")
   
   ui.box("current_game_box", { border = "2px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
@@ -336,7 +486,7 @@ function project_panel()
   ui.markdown("&#160;\r\n\r\nMy games:")
   
   if not user_registry then
-    ui.markdown("Loading data...")
+    ui.markdown("*Loading data...*")
   elseif #user_registry == 0 then
     ui.markdown("*This account has no saved games.*")
   else
@@ -348,14 +498,31 @@ function project_panel()
           load_game(info.id)
         end
         
-        if ui.button("[Delete game]", { kind = "danger" }) then
-          delete_game(info.id)
+        if deleting_project[info.id] then
+          ui.markdown("**Are you sure you want to delete this game?**")
+          ui.box("delete_project_comfirm"..info.id, { flexDirection = "row"}, function()
+            if ui.button("Yes", { kind = "danger" }) then
+              delete_game(info.id)
+              deleting_project[info.id] = nil
+            end
+          
+            if ui.button("No") then
+              deleting_project[info.id] = nil
+            end
+          end)
+        else
+          if ui.button("[Delete game]", { kind = "danger" }) then
+            deleting_project[info.id] = true
+          end
         end
       end)
     end
   end
   
 end
+
+
+-- info editor
 
 local allowed_inputs = {"[x]", "right", "down", "left", "up", "A", "B", "cur_x", "cur_y", "cur_lb", "cur_rb" }
 
@@ -461,6 +628,13 @@ function cursor_edit()
   end
 end
 
+
+-- code editor
+
+local deleting_function
+local essential_functions = { _init = true, _update = true, _draw = true }
+local function_name = "_init"
+local name_issue
 function function_editor()
 local chosen = ui.dropdown("Function", cur_function.def, function_list)
   if chosen ~= cur_function.def then
@@ -469,13 +643,36 @@ local chosen = ui.dropdown("Function", cur_function.def, function_list)
     else
       cur_function = find_foo(chosen)
     end
+    
+    function_name = cur_function.name
+    deleting_function = nil
   end
   
   ui.markdown("`name`")
-  local nv = ui.textInput("name", cur_function.name, {hideLabel = true})
-  if nv ~= cur_function.name then
-    cur_function.name = nv
-    update_def(cur_function)
+  
+  if essential_functions[cur_function.name] then
+    ui.markdown(cur_function.name.." *-- cannot be changed*")
+  else
+    local nv = ui.textInput("name", function_name, {hideLabel = true})
+    if nv ~= function_name then
+      if function_names[nv] and nv ~= cur_function.name then -- function name already exists
+        name_issue = "Function name already exists."
+      elseif nv == "" then
+        name_issue = "Function name cannot be empty."
+      elseif nv:find("%s") then
+        name_issue = "Function name may not contain spaces."
+      else
+        name_issue = nil
+        cur_function.name = nv
+        update_def(cur_function)
+      end
+      
+      function_name = nv
+    end
+    
+    if name_issue then
+      ui.markdown("`Error: "..name_issue.."`")
+    end
   end
   
   ui.markdown("`arguments`")
@@ -510,11 +707,30 @@ local chosen = ui.dropdown("Function", cur_function.def, function_list)
     compile_foo(cur_function)
   end
   
-  if ui.button("/!\\ Remove function", {kind = "danger"}) then
-    del(functions, cur_function)
-    cur_function = functions[1]
+  
+  if not essential_functions[cur_function.name] then
+    if deleting_function then
+      ui.markdown("**Are you sure you want to delete "..cur_function.def.."?**")
+      ui.box("delete_function_comfirm"..cur_function.name, { flexDirection = "row"}, function()
+        if ui.button("Yes", { kind = "danger" }) then
+          delete_foo(cur_function)
+          deleting_function = nil
+        end
+      
+        if ui.button("No") then
+          deleting_function = nil
+        end
+      end)
+    else
+      if ui.button("/!\\ Remove function", {kind = "danger"}) then
+        deleting_function = true
+      end
+    end
   end
 end
+
+
+-- testing ui
 
 function testing_ui()
   if ui.button("Test!") then
@@ -531,62 +747,8 @@ function testing_ui()
   end
 end
 
-function find_foo(def)
-  for _, d in pairs(functions) do
-    if d.def == def then
-      return d
-    end
-  end
-end
 
-function new_foo()
-  local name, i, b = "new_function", 1, false
-  while not b do
-    for _, f in pairs(functions) do
-      if f.name == name then
-        i = i+1
-        name = "new_function"..i
-        goto try_again
-      end
-    end
-
-    b = true
-    ::try_again::
-  end
-
-  local nf = {
-    name = name,
-    def  = name.."()",
-    code = "",
-    args = {}
-  }
-
-  add(functions, nf)
-  add(function_list, nf.def)
-  return nf
-end
-
-function update_def(foo)
-  local old_def = foo.def
-
-  if #foo.args == 0 then
-    foo.def = foo.name.."()"
-  else
-    foo.def = foo.name.."("
-    for _,arg in ipairs(foo.args) do
-      foo.def = foo.def..arg..", "
-    end
-
-    foo.def = foo.def:sub(1, #foo.def-2)..")"
-  end
-
-  for i, d in pairs(function_list) do
-    if d == old_def then
-      function_list[i] = foo.def
-    end
-  end
-end
-
+---- Misc
 
 function love.keypressed(k)
   if k == 'r' then
