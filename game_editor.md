@@ -1,7 +1,7 @@
 # Game Editor API Documentation
 
 
-##Contents:
+## Contents:
 - [Introduction](#Introduction)
 - [Framework functions](#Framework-functions)
 - [Sugarcoat functions](#Sugarcoat-functions)
