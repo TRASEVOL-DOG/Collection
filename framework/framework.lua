@@ -89,8 +89,10 @@ do -- love overloads (load, update, draw)
   
     if not from_editor then
       init_sugar("Remy & Eliott's Collection", GAME_WIDTH, GAME_HEIGHT + TOPBAR_HEIGHT, 3)
-      set_frame_waiting(60)
+      --set_frame_waiting(60)
     end
+    
+    screen_render_integer_scale(false)
     
     log("Initializing Collection framework.", "o7")
     
