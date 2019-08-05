@@ -189,8 +189,8 @@ function update_hook()
     hook_vx = hook_vx + dt() * 5 * sgn(-v)
   end
   
-  hook_x = hook_x + hook_vx
-  hook_y = hook_y + hook_vy
+  hook_x = hook_x + hook_vx * dt() * 60
+  hook_y = hook_y + hook_vy * dt() * 60
   
   hook_a = hook_a + dt() * 2 * angle_diff(hook_a, atan2(hook_vx, hook_vy))
   
