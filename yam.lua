@@ -14,6 +14,8 @@ _controls = {
   [ "cur_lb" ] = "Action",
 }
 
+_score = 0
+
 maze = {}
 
 function _init(difficulty)
@@ -25,7 +27,13 @@ function _init(difficulty)
     beer_pump = 0x60,
   }
   
-  maze_size = 15
+  -- difficulty = difficulty or irnd(100)
+  difficulty = 100
+  
+  time_left = 45 - 38 * difficulty/100
+  p_per_g = 10 + 90 * difficulty/100
+  
+  maze_size = flr(12 + 7 * difficulty/100)
   
   s = 8
   p = 10
@@ -34,11 +42,15 @@ function _init(difficulty)
   maze_x = GW / 2 - p * maze_size / 2
   maze_y = GH / 2 - p * maze_size / 2
   
+  goal  = 1 + irnd(maze_size * maze_size)
+  
+  time_since_launch = 0
+  time_between_m_g = 5 - 3 * difficulty/100
+  
   init_maze()
   init_player()
 
-  start  = 1 + irnd(2) *(maze_size - 1)
-  finish = 1 + maze_size * (maze_size - 1) + irnd(2) *(maze_size - 1)
+
 
 end
 
@@ -73,8 +85,10 @@ end
 player = {}
 
 function init_player()
-  player.x  = maze_x + 4 + 1
-  player.y  = maze_y + 4 + 1
+  local sx = ((goal-1) % maze_size) * p
+  local sy = flr((goal-1) / maze_size) * p
+  player.x  = maze_x + sx + 4 + 1
+  player.y  = maze_y + sy + 4 + 1
   player.vx = 0
   player.vy = 0
   
@@ -84,47 +98,60 @@ function update_player()
 
   local i = flr((player.x - maze_x) / p) + 1
   local j = flr((player.y - maze_y) / p) + 1
-    
-  local c = maze[index(i,j)]
   
+  local c = maze[index(i,j)]
+      
   if btnp("up") and not c.walls[1] then 
     player.y = player.y - p
-    
+    screenshake(2)  
   end
   if btnp("right") and not c.walls[2] then 
     player.x = player.x + p
-    
+    screenshake(2)
   end
   if btnp("down") and not c.walls[3] then 
     player.y = player.y + p
-    
+    screenshake(2)
   end
   if btnp("left") and not c.walls[4] then 
     player.x = player.x - p  
+    screenshake(2)
   end
-       
-end
-
-function draw_player()
-
-  local sx = 1 + ((start-1) % maze_size)
-  local sy = 1 + flr((start-1) / maze_size)
   
-  local fx = 1 + ((finish-1) % maze_size)
-  local fy = 1 + flr((finish-1) / maze_size)
+  local fx = 1 + ((goal-1) % maze_size)
+  local fy = 1 + flr((goal-1) / maze_size)
   
   local i = flr((player.x - maze_x) / p) + 1
   local j = flr((player.y - maze_y) / p) + 1
   
-  local id_s = index(sx, sy)
-  -- log(id_s)
   local id_f = index(fx, fy)
-  -- log(id_f)
   local id_p = index(i, j)
-  -- log(id_p)
   
-  local colr = ((id_s == id_p) or (id_f == id_p)) and 4 or 5
-  -- log(colr)
+  if (id_f == id_p) then
+    score()
+  end
+  
+end
+
+function score()
+  screenshake(5)
+  goal = 1 + irnd(maze_size * maze_size)
+  _score = _score + p_per_g
+  
+end
+
+function draw_player()
+
+  local fx = 1 + ((goal-1) % maze_size)
+  local fy = 1 + flr((goal-1) / maze_size)
+  
+  local i = flr((player.x - maze_x) / p) + 1
+  local j = flr((player.y - maze_y) / p) + 1
+  
+  local id_f = index(fx, fy)
+  local id_p = index(i, j)
+  
+  local colr = (id_f == id_p) and 4 or 5
   color(_palette[colr])
   circfill(player.x, player.y, 2)
 end
@@ -136,6 +163,12 @@ function draw_maze()
   local w = 1
   
   rf(maze_x, maze_y, p * maze_size, p * maze_size, _palette[1])
+  
+  color(_palette[3])
+  
+  local fx = ((goal-1) % maze_size) * p
+  local fy = flr((goal-1) / maze_size) * p
+  circfill(maze_x + fx + p/2, maze_y + fy + p/2, p/3)
 
   for j = 1, maze_size do 
     for i = 1, maze_size do
@@ -149,16 +182,6 @@ function draw_maze()
       
     end  
   end
-  
-  local sx = ((start-1) % maze_size) * p
-  local sy = flr((start-1) / maze_size) * p
-  rf(maze_x + sx, maze_y + sy, p, p)
-  
-  local fx = ((finish-1) % maze_size) * p
-  local fy = flr((finish-1) / maze_size) * p
-  rf(maze_x + fx, maze_y + fy, p, p)
-  
-  
 end
 
 
@@ -197,8 +220,6 @@ do   ------ MAZE generation
     end  
     
     visit(1 + irnd(maze_size * maze_size)) 
-    time_since_launch = 0
-    time_between_m_g = 3
   end
 
   function shuffle(tab)
