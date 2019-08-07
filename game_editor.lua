@@ -114,6 +114,11 @@ do ---- Main screen
   function __draw()
     cls()
     
+    if message and (t() - message_t) < 4 then
+      local y = min(1.5 - abs(t() - message_t - 2), 0) * 32
+      print(message, (screen_w() - str_px_width(message))/2, y, 28)
+    end
+    
     draw_glyphgrid()
     draw_palette()
     
@@ -212,20 +217,6 @@ do ---- Main screen
     
     rect(x-2, y-2, x + 16*17+1, y+16*17+1, 29)
     
-    if glyph_selected then
-      local xx = x + (glyph_selected % 16)*17
-      local yy = y + flr(glyph_selected / 16)*17
-      
-      rect(xx-2, yy-2, xx+17, yy+17, 29)
-      
-      local xx, yy = x + 15*17, y + 16*17 + 5
-      spr(glyph_selected, xx, yy)
-      rect(xx-2, yy-2, xx+17, yy+17, 29)
-      
-      local str = "0x"..hex[flr(glyph_selected/16)]..hex[glyph_selected%16]
-      print(str, xx - str_px_width(str) - 3, yy-1, 29)
-    end
-    
     if glyph_hovered then
       local xx = x + (glyph_hovered % 16)*17
       local yy = y + flr(glyph_hovered / 16)*17
@@ -239,7 +230,21 @@ do ---- Main screen
       local str = "0x"..hex[flr(glyph_hovered/16)]..hex[glyph_hovered%16]
       print(str, xx + 19, yy-1, 29)
     end
-    
+        
+    if glyph_selected then
+      local xx = x + (glyph_selected % 16)*17
+      local yy = y + flr(glyph_selected / 16)*17
+      
+      rect(xx-2, yy-2, xx+17, yy+17, 29)
+      
+      local xx, yy = x + 15*17, y + 16*17 + 5
+      spr(glyph_selected, xx, yy)
+      rect(xx-2, yy-2, xx+17, yy+17, 29)
+      
+      local str = "0x"..hex[flr(glyph_selected/16)]..hex[glyph_selected%16]
+      print(str, xx - str_px_width(str) - 3, yy-1, 29)
+    end
+
     pal(1, 1)
     pal(2, 2)
   end
@@ -275,7 +280,7 @@ do ---- Main screen
       local w,h = sugar.gfx.screen_size()
       
       gly_x = w/2 - 128
-      gly_y = 8
+      gly_y = 8 + 16
       
       pal_x = w/2 - 48
       pal_y = h - 112
@@ -287,10 +292,10 @@ do ---- Main screen
       local w,h = sugar.gfx.screen_size()
       
       gly_x = 8
-      gly_y = h/2 - 144
+      gly_y = h/2 - 144 + 6
       
       pal_x = w - 100
-      pal_y = h/2 - 58
+      pal_y = h/2 - 58 + 6
     end
   end
 
