@@ -5,4 +5,5 @@ owner: trasevol-dog
 primaryColor: 000000
 coverImage: game_editor_preview.png
 dimensions: full
+draft: true
 description: Make some games!
