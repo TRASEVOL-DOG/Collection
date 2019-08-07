@@ -2,9 +2,9 @@
 
 require("framework/framework")
 
-_title = "Maze out"
+_title = "Candy Hunt"
 
-_description = "It's summer, and people are really thirsty."
+_description = "Looks like somebody is dropping candies in that maze, quick get them !"
 
 _palette = { [0] = 0, 11, 7, 29, 20, 4, 21, 17, 26, 19}
 
@@ -17,6 +17,7 @@ _controls = {
 _score = 0
 
 maze = {}
+candies = {}
 
 function _init(difficulty)
 
@@ -31,9 +32,9 @@ function _init(difficulty)
   difficulty = 100
   
   time_left = 45 - 38 * difficulty/100
-  p_per_g = 10 + 90 * difficulty/100
+  p_per_g = (10 + 90 * difficulty/100) / 2
   
-  maze_size = flr(12 + 7 * difficulty/100)
+  maze_size = flr(9 + 6 * difficulty/100)
   
   s = 8
   p = 10
@@ -42,7 +43,9 @@ function _init(difficulty)
   maze_x = GW / 2 - p * maze_size / 2
   maze_y = GH / 2 - p * maze_size / 2
   
-  goal  = 1 + irnd(maze_size * maze_size)
+  for i = 1, 4 do
+    add(candies, new_candy())
+  end
   
   time_since_launch = 0
   time_between_m_g = 5 - 3 * difficulty/100
@@ -51,7 +54,16 @@ function _init(difficulty)
   init_player()
 
 
+end
 
+function new_candy()
+  local done = false
+  while not done do
+    local i = random_index()
+    if not is_in(i, candies) then
+      return i
+    end
+  end
 end
 
 function _update()
@@ -59,7 +71,9 @@ function _update()
   time_since_launch = time_since_launch + dt()
   if time_since_launch > time_between_m_g then
     time_since_launch = 0
-    init_maze()
+    local i = flr((player.x - maze_x) / p) + 1
+    local j = flr((player.y - maze_y) / p) + 1
+    init_maze(index(i,j))
     screenshake(15)
   end
   
@@ -81,12 +95,16 @@ function rf(x, y, w, h, col)
   rectfill( x, y, x + w, y + h, col)
 end
 
+function random_index()
+  return 1 + irnd(maze_size * maze_size)
+end
 
 player = {}
 
 function init_player()
-  local sx = ((goal-1) % maze_size) * p
-  local sy = flr((goal-1) / maze_size) * p
+  local i = random_index()
+  local sx = ((i-1) % maze_size) * p
+  local sy = flr((i-1) / maze_size) * p
   player.x  = maze_x + sx + 4 + 1
   player.y  = maze_y + sy + 4 + 1
   player.vx = 0
@@ -117,41 +135,33 @@ function update_player()
     player.x = player.x - p  
     screenshake(2)
   end
-  
-  local fx = 1 + ((goal-1) % maze_size)
-  local fy = 1 + flr((goal-1) / maze_size)
-  
+    
   local i = flr((player.x - maze_x) / p) + 1
   local j = flr((player.y - maze_y) / p) + 1
-  
-  local id_f = index(fx, fy)
   local id_p = index(i, j)
   
-  if (id_f == id_p) then
-    score()
+  for i, c in pairs(candies) do 
+    local fx = 1 + ((c-1) % maze_size)
+    local fy = 1 + flr((c-1) / maze_size)
+    local id_f = index(fx, fy)
+    
+    if (id_f == id_p) then
+      score(i)
+    end
   end
   
 end
 
-function score()
+function score(i)
   screenshake(5)
-  goal = 1 + irnd(maze_size * maze_size)
+  candies[i] = new_candy()
   _score = _score + p_per_g
   
 end
 
 function draw_player()
 
-  local fx = 1 + ((goal-1) % maze_size)
-  local fy = 1 + flr((goal-1) / maze_size)
-  
-  local i = flr((player.x - maze_x) / p) + 1
-  local j = flr((player.y - maze_y) / p) + 1
-  
-  local id_f = index(fx, fy)
-  local id_p = index(i, j)
-  
-  local colr = (id_f == id_p) and 4 or 5
+  local colr = 5
   color(_palette[colr])
   circfill(player.x, player.y, 2)
 end
@@ -159,29 +169,53 @@ end
 function draw_maze()
   
   local s = 8
+  local m = 1
   local p = 10
-  local w = 1
+  local w = s + m*2
   
-  rf(maze_x, maze_y, p * maze_size, p * maze_size, _palette[1])
+  -- rf(maze_x, maze_y, p * maze_size, p * maze_size, _palette[1])
+  
+  -- color(_palette[3])
+  -- for i, goal in pairs(candies) do
+    -- local fx = ((goal-1) % maze_size) * p
+    -- local fy = flr((goal-1) / maze_size) * p
+    -- circfill(maze_x + fx + p/2 , maze_y + fy + p/2 + 1, 3)
+  -- end
+  -- for j = 1, maze_size do 
+    -- for i = 1, maze_size do
+      -- local x = (i-1) * p 
+      -- local y = (j-1) * p
+      -- local c = maze[index(i,j)]
+      -- if c.walls[1] then rf(maze_x + x,     maze_y + y,      p,- w, _palette[2]) end
+      -- if c.walls[2] then rf(maze_x + x + p, maze_y + y,      w,  p, _palette[2]) end
+      -- if c.walls[3] then rf(maze_x + x,     maze_y + y + p,  p,  w, _palette[2]) end
+      -- if c.walls[4] then rf(maze_x + x,     maze_y + y,     -w,  p, _palette[2]) end
+    -- end  
+  -- end
+  
+  rf(maze_x, maze_y, w * maze_size, w * maze_size, _palette[1])
   
   color(_palette[3])
+  for i, goal in pairs(candies) do
+    local fx = ((goal-1) % maze_size) * w
+    local fy = flr((goal-1) / maze_size) * w
+    circfill(maze_x + fx + w/2 , maze_y + fy + w/2 + 1, 3)
+  end
   
-  local fx = ((goal-1) % maze_size) * p
-  local fy = flr((goal-1) / maze_size) * p
-  circfill(maze_x + fx + p/2, maze_y + fy + p/2, p/3)
-
   for j = 1, maze_size do 
     for i = 1, maze_size do
-      local x = (i-1) * p 
-      local y = (j-1) * p
+      local x = maze_x + (i-1) * w 
+      local y = maze_y + (j-1) * w
       local c = maze[index(i,j)]
-      if c.walls[1] then rf(maze_x + x,     maze_y + y,      p,- w, _palette[2]) end
-      if c.walls[2] then rf(maze_x + x + p, maze_y + y,      w,  p, _palette[2]) end
-      if c.walls[3] then rf(maze_x + x,     maze_y + y + p,  p,  w, _palette[2]) end
-      if c.walls[4] then rf(maze_x + x,     maze_y + y,     -w,  p, _palette[2]) end
-      
+      if c.walls[1] then rf(x,         y,         w, 1, _palette[2]) end
+      if c.walls[2] then rf(x + w - 1, y,         1, w, _palette[2]) end
+      if c.walls[3] then rf(x,         y + w - 1, w, 1, _palette[2]) end
+      if c.walls[4] then rf(x,         y,         1, w, _palette[2]) end
     end  
   end
+  
+  
+  
 end
 
 
@@ -192,8 +226,8 @@ do   ------ MAZE generation
     return i + (j-1) * maze_size   
   end
 
-  function init_maze()
-
+  function init_maze(i)
+    
     maze = {}
     
     for j = 1, maze_size do    
@@ -280,7 +314,12 @@ do   ------ MAZE generation
   end
 end
 
-
+function is_in(value, tab)  
+  if not tab then return end
+  for i, v in pairs(tab) do
+    if value == v then return i end
+  end
+end
 
 
 
