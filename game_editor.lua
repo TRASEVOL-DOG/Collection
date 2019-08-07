@@ -22,6 +22,7 @@ love.draw = nil
 
 -- local function definitions
 
+local __load, __update, __draw, update_palette, draw_palette, update_glyphgrid, draw_glyphgrid, draw_cursor, on_resize
 local load_game, save_game, delete_game, gen_game_id
 local test_game, stop_testing, compile_foo, define_user_env
 local find_foo, new_foo, update_def, delete_foo
@@ -90,14 +91,15 @@ do ---- Main screen
   local min_side = 256
   local pal_x, pal_y = 0,0
   local gly_x, gly_y = 0,0
-  function love.load()
+  function __load()
     local w,h = window_size()
     local scale = ceil(min(w, h) / min_side)
     screen_resizeable(true, 8, on_resize)
   end
+  love.load = __load
 
 --  local first_update
-  function love.update()
+  function __update()
 --    if not first_update then
       on_resize()
 --      first_update = true
@@ -107,8 +109,9 @@ do ---- Main screen
     update_glyphgrid()
     castle.uiupdate = ui_panel
   end
+  love.update = __update
 
-  function love.draw()
+  function __draw()
     cls()
     
     draw_glyphgrid()
@@ -116,6 +119,7 @@ do ---- Main screen
     
     draw_cursor()
   end
+  love.draw = __draw
 
   local pal_color_a, pal_color_b = 29, 27
   function update_palette()
@@ -283,10 +287,10 @@ do ---- Main screen
       local w,h = sugar.gfx.screen_size()
       
       gly_x = 8
-      gly_y = h/2 - 140
+      gly_y = h/2 - 144
       
       pal_x = w - 100
-      pal_y = h/2 - 60
+      pal_y = h/2 - 58
     end
   end
 
@@ -452,6 +456,9 @@ do ---- Game compiling + testing
 
     love.update = new_love.update
     love.draw = new_love.draw
+    
+    screen_resizeable(false)
+    screen_resize(256, 208)
 
     new_love.load("yes")
     
@@ -463,8 +470,11 @@ do ---- Game compiling + testing
       return
     end
     
-    love.update = nil
-    love.draw = nil
+    screen_resizeable(true, 8, on_resize)
+    on_resize()
+    
+    love.update = __update
+    love.draw = __draw
     
     castle.uiupdate = ui_panel
     
