@@ -33,6 +33,7 @@ local point_in_rect
 -- local variables
 
 local game_info, functions, function_list, function_names, cur_function
+local testing, compile_error, runtime_error
 local message, message_t
 local ui_panel
 
@@ -91,6 +92,7 @@ do ---- Main screen
   local min_side = 256
   local pal_x, pal_y = 0,0
   local gly_x, gly_y = 0,0
+  local inf_x, inf_y = 0,0
   function __load()
     local w,h = window_size()
     local scale = ceil(min(w, h) / min_side)
@@ -121,6 +123,8 @@ do ---- Main screen
     
     draw_glyphgrid()
     draw_palette()
+    
+    draw_info()
     
     draw_cursor()
   end
@@ -221,11 +225,11 @@ do ---- Main screen
       local xx = x + (glyph_hovered % 16)*17
       local yy = y + flr(glyph_hovered / 16)*17
       
-      rect(xx-2, yy-2, xx+17, yy+17, 27)
+      rect(xx-2, yy-2, xx+17, yy+17, 28)
       
       local xx, yy = x, y + 16*17 + 5
       spr(glyph_hovered, xx, yy)
-      rect(xx-2, yy-2, xx+17, yy+17, 27)
+      rect(xx-2, yy-2, xx+17, yy+17, 28)
       
       local str = "0x"..hex[flr(glyph_hovered/16)]..hex[glyph_hovered%16]
       print(str, xx + 19, yy-1, 29)
@@ -249,6 +253,48 @@ do ---- Main screen
     pal(2, 2)
   end
 
+  function draw_info()
+    -- player glyph and cursor render
+    
+    local x,y = inf_x, inf_y
+    
+    local str = "Player glyph: "
+    print(str, x, y)
+    x = x + str_px_width(str)
+    pal(1,29)
+    pal(2,27)
+    spr(game_info._player_glyph, x, y)
+    
+    if game_info._cursor_info then
+      x = inf_x
+      y = y + 16
+      local str = "Cursor: "
+      print(str, x, y)
+      x = x + str_px_width(str) + 8
+      y = y + 8
+      
+      circ(x, y, 8, 29)
+      
+      local d = game_info._cursor_info
+      
+      if d.outline then
+        pal(1, d.outline)
+        pal(2, d.outline)
+        aspr(d.glyph, x-1, y, d.angle, 1, 1, d.point_x/16, d.point_y/16)
+        aspr(d.glyph, x+1, y, d.angle, 1, 1, d.point_x/16, d.point_y/16)
+        aspr(d.glyph, x, y-1, d.angle, 1, 1, d.point_x/16, d.point_y/16)
+        aspr(d.glyph, x, y+1, d.angle, 1, 1, d.point_x/16, d.point_y/16)
+      end
+      
+      pal(1, d.color_a)
+      pal(2, d.color_b)
+      aspr(d.glyph, x, y, d.angle, 1, 1, d.point_x/16, d.point_y/16)
+    end
+    
+    pal(1,1)
+    pal(2,2)
+  end
+  
   function draw_cursor()
     palt(0, false)
     palt(16, true)
@@ -282,8 +328,11 @@ do ---- Main screen
       gly_x = w/2 - 128
       gly_y = 8 + 16
       
-      pal_x = w/2 - 48
+      pal_x = w - 132 -- w/2 - 48
       pal_y = h - 112
+      
+      inf_x = 40
+      inf_y = h - 112
     else
       if scale_b ~= screen_scale() then
         screen_resizeable(true, scale_b, on_resize)
@@ -295,7 +344,10 @@ do ---- Main screen
       gly_y = h/2 - 144 + 6
       
       pal_x = w - 100
-      pal_y = h/2 - 58 + 6
+      pal_y = h - 112 -- h/2 - 58 + 6
+      
+      inf_x = w - 116
+      inf_y = 24
     end
   end
 
@@ -429,11 +481,6 @@ end
 
 
 do ---- Game compiling + testing
-
-  local testing
-  local compile_error
-  local runtime_error
-
   local user_env
   
   function test_game()
@@ -725,9 +772,8 @@ do ---- UI definitions
 --    --  testing_ui()
 --    end
     
-    ui.markdown("---")
-    
-    testing_ui()
+    ui.markdown("&#160;")
+    ui.box("testing_ui", { borderTop = "3px dotted white", justifyItems = "center", borderRadius = 16, margin = 1, padding = 3 }, testing_ui)
     
   --  ui.markdown("~~~")
   --  ui_code = ui.codeEditor("Ui", ui_code)
@@ -761,7 +807,7 @@ do ---- UI definitions
   function project_panel()
     ui.markdown("Current game:")
     
-    ui.box("current_game_box", { border = "2px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
+    ui.box("current_game_box", { borderLeft = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
       ui.markdown("***"..game_info._title.."***\r\n\r\n*`"..(game_info._id or "Save to generate an ID").."`*\r\n\r\n*"..(game_info._published and "Published" or "Not published").."*")
       if ui.button("[Save game]") then
         save_game()
@@ -776,7 +822,7 @@ do ---- UI definitions
       ui.markdown("*This account has no saved games.*")
     else
       for i,info in ipairs(user_registry) do
-        ui.box("game_box_"..i, { border = "2px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
+        ui.box("game_box_"..i, { borderLeft = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
           ui.markdown("***"..info.title.."***\r\n\r\n*`"..info.id.."`*\r\n\r\n*"..(info.published and "Published" or "Not published").."*")
           
           if ui.button("[Load game]") then
@@ -815,7 +861,7 @@ do ---- UI definitions
     game_info._title = ui.textInput("Title", game_info._title)
     game_info._description = ui.textInput("Description", game_info._description)
     
-    game_info._player_glyph = flr(ui.numberInput("Player glyph", game_info._player_glyph, {min = 0, max = 255}))
+    game_info._player_glyph = flr(ui.slider("Player glyph", game_info._player_glyph, 0, 255, {step = 1}))
 
     ui.section("Controls", controls_edit)
 
@@ -828,19 +874,8 @@ do ---- UI definitions
       i = i + 1
       local ctrl = list[i] or {}
       
-      ui.box("controlsBox"..i, { --[[flexDirection = "row",]] flexDirection = "column-reverse", flexWrap = "wrap", border = "2px dotted grey", borderRadius = 16, margin = 1, padding = 3 }, function()
+      ui.box("controlsBox"..i, { flexDirection = "row", flexWrap = "wrap", border = "2px dotted grey", borderRadius = 16, margin = 1, padding = 3 }, function()
         local inputs = ctrl.inputs or {}
-        
-        local nv = ui.textInput("control"..i, ctrl.description or "", {hideLabel = true, placeholder = "[does what?]"})
-        
-        if nv ~= ctrl.description then
-          for _, inp in pairs(inputs) do
-            game_info._controls[inp] = nv
-          end
-        
-          ctrl.description = nv
-        end
-      
       
         local j = 0
         repeat
@@ -872,9 +907,18 @@ do ---- UI definitions
             end
           end
           
-          --ui.markdown("&#160;")
+          ui.markdown("&#160;")
         until not inputs[j]
         
+        local nv = ui.textInput("control"..i, ctrl.description or "", {hideLabel = true, placeholder = "[does what?]"})
+        
+        if nv ~= ctrl.description then
+          for _, inp in pairs(inputs) do
+            game_info._controls[inp] = nv
+          end
+        
+          ctrl.description = nv
+        end
       end)
     
     until not list[i]
@@ -896,19 +940,20 @@ do ---- UI definitions
         end
         
         local info = game_info._cursor_info
-        info.glyph = flr(ui.numberInput("Glyph", info.glyph, {min = 0, max = 255}))
-        info.color_a = flr(ui.numberInput("Color A", info.color_a, {min = 0, max = 29}))
-        info.color_b = flr(ui.numberInput("Color B", info.color_b, {min = 0, max = 29}))
+        info.glyph = flr(ui.slider("Glyph", info.glyph, 0, 255, {step = 1}))
+        info.color_a = flr(ui.slider("Color A", info.color_a, 0, 29, {step = 1}))
+        info.color_b = flr(ui.slider("Color B", info.color_b, 0, 29, {step = 1}))
 
         if ui.checkbox("Outline", info.outline ~= nil) then
-          info.outline = flr(ui.numberInput("Outline color", info.outline, {min = 0, max = 29}))
+          info.outline = info.outline or 0
+          info.outline = flr(ui.slider("Outline color", info.outline, 0, 29, {step = 1}))
         else
           info.outline = nil
         end
 
-        info.point_x = ui.numberInput("Point X", info.point_x, {min = 0, max = 16})
-        info.point_y = ui.numberInput("Point Y", info.point_y, {min = 0, max = 16})
-        info.angle = ui.numberInput("Angle", info.angle, {min = 0, max = 1, step = 0.05})
+        info.point_x = ui.slider("Point X", info.point_x, 0, 16, {step = 1})
+        info.point_y = ui.slider("Point Y", info.point_y, 0, 16, {step = 1})
+        info.angle = ui.slider("Angle", info.angle, 0, 1, {step = 0.001})
       end)
     else
       game_info._cursor_info = nil
@@ -1026,14 +1071,16 @@ do ---- UI definitions
   -- testing ui
 
   function testing_ui()
-    if ui.button("Test!") then
-      test_game()
+    if testing then
+      if ui.button("Stop") then
+        stop_testing()
+      end
+    else
+      if ui.button("Play") then
+        test_game()
+      end
     end
-    
-    if ui.button("Stop test!") then
-      stop_testing()
-    end
-    
+
     if runtime_error then
       ui.markdown("`Runtime error:`")
       ui.markdown("`"..runtime_error.."`")
