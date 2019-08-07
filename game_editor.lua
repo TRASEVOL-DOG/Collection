@@ -33,6 +33,7 @@ local point_in_rect
 -- local variables
 
 local game_info, functions, function_list, function_names, cur_function
+local user_registry
 local testing, compile_error, runtime_error
 local message, message_t
 local ui_panel
@@ -219,7 +220,7 @@ do ---- Main screen
       end
     end
     
-    rect(x-2, y-2, x + 16*17+1, y+16*17+1, 29)
+    rect(x-2, y-2, x + 16*17, y+16*17, 29)
     
     if glyph_hovered then
       local xx = x + (glyph_hovered % 16)*17
@@ -227,7 +228,7 @@ do ---- Main screen
       
       rect(xx-2, yy-2, xx+17, yy+17, 28)
       
-      local xx, yy = x, y + 16*17 + 5
+      local xx, yy = x, y + 16*17 + 4
       spr(glyph_hovered, xx, yy)
       rect(xx-2, yy-2, xx+17, yy+17, 28)
       
@@ -241,7 +242,7 @@ do ---- Main screen
       
       rect(xx-2, yy-2, xx+17, yy+17, 29)
       
-      local xx, yy = x + 15*17, y + 16*17 + 5
+      local xx, yy = x + 15*17, y + 16*17 + 4
       spr(glyph_selected, xx, yy)
       rect(xx-2, yy-2, xx+17, yy+17, 29)
       
@@ -357,10 +358,11 @@ end
 do ---- Game saving + loading
 
   local user_info = castle.user.isLoggedIn and castle.user.getMe()
-  local user_registry
 
   network.async(function()
+    log("Retrieving user games...", "O")
     user_registry = castle.storage.get("user_registry") or {}
+    log("Done retrieving user games!", "O")
   end)
 
   function load_game(id)
