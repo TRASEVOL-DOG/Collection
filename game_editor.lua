@@ -530,6 +530,8 @@ do ---- Game compiling + testing
       return
     end
     
+    testing = false
+    
     screen_resizeable(true, 8, on_resize)
     on_resize()
     
