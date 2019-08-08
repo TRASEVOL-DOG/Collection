@@ -415,7 +415,8 @@ do ---- Game saving + loading
     local reg_data = {
       title     = game_info._title,
       id        = game_info._id,
-      published = game_info._published
+      published = game_info._published,
+      date      = os.time()
     }
     
     network.async(function()
@@ -456,7 +457,7 @@ do ---- Game saving + loading
 
       for i,d in pairs(user_registry) do
         if d.id == id then
-          user_registry[i] = nil
+          del_at(user_registry, i)
           break
         end
       end
@@ -466,6 +467,7 @@ do ---- Game saving + loading
     
     network.async(castle.storage.setGlobal, nil, "info_"..id, nil)
     network.async(castle.storage.setGlobal, nil, "game_"..id, nil)
+    network.async(castle.storage.set, nil, "game_"..id, nil)
     
     if id == game_info._id then
       game_info._id = nil
@@ -506,8 +508,14 @@ do ---- Game compiling + testing
     end
     
     for k, v in pairs(game_info) do
-      env[k] = v
-      user_env[k] = v
+      if type(v) == "table" then
+        local vc = copy_table(v)
+        env[k] = vc
+        user_env[k] = vc
+      else
+        env[k] = v
+        user_env[k] = v
+      end
     end
     
     testing = true
@@ -754,6 +762,10 @@ do ---- Message / notification
 end
 
 
+--for k,v in pairs(os.date("*t", os.time())) do
+--  log(k.." : "..v)
+--end
+
 do ---- UI definitions
 
 --  local tab, tabs = "Projects", {"Projects", "Game Info", "Code", --[["Play"]]}
@@ -813,6 +825,8 @@ do ---- UI definitions
 
   -- project panel
 
+  local time_units = {"second", "minute", "hour", "day", "month", "year"}
+  local time_keys = {"sec", "min", "hour", "day", "month", "year"}
   local deleting_project = {}
   function project_panel()
     ui.markdown("Current game:")
@@ -832,8 +846,20 @@ do ---- UI definitions
       ui.markdown("*This account has no saved games.*")
     else
       for i,info in ipairs(user_registry) do
+
         ui.box("game_box_"..i, { borderLeft = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
           ui.markdown("***"..info.title.."***\r\n\r\n*`"..info.id.."`*\r\n\r\n*"..(info.published and "Published" or "Not published").."*")
+          
+          local d, str = os.date("*t", os.time() - (info.date or 0))
+          for i = 6, 1, -1 do
+            local diff = d[time_keys[i]]
+            if diff > 0 then
+              str = "*Saved "..diff.." "..time_units[i]..(diff > 1 and "s" or "").." ago.*"
+            end
+          end
+          
+          ui.markdown(str or "*Saved just now.*")
+          
           
           if ui.button("[Load game]") then
             load_game(info.id, true)
