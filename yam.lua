@@ -29,6 +29,22 @@ new_maze = {}
 smoke = {}
 stars = {}
 
+bg_glyphs = {}
+bg_timer = 0
+
+bggcp = {
+  { 8, 1 },
+  { 3, 1 },
+  { 2, 1 },
+  { 5, 2 },
+  { 18, 3 },
+  { 19, 5 },
+  { 6, 5 },
+  { 9, 8 },
+  { 4, 5 },
+}
+
+
 
 function _init(difficulty)
 
@@ -39,11 +55,12 @@ function _init(difficulty)
     beer_pump = 0x60,
   }
   
-  difficulty = difficulty or irnd(100) + 1
-  -- difficulty = 100
+  -- difficulty = difficulty or irnd(100) + 1
+  difficulty = 100
   
-  time_left = 45 - 38 * difficulty/100
-  p_per_g = (10 + 90 * difficulty/100) / 2
+  max_time = 45 - 38 * difficulty/100
+  time_left = max_time
+  p_per_g = (10 + 30 * difficulty/100) / 2
   
   maze_size = flr(9 + 6 * difficulty/100)
   
@@ -52,20 +69,21 @@ function _init(difficulty)
   w = 1
   
   maze_x = GW / 2 - p * maze_size / 2
-  maze_y = GH / 2 - p * maze_size / 2
+  maze_y = GH / 2 - p * maze_size / 2 + 16
   
   for i = 1, 4 do
     add(candies, new_candy())
   end
   
   time_since_launch = 0
-  time_between_m_g = 5 - 3 * difficulty/100
+  time_between_m_g = 6 - 3 * difficulty/100
   
   displayed_maze_maze = copy_table(init_maze())
   new_maze = copy_table(init_maze())
   change_maze(init_maze())
   init_player()
-
+  init_bg_glyphs()
+  
 end
 
 function new_candy()
@@ -73,7 +91,7 @@ function new_candy()
   while not done do
     local i = random_index()
     if not is_in(i, candies) then
-      return {i = i, g = irnd(3)}
+      return {i = i, g = irnd(2)}
     end
   end
 end
@@ -90,7 +108,10 @@ function change_maze(maze)
 end
 
 function _update()
-
+  time_left = time_left - dt()
+  
+  if time_left <= dt() then gameover(_score) end
+  
   time_since_launch = time_since_launch + dt()
   
   if time_since_launch > time_between_m_g then
@@ -127,6 +148,8 @@ function _update()
       changing = false
     end
   end
+  
+  update_bg()
   
   update_player()
   
@@ -185,8 +208,84 @@ function _draw()
   draw_smoke()
 end
 
+function update_bg()
+  update_bg_glyphs()
+end 
+
 function draw_bg()
-  cls(_palette[0])
+  cls(_palette[3])
+  
+  draw_bg_glyphs()
+  
+  printp(0x3330, 0x3130, 0x3230, 0x3330)
+  printp_color(17, 18, 3) 
+  
+  local size = time_left / max_time * GW * 4/5
+  
+  rf( GW/2 - GW * 4.1/5 / 2 , 18, GW * 4.1/5, 12, 0)
+  rf( GW/2 - size / 2, 20, size, 8, _palette[4])
+  
+  for j = - 8, GH + 8 do
+    for i = - 8, GW + 8 do
+      if (i%3 == 0) and (j % 3 == 0) then
+        pset(i, 1 + j, 0)
+      end
+    end
+  end
+  
+  local str = "TIME LEFT "
+  local w = str_px_width(str)
+  pprint(str , GW/2 - w/2 - 1, 0)
+end
+
+function init_bg_glyphs(timer)
+  bg_glyphs = {}
+  bg_timer = timer or 0
+  bggcp = {
+    { 8, 1 },
+    { 3, 1 },
+    { 2, 1 },
+    { 5, 2 },
+    { 18, 3 },
+    { 19, 5 },
+    { 6, 5 },
+    { 9, 8 },
+    { 4, 5 },
+  }
+
+  for i = 1, #bggcp do add( bg_glyphs, {}) end
+end
+
+function new_bg_g()
+  local g = {spr = irnd(4),x = irnd(GW), y = GH + 32, a = rnd(1), r_speed = (irnd(2) - 0.5) * (0.1 + rnd(2.4)) }
+  g.d = 1 + irnd(#bggcp)
+  g.size = 16 + g.d * 2
+  g.vspeed =  16 + ((6 + rnd(5)) * (g.d/ #bggcp))
+  add( bg_glyphs[g.d], g)
+end
+
+function update_bg_glyphs()
+  bg_timer = bg_timer - dt()
+  if bg_timer < 0 then
+    new_bg_g()
+    bg_timer = .65 + rnd(.5)
+  end
+  for i = 1, #bg_glyphs do
+    for j, g in pairs(bg_glyphs[i]) do
+    g.y = g.y - g.vspeed * dt()
+    g.a = g.a + g.r_speed * dt() / 10
+    if g.y < -32 then del_at(bg_glyphs[i], j) end
+    end
+  end
+end
+
+function draw_bg_glyphs()
+  for i = 1, #bg_glyphs do
+    for j, g in pairs(bg_glyphs[i]) do
+      outlined_glyph(0x62 + g.spr,  g.x + 3, g.y + 3, g.size, g.size, g.a, 0, 0, 0)
+      outlined_glyph(0x62 + g.spr,  g.x, g.y, g.size, g.size, g.a, bggcp[g.d][1], bggcp[g.d][2], 0)
+    end    
+  end    
 end
 
 function rf(x, y, w, h, col)
@@ -270,7 +369,7 @@ end
 
 function draw_player()
 
-  local colr = 5
+  local colr = flr(time_left * 8) % 2 == 0 and 5 or 3
   color(_palette[colr])
   circfill(player.x, player.y, 2)
 end
