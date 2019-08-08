@@ -6,7 +6,7 @@ _title = "Candy Hunt"
 
 _description = "Looks like somebody is dropping candies in that maze, quick get them !"
 
-_palette = { [0] = 0, 11, 7, 29, 20, 4, 21, 17, 26, 19}
+_palette = { [0] = 0, 26, 17, 29, 20, 4, 21, 17, 26, 19}
 
 _player_glyph = 0x62
 
