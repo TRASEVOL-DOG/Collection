@@ -232,7 +232,7 @@ do ---- Main screen
       spr(glyph_hovered, xx, yy)
       rect(xx-2, yy-2, xx+17, yy+17, 28)
       
-      local str = "0x"..hex[flr(glyph_hovered/16)]..hex[glyph_hovered%16]
+      local str = "0x"..hex[flr(glyph_hovered/16)]..hex[glyph_hovered%16].." ("..glyph_hovered..")"
       print(str, xx + 19, yy-1, 29)
     end
         
@@ -246,7 +246,7 @@ do ---- Main screen
       spr(glyph_selected, xx, yy)
       rect(xx-2, yy-2, xx+17, yy+17, 29)
       
-      local str = "0x"..hex[flr(glyph_selected/16)]..hex[glyph_selected%16]
+      local str = "("..glyph_selected..") 0x"..hex[flr(glyph_selected/16)]..hex[glyph_selected%16]
       print(str, xx - str_px_width(str) - 3, yy-1, 29)
     end
 
