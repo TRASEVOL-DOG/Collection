@@ -16,6 +16,11 @@ _game_list = {
    player_spr = 0x60,
   },
   
+  {name       = "Candy Hunt",   
+   code_name  = "yam",  
+   player_spr = 0x62,
+  },
+  
   {name       = "Tangle",
    code_name  = "tangle",
    player_spr = 0x50
