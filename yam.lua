@@ -282,7 +282,7 @@ end
 function draw_bg_glyphs()
   for i = 1, #bg_glyphs do
     for j, g in pairs(bg_glyphs[i]) do
-      outlined_glyph(0x62 + g.spr,  g.x + 3, g.y + 3, g.size, g.size, g.a, 0, 0, 0)
+      outlined_glyph(0x62 + g.spr,  g.x + 3, g.y + 3, g.size, g.size, g.a, _palette[2], _palette[2],  _palette[2])
       outlined_glyph(0x62 + g.spr,  g.x, g.y, g.size, g.size, g.a, bggcp[g.d][1], bggcp[g.d][2], 0)
     end    
   end    
