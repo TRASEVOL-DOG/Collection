@@ -8,7 +8,7 @@ _description = "Looks like somebody is dropping candies in that maze, quick get 
 
 _palette = { [0] = 0, 11, 7, 29, 20, 4, 21, 17, 26, 19}
 
-_player_glyph =  0
+_player_glyph = 0x62
 
 _controls = {
   [ "left" ] = "Move",
@@ -55,12 +55,12 @@ function _init(difficulty)
     beer_pump = 0x60,
   }
   
-  -- difficulty = difficulty or irnd(100) + 1
-  difficulty = 100
+  difficulty = difficulty or irnd(100) + 1
+  -- difficulty = 0
   
-  max_time = 45 - 38 * difficulty/100
+  max_time = 30 - 13 * difficulty/100
   time_left = max_time
-  p_per_g = (10 + 30 * difficulty/100) / 2
+  p_per_g = (10 + 25 * difficulty/100)
   
   maze_size = flr(9 + 6 * difficulty/100)
   
