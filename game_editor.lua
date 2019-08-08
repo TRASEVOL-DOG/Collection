@@ -365,9 +365,14 @@ do ---- Game saving + loading
     log("Done retrieving user games!", "O")
   end)
 
-  function load_game(id)
+  function load_game(id, from_user)
     network.async(function()
-      data = castle.storage.getGlobal("game_"..id)
+      local data = from_user and castle.storage.get("game_"..id) or castle.storage.getGlobal("game_"..id)
+      
+      if not data then
+        r_log("Loading game "..id.." failed.")
+        return
+      end
       
       game_info = data.game_info
       functions = data.functions
@@ -384,7 +389,7 @@ do ---- Game saving + loading
       
       cur_function = functions[1]
       
-      log("Loaded "..game_info._title, "X")
+      log("Loaded "..game_info._title, "O")
       new_message("Loaded "..game_info._title)
     end)
   end
@@ -439,6 +444,7 @@ do ---- Game saving + loading
     
     network.async(castle.storage.setGlobal, nil, "info_"..game_info._id, info)
     network.async(castle.storage.setGlobal, nil, "game_"..game_info._id, data)
+    network.async(castle.storage.set, nil, "game_"..game_info._id, data)
     
     log("Saved the current game.", "O")
     new_message("Saved "..game_info._title)
@@ -828,7 +834,7 @@ do ---- UI definitions
           ui.markdown("***"..info.title.."***\r\n\r\n*`"..info.id.."`*\r\n\r\n*"..(info.published and "Published" or "Not published").."*")
           
           if ui.button("[Load game]") then
-            load_game(info.id)
+            load_game(info.id, true)
           end
           
           if deleting_project[info.id] then
