@@ -1049,6 +1049,7 @@ do ---- UI definitions
         ui.box("delete_function_comfirm"..cur_function.name, { flexDirection = "row"}, function()
           if ui.button("Yes", { kind = "danger" }) then
             delete_foo(cur_function)
+            cur_function = functions[1]
             deleting_function = nil
           end
         
@@ -1074,11 +1075,11 @@ do ---- UI definitions
 
   function testing_ui()
     if testing then
-      if ui.button("Stop") then
+      if ui.button("[Stop]") then
         stop_testing()
       end
     else
-      if ui.button("Play") then
+      if ui.button("[Play]") then
         test_game()
       end
     end
