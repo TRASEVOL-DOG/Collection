@@ -1049,12 +1049,14 @@ do ---- UI definitions
         i = i + 1
         local nv = ui.textInput( "argument"..i, args[i] or "", {hideLabel = true})
         if nv == "" and args[i] then
-          del(args, i)
+          del_at(args, i)
           update_def(cur_function)
           i = i - 1
+          log("removing arg")
         elseif nv ~= "" and nv ~= args[i] then
           args[i] = nv
           update_def(cur_function)
+          log("new arg")
         end
         ui.markdown("&#160;")
       until not args[i]
