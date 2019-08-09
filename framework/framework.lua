@@ -420,15 +420,17 @@ do -- gameover
       str = "YOU WIN!"
       printp_color(14, 13, 6)
     else
-      str = "GAME OVER"
+      --str = "GAME OVER"
+      str = "END OF THE GAME!"
       printp_color(12, 4, 5)
+      printp_color(26, 17, 18)
     end
     
     local x = (screen_w() - str_px_width(str)) / 2
     
     for i = 1, #str do
       local ch = str:sub(i,i)
-      pprint(ch, x, y + 3*cos(i/9 - 2*t()))
+      pprint(ch, x, y + 4.5*cos(i/14 - 0.9*t()))
       
       x = x + str_px_width(ch)
     end
