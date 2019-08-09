@@ -356,7 +356,7 @@ end
 
 do ---- Game saving + loading
 
-  local user_info = castle.user.isLoggedIn and castle.user.getMe()
+  local user_info = castle.user.getMe()
 
   network.async(function()
     log("Retrieving user games...", "O")
@@ -395,6 +395,14 @@ do ---- Game saving + loading
 
   function save_game()
     local data = {}
+    
+    if not user_info then
+      user_info = castle.user.getMe()
+      
+      if not user_info then
+        error("Could not retrieve user information. Please make sure you are logged-in to Castle.")
+      end
+    end
     
     local first_time = (game_info._id == nil)
     if first_time then
