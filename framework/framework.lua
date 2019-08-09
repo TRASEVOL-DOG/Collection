@@ -82,6 +82,9 @@ local global_game_count
 local difficulty
 local BATTERY_COST = 10
 
+local display_battery
+local display_difficulty
+
 do -- love overloads (load, update, draw)
 
   function love.load(from_editor)
@@ -106,6 +109,8 @@ do -- love overloads (load, update, draw)
     
     if params then 
       battery_level = params.battery_level
+      display_battery = battery_level
+      
       global_score = params.global_score
       global_game_count = params.global_game_count + 1
       difficulty = params.global_score 
@@ -113,11 +118,16 @@ do -- love overloads (load, update, draw)
       add_battery(-BATTERY_COST)
     else
       battery_level = 100
+      display_battery = 100
+      
       global_score = 0
       global_game_count = 1
       difficulty = 10
+      
+      add_battery(-BATTERY_COST)
     end
     
+    display_difficulty = max(global_game_count - 2, 0) * 10
     difficulty = (global_game_count - 1) * 10
     
     -- screen shake initialization
@@ -672,6 +682,9 @@ do -- topbar
     if battery_t > 0 then
       battery_t = battery_t - dt()
     end
+    
+    display_battery = lerp(display_battery, battery_level + 0.5, 5 * dt())
+    display_difficulty = lerp(display_difficulty, difficulty, 5 * dt())
   end
   
   function draw_topbar()
@@ -679,6 +692,7 @@ do -- topbar
     --rectfill(0, 0, GAME_WIDTH-1, TOPBAR_HEIGHT-1, 16)
     
     spritesheet("topbar")
+    
     palt(0, false)
     spr(0, 0, 0, 16, 1)
     palt(0, true)
@@ -686,7 +700,11 @@ do -- topbar
     print(_title, 2, 0, 19)
     print(_title, 2, -1, 29)
     
-    draw_battery(216, 0)
+    draw_difficulty(217, 0)
+    
+    draw_battery(216 - 48, 0)
+
+    spr(0, 0, 0, 16, 1)
     
     local mx, my = btnv("cur_x"), btnv("cur_y")
     if mx >= 256 - 15 and mx < 256 and my >= -16 and my < -1 then
@@ -713,7 +731,7 @@ do -- topbar
   }
     
   function draw_battery(x, y)
-    local v = mid(battery_level / 100, 0, 1)
+    local v = mid(display_battery / 100, 0, 1)
     
     pal(29, 19)
     spr(16, x, y+1, 2, 1)
@@ -765,19 +783,96 @@ do -- topbar
     
     spr(16, x, y, 2, 1)
     
-    local str = flr(battery_level)..""
+    local str = flr(display_battery)..""
     
-    if battery_level < 20 then
-      if battery_level > 5 or t%1.5 > 0.5 then
-        print(str, 207 - str_px_width(str), 0, 19)
-        print(str, 207 - str_px_width(str), -1, 12)
+    if display_battery < 20 then
+      if display_battery > 5 or t%1.5 > 0.5 then
+        print(str, x - 9 - str_px_width(str), 0, 19)
+        print(str, x - 9 - str_px_width(str), -1, 12)
       end
     else
-      print(str, 207 - str_px_width(str), 0, 19)
-      print(str, 207 - str_px_width(str), -1, 29)
+      print(str, x - 9 - str_px_width(str), 0, 19)
+      print(str, x - 9 - str_px_width(str), -1, 29)
     end
   end
 
+  
+  local diff_ramps = {
+    { 1, 8,  9,  10, 15 },
+    { 1, 3,  18, 17, 26 },
+    { 1, 3,  19, 20, 22 },
+    { 1, 2,  5,  4,  12 },
+    { 2, 5,  4,  12, 13 },
+    { 2, 5,  6,  13, 14 },
+    
+    { 1, 3,  19, 27, 29 }
+  }
+  
+  local drk = { [0] = 0 }
+  for _,ramp in pairs(diff_ramps) do
+    for i,c in pairs(ramp) do
+      drk[c] = ramp[i-1] or 0
+    end
+  end
+  
+  local diff = {"easy", "normal", "hard", "master", "insane", "????"}
+  
+  function draw_difficulty(x, y)
+    local d = display_difficulty / 150 * 6
+    local v = flr(d)+1
+    local r = d % 1
+    
+    --local str = diff[d]
+    
+    clip(x - 24, y, 48, 16)
+    
+    local dx = flr(d * 64)
+    
+    for i = 1,5 do
+      local str = diff[i]
+      local xx = x + (i-1) * 64 - dx - str_px_width(str)/2
+      local ramp = diff_ramps[i]
+      
+      for j = 1, 5 do
+        print(str, xx, y-3 + 5 - j, ramp[j])
+      end
+      
+      
+      local str = '-'
+      local xx = x + (i-0.5) * 64 - dx - str_px_width(str)/2
+      local ramp = diff_ramps[7]
+      
+      for j = 1, 5 do
+        print(str, xx, y-3 + 5 - j, ramp[j])
+      end
+    end
+    
+    local str = diff[6]
+    local xx = x + max((6-1) * 64 - dx, 0) - str_px_width(str)/2
+    local ramp = diff_ramps[6]
+    for j = 1, 5 do
+      print(str, xx, y-3 + 5 - j, ramp[j])
+    end
+    
+    scan_surface()
+    target()
+    local xa = x - 23
+    local xb = x + 23
+    for yy = 0,14 do
+      pset(xa, yy, drk[drk[pget(xa, yy)]])
+      pset(xa+1, yy, drk[pget(xa, yy)])
+      
+      pset(xb, yy, drk[drk[pget(xb, yy)]])
+      pset(xb-1, yy, drk[pget(xb, yy)])
+    end
+    
+    clip()
+    
+    pal(15, 0)
+    spr(32, 209, y)
+    pal(15, 15)
+  end
+  
   
   -- overloading sugar functions
   function camera(x, y)
