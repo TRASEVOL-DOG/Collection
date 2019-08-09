@@ -376,9 +376,13 @@ do ---- Game saving + loading
       game_info = data.game_info
       functions = data.functions
       
-      function_list = {}
-      for _,f in ipairs(functions) do
-        add(function_list, (f.ind or "")..f.def)
+      if data.function_list then
+        function_list = data.function_list
+      else
+        function_list = {}
+        for _,f in ipairs(functions) do
+          add(function_list, (f.ind or "")..f.def)
+        end
       end
       
       function_names = {}
@@ -411,6 +415,7 @@ do ---- Game saving + loading
     
     data.game_info = game_info
     data.functions = functions
+    data.function_list = function_list
     
     local info = {
       title     = game_info._title,
