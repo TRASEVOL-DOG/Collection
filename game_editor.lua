@@ -1047,7 +1047,12 @@ do ---- UI definitions
       local args, i = cur_function.args, 0
       repeat
         i = i + 1
-        local nv = ui.textInput( "argument"..i, args[i] or "", {hideLabel = true})
+        local nv
+        
+        ui.box("argbox"..i, {width = 0.45, padding = 1}, function()
+          nv = ui.textInput( "argument"..i, args[i] or "", {hideLabel = true})
+        end)
+        
         if nv == "" and args[i] then
           del_at(args, i)
           update_def(cur_function)
@@ -1056,7 +1061,6 @@ do ---- UI definitions
           args[i] = nv
           update_def(cur_function)
         end
-        ui.markdown("&#160;")
       until not args[i]
     end)
     
