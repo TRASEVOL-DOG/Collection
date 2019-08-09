@@ -74,7 +74,6 @@ do ---- Game data + function data
   }
 
   function_list = {
-    "[+] new function",
     "_init(difficulty)",
     "_update()",
     "_draw()"
@@ -377,7 +376,7 @@ do ---- Game saving + loading
       game_info = data.game_info
       functions = data.functions
       
-      function_list = { "[+] new function" }
+      function_list = {}
       for _,f in ipairs(functions) do
         add(function_list, f.def)
       end
@@ -1004,7 +1003,7 @@ do ---- UI definitions
   local function_name = "_init"
   local name_issue
   function function_editor()
-  local chosen = ui.dropdown("Function", cur_function.def, function_list)
+    local chosen = function_picker()-- ui.dropdown("Function", cur_function.def, function_list)
     if chosen ~= cur_function.def then
       if chosen == "[+] new function" then
         cur_function = new_foo()
@@ -1102,8 +1101,185 @@ do ---- UI definitions
     if ui.button("Open Documentation") then
       love.system.openURL("https://github.com/TRASEVOL-DOG/Collection/blob/master/game_editor.md#game-editor-api-documentation")
     end
+    
+    ui.section("Complete API", doc_browser)
+  end
+  
+  
+  local indent = "|    "
+  function function_picker()
+    local chosen = ui.radioButtonGroup("Functions", (cur_function.ind or "")..cur_function.def, function_list)
+    
+    ui.box("function_mover", {flexDirection = "row", justifyContent = "space-between"}, function()
+      local up, down, left, right
+      
+      ui.box("foo_up",    { width = 0.24 }, function() up = ui.button("▲") end)
+      ui.box("foo_down",  { width = 0.24 }, function() down = ui.button("▼") end)
+      ui.box("foo_left",  { width = 0.24 }, function() left = ui.button("◀") end)
+      ui.box("foo_right", { width = 0.24 }, function() right = ui.button("▶") end)
+
+      if up or down or left or right then
+        local i
+        local ref = (cur_function.ind or "")..cur_function.def
+        for j,v in ipairs(function_list) do
+          if ref == v then
+            i = j
+            break
+          end
+        end
+        
+        if up and i > 1 then
+          function_list[i-1], function_list[i] = function_list[i], function_list[i-1]
+        elseif down and i < #function_list then
+          function_list[i+1], function_list[i] = function_list[i], function_list[i+1]
+        end
+        
+        if right then
+          chosen = indent..chosen
+          function_list[i] = chosen
+          cur_function.ind = (cur_function.ind or "")..indent
+        elseif left and chosen:sub(1,#indent) == indent then
+          chosen = chosen:sub(#indent+1, #chosen)
+          function_list[i] = chosen
+          cur_function.ind = cur_function.ind:sub(#indent+1, #cur_function.ind)
+        end
+      end
+      
+    end)
+    
+    if ui.button("[+] new function") then
+      return "[+] new function"
+    end
+    
+    return chosen:gsub(indent, "")
   end
 
+  
+  do -- doc browser
+    local foo_categories = {
+      "Packages",
+      "Debug",
+      "Drawing",
+      "Glyphs",
+      "Text rendering",
+      "Input",
+      "Maths",
+      "Time",
+      "Utility",
+      "Misc",
+      "Gameplay"
+    }
+  
+    local foo_names = {
+      string,
+      table,
+      bit,
+      network,
+    
+      log,
+      w_log,
+      r_log,
+      assert,
+      error,
+      write_clipboard,
+      read_clipboard,
+      
+      camera,
+      camera_move,
+      clear,
+      clip,
+      cls,
+      color,
+      get_camera,
+      get_clip,
+      screen_size,
+      screen_w,
+      screen_h,
+      pal,
+      rectfill,
+      rect,
+      circfill,
+      circ,
+      trifill,
+      tri,
+      line,
+      pset,
+      
+      glyph,
+      outlined_glyph,
+      
+      str_px_width,
+      print,
+      printp,
+      printp_color,
+      pprint,
+      
+      btn,
+      btnp,
+      btnr,
+      btnv,
+      
+      cos,
+      sin,
+      atan2,
+      angle_diff,
+      dist,
+      sqrdist,
+      lerp,
+      sqr,
+      cub,
+      pow,
+      sqrt,
+      flr,
+      round,
+      ceil,
+      abs,
+      sgn,
+      min,
+      max,
+      mid,
+      srand,
+      raw_rnd,
+      rnd,
+      irnd,
+      pick,
+      
+      time,
+      t,
+      delta_time,
+      dt,
+      freeze,
+      sys_ltime,
+      sys_gtime,
+      
+      add,
+      del,
+      del_at,
+      copy_table,
+      merge_tables,
+      sort,
+      all,
+      pairs,
+      ipairs,
+      unpack,
+      select,
+      
+      type,
+      tostring,
+      tonumber,
+      getmetatable,
+      setmetatable,
+      
+      gameover,
+      screenshake,
+      screenshot,
+      
+    }
+  
+    function doc_browser()
+  
+    end
+  end
 
   -- testing ui
 
