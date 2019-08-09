@@ -378,7 +378,7 @@ do ---- Game saving + loading
       
       function_list = {}
       for _,f in ipairs(functions) do
-        add(function_list, f.ind..f.def)
+        add(function_list, (f.ind or "")..f.def)
       end
       
       function_names = {}
