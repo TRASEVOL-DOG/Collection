@@ -1052,11 +1052,9 @@ do ---- UI definitions
           del_at(args, i)
           update_def(cur_function)
           i = i - 1
-          log("removing arg")
         elseif nv ~= "" and nv ~= args[i] then
           args[i] = nv
           update_def(cur_function)
-          log("new arg")
         end
         ui.markdown("&#160;")
       until not args[i]
