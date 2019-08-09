@@ -84,6 +84,7 @@ local BATTERY_COST = 10
 
 local display_battery
 local display_difficulty
+local init_time
 
 do -- love overloads (load, update, draw)
 
@@ -156,6 +157,8 @@ do -- love overloads (load, update, draw)
     if not from_editor then
       set_user_env()
     end
+    
+    init_time = t()
     
     safe_call(_init, difficulty)
   end
@@ -679,12 +682,14 @@ do -- topbar
       pause()
     end
     
-    if battery_t > 0 then
-      battery_t = battery_t - dt()
+    if t() - init_time > 0.5 then
+      if battery_t > 0 then
+        battery_t = battery_t - dt()
+      end
+      
+      display_battery = lerp(display_battery, battery_level + 0.5, 5 * dt())
+      display_difficulty = lerp(display_difficulty, difficulty, 5 * dt())
     end
-    
-    display_battery = lerp(display_battery, battery_level + 0.5, 5 * dt())
-    display_difficulty = lerp(display_difficulty, difficulty, 5 * dt())
   end
   
   function draw_topbar()
