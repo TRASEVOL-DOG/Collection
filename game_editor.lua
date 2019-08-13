@@ -1294,20 +1294,24 @@ do ---- UI definitions
       
       Utility = {
 'all(ar)',
+'ipairs(ar)',
+'pairs(tab)',
 'del(ar, val)',
 'del_at(ar, n)',
 'add(ar, v)',
 'sort(ar)',
 'merge_tables(dst, src)',
 'copy_table(tab, [deep])',
+'unpack(ar)',
+'select(index, ...)',
       },
       
       Misc = {
-        "type",
-        "tostring",
-        "tonumber",
-        "getmetatable",
-        "setmetatable",
+"type(v)",
+"tostring(n)",
+"tonumber(str)",
+"getmetatable(tab)",
+"setmetatable(tab, meta)",
       },
       
       Gameplay = {
@@ -1334,10 +1338,103 @@ In addition to this, here are some quirks resulting from the design of the game 
 - The game's resolution is fixed to 256x192 pixels.
 - You may only use the inputs defined manually in the "Game Info" panel.]],
    
-string = [[]],
-table = [[]],
-bit = [[]],
-network = [[]],
+string = [[### `string`
+- is a standard lua package for manipulating strings.
+- [this webpage](http://lua-users.org/wiki/StringLibraryTutorial) is recommended as reference for this package.
+]],
+
+table = [[### `table`
+- is a standard lua package for manipulating tables.
+- [this webpage](http://lua-users.org/wiki/TableLibraryTutorial) is recommended as reference for this package.
+]],
+
+bit = [[### `bit`
+- is a base package in Love2D and Castle, to manipulate numbers as bitfields.
+- [this webpage](http://bitop.luajit.org/api.html) is recommended as reference for this package.
+]],
+
+network = [[### `network`
+- is a base package in Castle, allowing you to execute code asynchronously.
+- [this webpage](https://www.playcastle.io/documentation/code-loading-reference) is recommended as reference for this package.
+]],
+
+['ipairs(ar)'] = [[### `ipairs(ar)`
+- *is a standard lua function.*
+- iterates over all elements in an ordered array *(with integer keys 1->n)*. To be used in a `for` loop.
+- here's an example:
+```lua
+  a = {"one", "two", "three"}
+  for i, v in ipairs(a) do
+    log(i, v)
+  end
+  
+  -- logs:
+  -- one
+  -- two
+  -- three
+```
+]],
+
+['pairs(tab)'] = [[### `pairs(tab)`
+- *is a standard lua function.*
+- iterates over all elements of a table in an arbitrary order.
+- here's an example:
+```lua
+  a = {"one", "two", [5] = "three", hello = "four"}
+  for k, v in pairs(a) do
+    print(k.." : "..v)
+  end
+  
+  -- logs, in an arbitrary order:
+  -- 1 : one
+  -- 2 : two
+  -- 5 : three
+  -- hello : four
+```
+]],
+
+['unpack(ar)'] = [[### `unpack(ar)`
+- *is a standard lua function.*
+- receives an array and returns as results all elements from the array, starting from index 1.
+- `a, b, c = unpack({ 3, 6, 9 })  -- a = 3 -- b = 6 -- c = 9`
+]],
+
+['select(index, ...)'] = [[### `select(index, ...)`
+- *is a standard lua function.*
+- `index` should be a number.
+- returns the `index`th argument after the `index` argument itself.
+- `v = select(2, "A", "B", "C")  -- v = "B"`
+]],
+
+['type(v)'] = [[### `type(v)`
+- *is a standard lua function.*
+- returns the type of `v` as a string.
+- possible results are: `"number", "string", "boolean", "table", "function", "thread", "userdata" and "nil".
+]],
+
+['tostring(n)'] = [[### `tostring(n)`
+- *is a standard lua function.*
+- returns the number `n` as a string.
+]],
+
+['tonumber(str)'] = [[### `tonumber(str)`
+- *is a standard lua function.*
+- attempts to convert the string `str` to a number.
+- returns that number on success.
+- returns `nil` otherwise.
+]],
+
+['getmetatable(tab)'] = [[### `getmetatable(tab)`
+- *is a standard lua function.*
+- returns the table `tab`'s metatable if it has one, returns `nil` otherwise.
+]],
+
+['setmetatable(tab, meta)'] = [[### `setmetatable(tab, meta)`
+- *is a standard lua function.*
+- sets the table `tab`'s metatable to the metatable `meta`.
+- metatables can be used to define discreet behaviors.
+- [learn more about metatable on the standard lua manual.](https://www.lua.org/pil/13.html)
+]],
 
 ['gameover(score, [stats])'] = [[### `gameover(score, [stats])`
 - Ends the game.
@@ -1668,7 +1765,7 @@ end
       if cat == "Introduction" then
         local ncat = ui.radioButtonGroup("Category", cat, categories, {hideLabel = true})
         if ncat ~= cat then
-          local list = foo_names[cat]
+          local list = foo_names[ncat]
           if list then
             foo = list[1]
           end
@@ -1676,9 +1773,10 @@ end
           cat = ncat
         end
       elseif cat ~= "Introduction" then
+        local ncat
         ui.box("doc_radiobuttons", {flexDirection = "row", justifyContent = "space-between"}, function()
           ui.box("doc_categories", {width = 0.35}, function()
-            cat = ui.radioButtonGroup("Category", cat, categories, {hideLabel = true})
+            ncat = ui.radioButtonGroup("Category", cat, categories, {hideLabel = true})
           end)
           
           ui.box("doc_functions", {width = 0.6}, function()
@@ -1686,14 +1784,23 @@ end
             foo = ui.radioButtonGroup("Function", foo or "", list, {hideLabel = true})
           end)
         end)
+        
+        if ncat ~= cat then
+          local list = foo_names[ncat]
+          if list then
+            foo = list[1]
+          end
+          
+          cat = ncat
+        end
       end
       
       if cat == "Introduction" then
         ui.markdown(doc.introduction)
       else
-        ui.markdown(doc[foo] or "")
+        local str = doc[foo]
+        ui.markdown(str:sub(2, #str) or "")
       end
-      
     end
   end
 
