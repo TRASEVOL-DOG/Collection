@@ -514,7 +514,7 @@ do -- gameover
     if gameover_t%1 < 0.75 then
       local str = "Press E / ENTER / START to continue!"
       
-      printp_color(29, 19, 3)
+      printp_color(29, 27, 19)
       x = (screen_w() - str_px_width(str)) / 2
       y = screen_h() - 16
       pprint(str, x, y)
@@ -593,7 +593,7 @@ do -- gameover
       palt(0, true)
       
       if dy == 0 then
-        printp_color(29, 19, 3)
+        printp_color(29, 27, 19)
         
         pprint(game.name, x + 43 - str_px_width(game.name)/2, y-15)
       else
@@ -704,8 +704,8 @@ do -- topbar
     spr(0, 0, 0, 16, 1)
     palt(0, true)
     
-    print(_title, 2, 0, 19)
-    print(_title, 2, -1, 29)
+    print(_title, 2, -2, 27)
+    print(_title, 2, -3, 29)
     
     draw_difficulty(217, 0)
     
@@ -740,8 +740,8 @@ do -- topbar
   function draw_battery(x, y)
     local v = mid(display_battery / 100, 0, 1)
     
-    pal(29, 19)
-    spr(16, x, y+1, 2, 1)
+    pal(29, 27)
+    spr(16, x, y, 2, 1)
     pal(29, 29)
     
     local rn
@@ -753,8 +753,8 @@ do -- topbar
     end
     local ramp = battery_ramps[rn]
     
-    clip(x+2, y+2, 20, 9)
-    S.camera(-x-2, -y-2)
+    clip(x+2, y+1, 20, 9)
+    S.camera(-x-2, -y-1)
     
     local w0 = v*20
     local w1 = 0.85 * w0 - 1
@@ -788,18 +788,18 @@ do -- topbar
     S.camera()
     clip()
     
-    spr(16, x, y, 2, 1)
+    spr(16, x, y-1, 2, 1)
     
     local str = flr(display_battery)..""
     
     if display_battery < 20 then
       if display_battery > 5 or t%1.5 > 0.5 then
-        print(str, x - 9 - str_px_width(str), 0, 19)
-        print(str, x - 9 - str_px_width(str), -1, 12)
+        print(str, x - 9 - str_px_width(str), -2, 27)
+        print(str, x - 9 - str_px_width(str), -3, 12)
       end
     else
-      print(str, x - 9 - str_px_width(str), 0, 19)
-      print(str, x - 9 - str_px_width(str), -1, 29)
+      print(str, x - 9 - str_px_width(str), -2, 27)
+      print(str, x - 9 - str_px_width(str), -3, 29)
     end
   end
 
@@ -938,7 +938,7 @@ do -- controls screen
     draw_bg_glyphs()
     
     printp(0x0000, 0x0100, 0x0200, 0x0300)
-    printp_color(29, 19, 3)
+    printp_color(29, 27, 19)
     
     local x,y = 0, 8
     local space1, space2 = 18, 28
@@ -1072,7 +1072,7 @@ do -- pause
     transition_b(in_pause_t)
     
     printp(0x3330, 0x3130, 0x3230, 0x3330)
-    printp_color(29, 19, 0)
+    printp_color(29, 27, 0)
     
     local str = "Pause!"
     local x, y = (screen_w() - str_px_width(str))/2, screen_h()/2 - 8
