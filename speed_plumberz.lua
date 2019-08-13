@@ -269,10 +269,16 @@ function _draw()
       local c = g[i + (j-1) * p_width]     
       local x = main_x + (i-1) * w
       local y = main_y + step_y + (j-1) * w 
-      outlined_glyph(g_spr.pieces[c.piece],main_x + (i-1) * w + 8, main_y + step_y + (j-1) * w + 8, 16, 16, c.angle, _palette[0], _palette[0], 0)    
-      if c.piece == 1 or c.piece == 2 then 
+      
+      if c.piece == 1 or c.piece == 2 then
         outlined_glyph(g_spr.pieces[11],x + 8, y + 8, 16, 16, c.angle, _palette[0], _palette[0], 0)
+      elseif c.piece == 7 or c.piece == 10 then
+        outlined_glyph(g_spr.pieces[c.piece],main_x + (i-1) * w + 8, round(main_y + step_y + (j-1) * w + 8), 12, 12, c.angle, _palette[0], _palette[0], 0)
+      else
+        outlined_glyph(g_spr.pieces[c.piece],main_x + (i-1) * w + 8, main_y + step_y + (j-1) * w + 8, 16, 16, c.angle, _palette[0], _palette[0], 0)
       end
+      
+
     end
   end
   
@@ -291,15 +297,19 @@ function _draw()
           screenshake(3)
             if c.piece == 5 then c.piece = 6 elseif c.piece == 6 then c.piece = 5 end
         end      
-      end      
-      
-      glyph(g_spr.pieces[c.piece],x + 8, y + 8, 16, 16,c.piece > 2 and c.angle or 0, c.piece > 6 and color_3 or (c.piece < 5 and color_1 or color_4), color_2)
-      
-      if c.piece == 1 then 
-        glyph(g_spr.pieces[11],x + 8, y + 8, 16, 16, c.angle, color_1, color_2)
-      elseif c.piece == 2 then
-        glyph(g_spr.pieces[11],x + 8, y + 8, 16, 16, c.angle, color_1, color_2)
       end
+      
+      if c.piece == 1 or c.piece == 2 then
+        glyph(g_spr.pieces[11],x + 8, y + 8, 16, 16, c.angle, color_1, color_2)
+        outlined_glyph(g_spr.pieces[c.piece], main_x + (i-1) * w + 8, round(main_y + step_y + (j-1) * w + 8), 10, 10, c.angle, color_2, color_2, color_1)
+      elseif c.piece == 8 or c.piece == 9 then
+        glyph(g_spr.pieces[c.piece],main_x + (i-1) * w + 8, main_y + step_y + (j-1) * w + 8, 16, 16, c.angle, color_3, color_2)
+      elseif c.piece == 7 or c.piece == 10 then
+        glyph(g_spr.pieces[c.piece],main_x + (i-1) * w + 8, round(main_y + step_y + (j-1) * w + 8), 12, 12, c.angle, color_3, color_2)
+      else
+        glyph(g_spr.pieces[c.piece],main_x + (i-1) * w + 8, main_y + step_y + (j-1) * w + 8, 16, 16, c.angle, color_1, color_2)
+      end
+
     end
   end
   
@@ -351,58 +361,41 @@ end
 -- misc  -------------
 
 function draw_bubble(x, y, width, height, rect_size, c1, c2)
-  
-  -- draw first, draw filling_rect until left <= h then draw last
-  local xx = x or 0
-  local yy = y or 0
-  local r_size = rect_size or 8
-  local total_w = width or 16
-  local total_h = height or 16
+
+  local x = x or 0
+  local y = y or 0
+  local rect_size = rect_size or 8
+  local width = width or 16
+  local height = height or 16
   
   local c1 = c1 or _palette[3]
   local c2 = c2 or _palette[5]
   
-  for i = 0, ceil(total_w / r_size) do
-    for j = 0, ceil(total_h / r_size) do
-    
-      local x = xx + i * r_size
-      local y = yy + j * r_size
-      
-      if i == 0 then
-        if j == 0 then
-          -- ul        
-          glyph(g_spr.bubble[1], x, y, r_size, r_size, 0, c1, c2) 
-        elseif j == ceil(total_h / r_size) then
-          -- bl
-          glyph(g_spr.bubble[1], x, y, r_size, r_size, -.25, c1, c2)
-        else
-          -- vertical filling_rect (left border)
-          glyph(g_spr.bubble[2], x, y, r_size, r_size, -.25, c1, c2)
-        end
-      elseif i == ceil(total_w / r_size) then
-        if j == 0 then
-          -- ur
-          glyph(g_spr.bubble[1], x, y, r_size, r_size, .25, c1, c2)
-        elseif j == ceil(total_h / r_size) then
-          -- br
-          glyph(g_spr.bubble[1], x, y, r_size, r_size, .5,  c1, c2)
-        else
-          -- vertical filling_rect (right border)
-          glyph(g_spr.bubble[2], x, y, r_size, r_size, .25, c1, c2)
-        end
-      else
-        if j == 0 then
-          -- horizontal filling_rect (top border)
-            glyph(g_spr.bubble[2], x, y, r_size, r_size, 0, c1, c2)
-        elseif j == ceil(total_h / r_size) then
-          -- horizontal filling_rect (bottom border)
-            glyph(g_spr.bubble[2], x, y, r_size, r_size, .5, c1, c2)
-        else
-          rectfill(x - r_size/2, y - r_size/2, x + r_size/2, y + r_size/2, c1)
-        end
-      end
-    end
-  end
+  local r = rect_size
+  local xa = x + r/2
+  local ya = y + r/2
+  local xb = x + width - r/2
+  local yb = y + height - r/2
+  
+  circfill(xa, ya, r, c2)
+  circfill(xb, ya, r, c2)
+  circfill(xa, yb, r, c2)
+  circfill(xb, yb, r, c2)
+  
+  rectfill(xa, ya - r, xb, ya - r + 3, c2)
+  rectfill(xa, yb + r - 3, xb, yb + r, c2)
+  rectfill(xa - r, ya, xa - r + 3, yb, c2)
+  rectfill(xb + r - 3, ya, xb + r, yb, c2)
+  
+  circfill(xa, ya, r-2, c1)
+  circfill(xb, ya, r-2, c1)
+  circfill(xa, yb, r-2, c1)
+  circfill(xb, yb, r-2, c1)
+  
+  rectfill(xa - r + 2, ya, xb + r - 2, yb, c1)
+  rectfill(xa, ya - r + 2, xb, ya, c1)
+  rectfill(xa, yb, xb, yb + r - 2, c1)
+  
 end
 
 function working_path_to_full_grid( path)
