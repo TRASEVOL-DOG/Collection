@@ -52,7 +52,7 @@ function _init(difficulty)
   g_spr = {
     mouse  = 0x00,
     player = _player_glyph,
-    bubble = 0x30,
+    bubble = 0x06,
     rope   = 0x50,
     target = 0x31,
     fence  = 0x33,
@@ -216,7 +216,7 @@ end
 
 function new_bubble()
   bubble_timer = .5 + rnd(1)
-  add(bubbles, { x = player.x + cos(player.a) * 10, y = player.y + sin(player.a) * 10, s = 16, a = rnd(1), rotation = (irnd(100) % 2 == 0 and 1 or -1) } )
+  add(bubbles, { x = player.x + cos(player.a) * 10, y = player.y + sin(player.a) * 10, s = 4+irnd(2), a = rnd(1), rotation = (irnd(100) % 2 == 0 and 1 or -1) } )
 end
 
 function update_bubbles()
@@ -302,7 +302,7 @@ end
 
 function new_bullet()
   bullet_timer = bullet_cooldown
-  add(bullets, { x = player.x + cos(player.a) * 10, y = player.y + sin(player.a) * 10, s = 32, a = player.a, r = 0, speed = 3 } )
+  add(bullets, { x = player.x + cos(player.a) * 10, y = player.y + sin(player.a) * 10, s = 12, a = player.a, r = 0, speed = 3 } )
 end
 
 function update_bullets()
