@@ -762,8 +762,8 @@ do ---- Function editing
     end
 
     for i, d in pairs(function_list) do
-      if d == old_def then
-        function_list[i] = foo.def
+      if d == (foo.ind or "")..old_def then
+        function_list[i] = (foo.ind or "")..foo.def
       end
     end
   end
