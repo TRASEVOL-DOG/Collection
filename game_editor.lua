@@ -22,6 +22,7 @@ love.draw = nil
 
 -- local function definitions
 
+local reset_data
 local __load, __update, __draw, update_palette, draw_palette, update_glyphgrid, draw_glyphgrid, draw_cursor, on_resize
 local load_game, save_game, delete_game, gen_game_id
 local test_game, stop_testing, compile_foo, define_user_env
@@ -41,49 +42,52 @@ local ui_panel
 
 do ---- Game data + function data
 
-  game_info = {
-    _title         = "<Set a title>",
-    _description   = "<Set a short description>",
-    _player_glyph  = 0x01,
-    _controls      = {},
-    _controls_list = {},
-    _cursor_info   = nil,
-    _id            = nil,
-    _published     = false
-  }
-
-  functions = {
-    {
-      name = "_init",
-      def  = "_init(difficulty)",
-      code = "",
-      args = { "difficulty" }
-    },
-    {
-      name = "_update",
-      def  = "_update()",
-      code = "",
-      args = {}
-    },
-    {
-      name = "_draw",
-      def  = "_draw()",
-      code = "",
-      args = {}
+  function reset_data()
+    game_info = {
+      _title         = "<Set a title>",
+      _description   = "<Set a short description>",
+      _player_glyph  = 0x01,
+      _controls      = {},
+      _controls_list = {},
+      _cursor_info   = nil,
+      _id            = nil,
+      _published     = false
     }
-  }
-
-  function_list = {
-    "_init(difficulty)",
-    "_update()",
-    "_draw()"
-  }
-
-  function_names = {}
-  for _,f in pairs(functions) do function_names[f.name] = f end
-
-  cur_function = functions[1]
-
+    
+    functions = {
+      {
+        name = "_init",
+        def  = "_init(difficulty)",
+        code = "",
+        args = { "difficulty" }
+      },
+      {
+        name = "_update",
+        def  = "_update()",
+        code = "",
+        args = {}
+      },
+      {
+        name = "_draw",
+        def  = "_draw()",
+        code = "",
+        args = {}
+      }
+    }
+    
+    function_list = {
+      "_init(difficulty)",
+      "_update()",
+      "_draw()"
+    }
+    
+    function_names = {}
+    for _,f in pairs(functions) do function_names[f.name] = f end
+    
+    cur_function = functions[1]
+  end
+  
+  reset_data()
 end
 
 
@@ -118,7 +122,7 @@ do ---- Main screen
     
     if message and (t() - message_t) < 4 then
       local y = min(1.5 - abs(t() - message_t - 2), 0) * 32
-      print(message, (screen_w() - str_px_width(message))/2, y, 28)
+      print(message, (screen_w() - str_px_width(message))/2, y, 29)
     end
     
     draw_glyphgrid()
@@ -364,7 +368,11 @@ do ---- Game saving + loading
     log("Done retrieving user games!", "O")
   end)
 
-  function load_game(id, from_user)
+  function new_game()
+  
+  end
+  
+  function load_game(id, from_user, as_copy)
     network.async(function()
       local data = from_user and castle.storage.get("game_"..id) or castle.storage.getGlobal("game_"..id)
       
@@ -392,12 +400,18 @@ do ---- Game saving + loading
       
       cur_function = functions[1]
       
-      log("Loaded "..game_info._title, "O")
-      new_message("Loaded "..game_info._title)
+      if as_copy then
+        game_info._id = nil
+        log("Loaded "..game_info._title.." as a copy.", "O")
+        new_message("Loaded "..game_info._title.." as a copy.")
+      else
+        log("Loaded "..game_info._title, "O")
+        new_message("Loaded "..game_info._title)
+      end
     end)
   end
 
-  function save_game()
+  function save_game(autosave)
     local data = {}
     
     if not user_info then
@@ -574,8 +588,9 @@ do ---- Game compiling + testing
     compile_error = err
     
     if err then
-      log(foo.def.." compilation failed: "..err, "X")
+      log_r(foo.def.." compilation failed: "..err)
       new_message("Compilation failed.")
+      testing = false
     else
       comp()
       env[foo.name] = user_env[foo.name]
@@ -851,6 +866,10 @@ do ---- UI definitions
       if ui.button("[Save game]") then
         save_game()
       end
+      
+      if ui.button("[New game]", {kind = "danger"}) then
+        reset_data()
+      end
     end)
 
     ui.markdown("&#160;\r\n\r\nMy games:")
@@ -878,6 +897,10 @@ do ---- UI definitions
           
           if ui.button("[Load game]") then
             load_game(info.id, true)
+          end
+          
+          if ui.button("[Load copy]") then
+            load_game(info.id, true, true)
           end
           
           if deleting_project[info.id] then
@@ -1814,6 +1837,10 @@ end
     else
       if ui.button("[Play]") then
         test_game()
+      end
+      
+      if ui.button("[Save]") then
+        save_game()
       end
     end
 
