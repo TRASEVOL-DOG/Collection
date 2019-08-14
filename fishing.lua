@@ -173,7 +173,6 @@ function _draw()
   end
   
   camera()
-  rectfill(0,0,1,1,12)
 end
 
 

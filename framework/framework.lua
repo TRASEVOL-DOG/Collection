@@ -256,7 +256,9 @@ do -- gameover
     in_gameover = true
     gameover_t = 0
     
-    score = mid(score, 0, 100) or 0
+    global_score = (global_score or 0) + mid(score, 0, 100)
+    
+    score = score or 0
     end_score = score
     
     if info then
@@ -271,17 +273,17 @@ do -- gameover
     log("Game Over! Score is "..end_score.."/100.", "o7")
     
     if score > 50 then
-      if score == 100 then
+      if score >= 100 then
         end_battery = 15
       else
-        end_battery = ceil((score-50) / 50 * 10)
+        end_battery = ceil((mid(score, 0, 100)-50) / 50 * 10)
       end
     end
     
-    if score == 100 then
+    if score >= 100 then
       end_rank = "A++"
     else
-      local n = score / 100 * #ranks
+      local n = mid(score, 0, 100) / 100 * #ranks
       
       end_rank = ranks[flr(n + 1)]
       
@@ -416,7 +418,7 @@ do -- gameover
     y = lerp(y, screen_h() - 16, 0.5) - 0.9 * space2
     
     local str
-    if end_score == 100 then
+    if end_score >= 100 then
       str = "YOU WIN!"
       printp_color(14, 13, 6)
     else
@@ -459,10 +461,10 @@ do -- gameover
     
     local v = cos(min(gameover_t - timepoint, 1)*0.25 - 0.25)
     local ramp
-    if end_score == 100 then
+    if end_score >= 100 then
       ramp = rank_ramps[7]
     else
-      ramp = rank_ramps[flr(end_score/100 * 6) + 1]
+      ramp = rank_ramps[flr(mid(end_score, 0, 100)/100 * 6) + 1]
     end
     
     if v < 1 then
