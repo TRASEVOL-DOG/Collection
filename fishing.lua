@@ -171,6 +171,9 @@ function _draw()
       draw_hook()
     end
   end
+  
+  camera()
+  rectfill(0,0,1,1,12)
 end
 
 
@@ -254,15 +257,15 @@ function the_end()
   local stats = {}
   
   if f > 0 then
-    add(stats, "You caught "..f.." small fish! ("..f.." x 5pts)")
+    add(stats, "You caught "..f.." small fish! (+ "..(f*5).."pts)")--("..f.." x 5pts)")
   end
   
   if fb > 0 then
-    add(stats, "You caught "..fb.." big fish! ("..fb.." x 15pts)")
+    add(stats, "You caught "..fb.." big fish! (+ "..(fb*15).."pts)")--("..fb.." x 15pts)")
   end
   
   if b > 0 then
-    add(stats, "You caught "..b.." boots! ("..b.." x -20pts)")
+    add(stats, "You caught "..b.." boots... (- "..(b*20).."pts)")--("..b.." x -20pts)")
   end
   
   if treasure then
