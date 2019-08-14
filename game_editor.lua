@@ -1335,6 +1335,7 @@ do ---- UI definitions
 "tonumber(str)",
 "getmetatable(tab)",
 "setmetatable(tab, meta)",
+"_cursor_info"
       },
       
       Gameplay = {
@@ -1360,7 +1361,26 @@ In addition to this, here are some quirks resulting from the design of the game 
 - You may only use the colors from the palette provided by the framework. When drawing glyphs or primitive shapes, you can use any color by passing its index in the palette.
 - The game's resolution is fixed to 256x192 pixels.
 - You may only use the inputs defined manually in the "Game Info" panel.]],
-   
+
+['_cursor_info'] = [[### `_cursor_info`
+- is a global table you can set and edit at runtime, to modify the appearance of the cursor.
+- you may define this table as follows for example:
+```lua
+_cursor_info = {
+  glyph = 0x10,
+  color_a = 29,
+  color_b = 27,
+  outline = 0,  -- set to nil for no outline
+  point_x = 8,  -- 8 = centered, 0 = left side
+  point_y = 8,  -- 8 = centered, 0 = up side
+  angle = 0     -- turn-based angle (0-1)
+}
+```
+- this table will already be set if you configured a default cursor in the 'Game Info' panel; that configuration will be reflected in this table.
+- set `_cursor_info = nil` to go back to the default cursor.
+- one good use of this table is to do this in the `_update()`: `_cursor_info.angle = 0.01 * cos(t())`, which will make the cursor rotate gently back and forth.
+]],
+
 string = [[### `string`
 - is a standard lua package for manipulating strings.
 - [this webpage](http://lua-users.org/wiki/StringLibraryTutorial) is recommended as reference for this package.
