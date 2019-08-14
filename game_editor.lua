@@ -366,6 +366,18 @@ do ---- Game saving + loading
     log("Retrieving user games...", "O")
     user_registry = castle.storage.get("user_registry") or {}
     log("Done retrieving user games!", "O")
+    
+    -- reordering them by save date
+    local b = true
+    while b do
+      b = false
+      for i = 2, #user_registry do
+        if user_registry[i-1].date < user_registry[i].date then
+          user_registry[i-1], user_registry[i] = user_registry[i], user_registry[i-1]
+          b = true
+        end
+      end
+    end
   end)
 
   function new_game()
@@ -411,7 +423,7 @@ do ---- Game saving + loading
     end)
   end
 
-  function save_game(autosave)
+  function save_game()
     local data = {}
     
     if not user_info then
@@ -449,7 +461,7 @@ do ---- Game saving + loading
       user_registry = castle.storage.get("user_registry") or {}
 
       if first_time then
-        add(user_registry, reg_data)
+        add(user_registry, 1, reg_data)
       else
         local b
         for i,d in pairs(user_registry) do
@@ -791,13 +803,7 @@ do ---- Message / notification
 end
 
 
---for k,v in pairs(os.date("*t", os.time())) do
---  log(k.." : "..v)
---end
-
 do ---- UI definitions
-
---  local tab, tabs = "Projects", {"Projects", "Game Info", "Code", --[["Play"]]}
 
   local ui = castle.ui
   function castle.uiupdate()
@@ -808,29 +814,9 @@ do ---- UI definitions
       ui.tab("Code", function_editor)
 --      ui.tab("Play", testing_ui)
     end)
-
---    tab = ui.radioButtonGroup("Fake Tabs", tab, tabs, {hideLabel = true})
---    
---    
---    
---    if tab == "Projects" then
---      project_panel()
---    elseif tab == "Game Info" then
---      info_editor()
---    elseif tab == "Code" then
---      function_editor()
---    --elseif tab == "Play" then
---    --  testing_ui()
---    end
     
     ui.markdown("&#160;")
     ui.box("testing_ui", { borderTop = "3px dotted white", justifyItems = "center", borderRadius = 16, margin = 1, padding = 3 }, testing_ui)
-    
-  --  ui.markdown("~~~")
-  --  ui_code = ui.codeEditor("Ui", ui_code)
-  --  if compile_soon then compile_soon = false compile() end
-  --  if ui.button("Compile") then compile_soon = true end
-  --  if ui.button("Open") then load_saved() end
   end
   ui_panel = castle.uiupdate
 
@@ -859,16 +845,18 @@ do ---- UI definitions
   local time_mins = {0, 0, 1, 1, 1, 1970}
   local deleting_project = {}
   function project_panel()
-    ui.markdown("Current game:")
-    
     ui.box("current_game_box", { borderLeft = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
-      ui.markdown("***"..game_info._title.."***\r\n\r\n*`"..(game_info._id or "Save to generate an ID").."`*\r\n\r\n*"..(game_info._published and "Published" or "Not published").."*")
+      local info = game_info
+      ui.markdown("***"..info._title.."***\r\n\r\n*`"..(info._id or "Save to generate an ID").."`*\r\n\r\n*"..(info._published and "Published" or "Not published").."*")
+      
       if ui.button("[Save game]") then
         save_game()
       end
       
       if ui.button("[New game]", {kind = "danger"}) then
         reset_data()
+        log("Starting a new, blank game.", "O")
+        new_message("New game")
       end
     end)
 
