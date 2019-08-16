@@ -587,7 +587,7 @@ do ---- Game compiling + testing
     on_resize()
     
     for i = 1,8 do
-      if surface_exists and surface_exists[i] then
+      if surface_exists and surface_exists(i) then
         delete_surface(i)
       end
     end
