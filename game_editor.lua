@@ -600,7 +600,7 @@ do ---- Game compiling + testing
     compile_error = err
     
     if err then
-      log_r(foo.def.." compilation failed: "..err)
+      r_log(foo.def.." compilation failed: "..err)
       new_message("Compilation failed.")
       testing = false
     else
