@@ -1904,24 +1904,32 @@ end
   -- testing ui
 
   function testing_ui()
-    ui.box("testing_play_etc", { flexDirection = "row" }, function()
+    ui.box("testing_play_etc", { flexDirection = "row", justifyContent = "space-between" }, function()
       if testing then
-        if ui.button("[Restart]") then
-          stop_testing()
-          test_game()
-        end
+        ui.box("testing_restart", { width = 0.48 }, function()
+          if ui.button("[Restart]") then
+            stop_testing()
+            test_game()
+          end
+        end)
         
-        if ui.button("[Stop]") then
-          stop_testing()
-        end
+        ui.box("testing_stop", { width = 0.48 }, function()
+          if ui.button("[Stop]") then
+            stop_testing()
+          end
+        end)
       else
-        if ui.button("[Play]") then
-          test_game()
-        end
+        ui.box("testing_play", { width = 0.48 }, function()
+          if ui.button("[Play]") then
+            test_game()
+          end
+        end)
         
-        if ui.button("[Save]") then
-          save_game()
-        end
+        ui.box("testing_save", { width = 0.48 }, function()
+          if ui.button("[Save]") then
+            save_game()
+          end
+        end)
       end
     end)
     
@@ -1955,6 +1963,13 @@ do ---- Misc
       else
         test_game()
       end
+    end
+    
+    if testing and k == 'h' then
+      network.async(castle.post.create, nil, {
+        message = "I'm making a video game! 👀",
+        media = 'capture'
+      })
     end
   end
 
