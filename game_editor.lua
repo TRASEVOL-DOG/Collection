@@ -568,6 +568,8 @@ do ---- Game compiling + testing
     
     screen_resizeable(false)
     screen_resize(256, 208)
+    
+    sugar.on_resize = nil
 
     new_love.load("yes", difficulty)
     
@@ -583,6 +585,12 @@ do ---- Game compiling + testing
     
     screen_resizeable(true, 8, on_resize)
     on_resize()
+    
+    for i = 1,8 do
+      if surface_exists[i] then
+        delete_surface(i)
+      end
+    end
     
     love.update = __update
     love.draw = __draw
