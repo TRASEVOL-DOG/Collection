@@ -88,7 +88,7 @@ local init_time
 
 do -- love overloads (load, update, draw)
 
-  function love.load(from_editor)
+  function love.load(from_editor, editor_difficulty)
     from_editor = (from_editor == "yes")
   
     if not from_editor then
@@ -130,6 +130,10 @@ do -- love overloads (load, update, draw)
     
     display_difficulty = max(global_game_count - 2, 0) * 10
     difficulty = (global_game_count - 1) * 10
+    
+    if from_editor then
+      difficulty = editor_difficulty
+    end
     
     -- screen shake initialization
     shake_x, shake_y = 0, 0

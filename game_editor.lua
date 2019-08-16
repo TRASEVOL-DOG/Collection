@@ -35,7 +35,7 @@ local point_in_rect
 
 local game_info, functions, function_list, function_names, cur_function
 local user_registry
-local testing, compile_error, runtime_error
+local testing, compile_error, runtime_error, difficulty
 local message, message_t
 local ui_panel
 
@@ -529,6 +529,7 @@ end
 
 
 do ---- Game compiling + testing
+  difficulty = 0
   local user_env
   
   function test_game()
@@ -568,7 +569,7 @@ do ---- Game compiling + testing
     screen_resizeable(false)
     screen_resize(256, 208)
 
-    new_love.load("yes")
+    new_love.load("yes", difficulty)
     
     log("Now testing.", "O")
   end
@@ -1895,19 +1896,28 @@ end
   -- testing ui
 
   function testing_ui()
-    if testing then
-      if ui.button("[Stop]") then
-        stop_testing()
+    ui.box("testing_play_etc", { flexDirection = "row" }, function()
+      if testing then
+        if ui.button("[Restart]") then
+          stop_testing()
+          test_game()
+        end
+        
+        if ui.button("[Stop]") then
+          stop_testing()
+        end
+      else
+        if ui.button("[Play]") then
+          test_game()
+        end
+        
+        if ui.button("[Save]") then
+          save_game()
+        end
       end
-    else
-      if ui.button("[Play]") then
-        test_game()
-      end
-      
-      if ui.button("[Save]") then
-        save_game()
-      end
-    end
+    end)
+    
+    difficulty = ui.slider("Difficulty", difficulty, 0, 200)
 
     if runtime_error then
       ui.markdown("`Runtime error:`")
