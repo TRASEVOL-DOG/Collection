@@ -209,7 +209,7 @@ do ---- Main screen
     end
   end
   
-  local hex = {[0]='0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'}
+  local hex = {[0]='0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}
   function draw_glyphgrid()
     local x,y = gly_x, gly_y
     local mx, my = sugar.input.btnv("cur_x"), sugar.input.btnv("cur_y")
@@ -592,6 +592,8 @@ do ---- Game compiling + testing
   end
 
   function compile_foo(foo)
+    if foo.label then return end
+  
     local code = "function "..foo.def.." "..foo.code.." end"
     
     local env = getfenv(1)
@@ -756,12 +758,47 @@ do ---- Function editing
 
     add(functions, nf)
     add(function_list, nf.def)
+    function_names[name] = nf
+    
     return nf
   end
 
+  function new_label()
+    local name, i, b = "new_label", 1, false
+    while not b do
+      for _, f in pairs(functions) do
+        if f.name == name then
+          i = i+1
+          name = "new_label"..i
+          goto try_again
+        end
+      end
+
+      b = true
+      ::try_again::
+    end
+
+    local nf = {
+      name  = name,
+      def   = name,
+      label = true
+    }
+
+    add(functions, nf)
+    add(function_list, nf.def)
+    function_names[name] = nf
+    
+    return nf
+  end
+  
   function update_def(foo)
     local old_def = foo.def
 
+    if foo.label then
+      foo.def = foo.name
+      goto replacement
+    end
+    
     if #foo.args == 0 then
       foo.def = foo.name.."()"
     else
@@ -772,6 +809,8 @@ do ---- Function editing
 
       foo.def = foo.def:sub(1, #foo.def-2)..")"
     end
+    
+    ::replacement::
 
     for i, d in pairs(function_list) do
       if d == (foo.ind or "")..old_def then
@@ -781,12 +820,16 @@ do ---- Function editing
   end
 
   function delete_foo(foo)
-    log("Deleting function "..foo.def, "O")
-          
+    if foo.label then
+      log("Deleting label "..foo.def, "O")
+    else
+      log("Deleting function "..foo.def, "O")
+    end
+    
     del(function_list, foo.def)
     del(functions, foo)
     function_names[foo.name] = nil
-    foo = functions[1]
+    cur_function = functions[1]
   end
 
 end
@@ -1031,13 +1074,8 @@ do ---- UI definitions
   local name_issue
   function function_editor()
     local chosen = function_picker()-- ui.dropdown("Function", cur_function.def, function_list)
-    if chosen ~= cur_function.def then
-      if chosen == "[+] new function" then
-        cur_function = new_foo()
-      else
-        cur_function = find_foo(chosen)
-      end
-      
+    if chosen ~= cur_function then
+      cur_function = chosen
       function_name = cur_function.name
       deleting_function = nil
     end
@@ -1057,6 +1095,8 @@ do ---- UI definitions
           name_issue = "Function name may not contain spaces."
         else
           name_issue = nil
+          function_names[cur_function.name] = nil
+          function_names[nv] = cur_function
           cur_function.name = nv
           update_def(cur_function)
         end
@@ -1067,6 +1107,15 @@ do ---- UI definitions
       if name_issue then
         ui.markdown("`Error: "..name_issue.."`")
       end
+    end
+    
+    if cur_function.label then
+      if ui.button("[Remove label]", {kind = "danger"}) then
+        delete_foo(cur_function)
+        cur_function = functions[1]
+      end
+      
+      goto API
     end
     
     ui.markdown("`arguments`")
@@ -1132,6 +1181,8 @@ do ---- UI definitions
 --    if ui.button("Open Documentation") then
 --      love.system.openURL("https://github.com/TRASEVOL-DOG/Collection/blob/master/game_editor.md#game-editor-api-documentation")
 --    end
+
+    ::API::
     
     ui.markdown("&#160;")
     ui.section("Complete API", doc_browser)
@@ -1179,11 +1230,17 @@ do ---- UI definitions
       
     end)
     
-    if ui.button("[+] new function") then
-      return "[+] new function"
-    end
+    local foo
     
-    return chosen:gsub(indent, "")
+    if ui.button("[+] new function") then
+      foo = new_foo()
+    elseif ui.button("[+] new label") then
+      foo = new_label()
+    else
+      foo = find_foo(chosen:gsub(indent, ""))
+    end
+
+    return foo
   end
 
   
