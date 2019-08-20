@@ -625,6 +625,12 @@ do ---- Game compiling + testing
   catch_logs(function(str)
     if not runtime_error and str:sub(1,3) == "ERR" then
       runtime_error = str:gsub("\n", "`\r\n- `")
+      
+      if testing then
+        stop_testing()
+        new_message("You got an error, testing stopped.")
+        error("Stopping test: "..str:sub(4, #str))
+      end
     end
   end)
 
