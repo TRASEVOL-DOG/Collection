@@ -108,7 +108,7 @@ do -- love overloads (load, update, draw)
     
     local params = castle.game.getInitialParams()
     
-    if params then 
+    if params and params.from_other_game then 
       battery_level = params.battery_level
       display_battery = battery_level
       
@@ -237,7 +237,8 @@ do -- preloading games
     load_game(code_name, true, {
       battery_level     = battery_level or 100,
       global_score      = global_score  or 0,
-      global_game_count = global_game_count or 0
+      global_game_count = global_game_count or 0,
+      from_other_game   = true
     })
   end
   
