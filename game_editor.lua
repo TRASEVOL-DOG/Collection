@@ -432,6 +432,21 @@ do ---- Game saving + loading
       
       if data.function_list then
         function_list = data.function_list
+        
+        for _,fn in pairs(function_list) do
+          local b
+          for i,f in pairs(functions) do
+            if fn == (f.ind or "")..f.def then
+              b = true
+              break
+            end
+          end
+          
+          if not b then
+            w_log("Removing "..fn.." from function list - function does not exist.")
+            del(function_list, fn)
+          end
+        end
       else
         function_list = {}
         for _,f in ipairs(functions) do
@@ -875,7 +890,7 @@ do ---- Function editing
       log("Deleting function "..foo.def, "O")
     end
     
-    del(function_list, foo.def)
+    del(function_list, (foo.ind or "")..foo.def)
     del(functions, foo)
     function_names[foo.name] = nil
     cur_function = functions[1]
