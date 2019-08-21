@@ -2,6 +2,34 @@ local _debug = debug
 
 require("framework/framework.lua")
 
+
+---- Loading the game
+
+local params = castle.game.getInitialParams()
+if params and params.play then
+  local data = castle.storage.getGlobal("game_"..params.id)
+  
+  local env = getfenv(1)
+  for k, v in pairs(data.game_info) do
+    env[k] = v
+  end
+  
+  for _, foo in pairs(data.functions) do
+    local code = "function "..foo.def.." "..foo.code.." end"
+    
+    local comp, err = load(code, nil, "t", env)
+    
+    if err then
+      error("Could not load game because of compilation error on "..foo.def..": "..err)
+    else
+      comp()
+    end
+  end
+  
+  goto editor_skip
+end
+
+
 ---- Dodging environment restrictions
 
 local getfenv, setfenv = getfenv, setfenv
@@ -1986,3 +2014,4 @@ do ---- Misc
 
 end
 
+::editor_skip::
