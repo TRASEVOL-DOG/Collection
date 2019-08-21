@@ -1,5 +1,5 @@
 
-_game_list = {
+local _game_list = {
 
   {name       = "Shooting Range",   
    code_name  = "shooting_range",   
@@ -33,7 +33,7 @@ _game_list = {
 }
 
 -- a copy of game_list that will be given when list will be read (security purpose + no need to copy table every frame or to store copy in games)
-_game_list_copy = {}
+local _game_list_copy = {}
 
 function get_path_from_id(game_id)
   if not game_id then return end
