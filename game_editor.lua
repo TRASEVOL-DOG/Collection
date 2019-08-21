@@ -15,6 +15,10 @@ if params and params.play then
   end
   
   for _, foo in pairs(data.functions) do
+    if foo.label then
+      goto compile_skip
+    end
+    
     local code = "function "..foo.def.." "..foo.code.." end"
     
     local comp, err = load(code, nil, "t", env)
@@ -24,6 +28,8 @@ if params and params.play then
     else
       comp()
     end
+    
+    ::compile_skip::
   end
   
   goto editor_skip
