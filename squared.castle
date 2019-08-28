@@ -1,0 +1,8 @@
+---
+main: squared.lua
+title: Candy Hunt
+owner: spaceling
+primaryColor: 99fff5
+coverImage: yam_preview.png
+dimensions: full
+description: Looks like somebody is dropping candies in that maze, quick get them !
