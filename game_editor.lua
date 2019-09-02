@@ -62,13 +62,14 @@ local load_game, save_game, delete_game, gen_game_id
 local test_game, stop_testing, compile_foo, define_user_env
 local find_foo, new_foo, update_def, delete_foo
 local new_message
+local take_thumbnail, thumbnail_path, thumbnail_data
 local ui_panel, remove_editor_panel, project_panel, info_editor, controls_edit, cursor_edit, function_editor, testing_ui
 local point_in_rect
 
 -- local variables
 
 local game_info, functions, function_list, function_names, cur_function
-local user_registry
+local user_registry, thumbnails
 local testing, compile_error, runtime_error, difficulty
 local message, message_t
 local ui_panel
@@ -395,11 +396,11 @@ end
 do ---- Game saving + loading
 
   local user_info = castle.user.getMe()
+  thumbnails = {}
 
   network.async(function()
     log("Retrieving user games...", "O")
     user_registry = castle.storage.get("user_registry") or {}
-    log("Done retrieving user games!", "O")
     
     -- reordering them by save date
     local b = true
@@ -412,6 +413,16 @@ do ---- Game saving + loading
         end
       end
     end
+    
+    thumbnails = {}
+    for _, d in pairs(user_registry) do
+      local file = "thumbnail_"..d.id..".png"
+      if love.filesystem.exists(file) then
+        thumbnails[d.id] = file
+      end
+    end
+    
+    log("Done retrieving user games!", "O")
   end)
 
   function new_game()
@@ -910,6 +921,68 @@ do ---- Message / notification
 end
 
 
+do ---- Thumbnail stuff
+  local data, file, path, id
+  local screenshot_data
+  
+  function take_thumbnail()
+    log("Taking thumbnail!", "...")
+    data = screenshot_data()
+    
+    if not game_info._id then
+      save_game()
+    end
+    
+    network.async(function()
+      id = game_info._id
+      file = "thumbnail_"..id..".png"
+      data:encode("png", file)
+      
+      path = "file://"..love.filesystem.getSaveDirectory().."/"..file
+      
+      thumbnails[id] = file
+      log("Thumbnail taken!", "O")
+    end)
+  end
+  
+  function thumbnail_path(absolute)
+    if id == game_info._id then
+      if absolute then
+        return path
+      else
+        return file
+      end
+    end
+  end
+  
+  function thumbnail_data()
+    if id == game_info._id then
+      return data
+    end
+  end
+  
+  function load_thumbnail()
+    
+  end
+  
+  function screenshot_data()
+    local surf = new_surface(256, 192, "screenshot")
+    
+    target(surf)
+    palt(0, false)
+    spr_sheet("__screen__", 0, -16)
+    
+    local data = surfshot_data(surf, 2)
+    
+    target()
+    delete_surface(surf)
+    palt(0, true)
+    
+    return data
+  end
+end
+
+
 do ---- UI definitions
 
   local ui = castle.ui
@@ -954,6 +1027,15 @@ do ---- UI definitions
   function project_panel()
     ui.box("current_game_box", { borderLeft = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
       local info = game_info
+      
+      local thumb = thumbnails[info._id]
+      if thumb then
+        ui.image("file://"..love.filesystem.getSaveDirectory().."/"..thumb)
+        ui.markdown("&#160;")
+      else
+        ui.markdown("*no thumbnail*")
+      end
+      
       ui.markdown("***"..info._title.."***\r\n\r\n*`"..(info._id or "Save to generate an ID").."`*\r\n\r\n*"..(info._published and "Published" or "Not published").."*")
       
       if ui.button("[Save game]") then
@@ -977,6 +1059,14 @@ do ---- UI definitions
       for i,info in ipairs(user_registry) do
 
         ui.box("game_box_"..i, { borderLeft = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
+          local thumb = thumbnails[info.id]
+          if thumb then
+            ui.image("file://"..love.filesystem.getSaveDirectory().."/"..thumb)
+            ui.markdown("&#160;")
+          else
+            ui.markdown("*no thumbnail*")
+          end
+        
           ui.markdown("***"..info.title.."***\r\n\r\n*`"..info.id.."`*\r\n\r\n*"..(info.published and "Published" or "Not published").."*")
           
           local d, str = os.date("*t", os.time() - (info.date or 0))
@@ -2030,6 +2120,10 @@ do ---- Misc
         message = "I'm making a video game! 👀",
         media = 'capture'
       })
+    end
+    
+    if testing and k == "t" then
+      take_thumbnail()
     end
   end
 
