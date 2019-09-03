@@ -64,7 +64,7 @@ local load_game, save_game, delete_game, gen_game_id, publish_game
 local test_game, stop_testing, compile_foo, define_user_env
 local find_foo, new_foo, update_def, delete_foo
 local new_message
-local take_thumbnail, thumbnail_path, thumbnail_data
+local take_thumbnail, thumbnail_path, thumbnail_data, load_thumbnail
 local ui_panel, remove_editor_panel, project_panel, info_editor, controls_edit, cursor_edit, function_editor, testing_ui
 local point_in_rect
 
@@ -483,6 +483,8 @@ do ---- Game saving + loading
         log("Loaded "..game_info._title, "O")
         new_message("Loaded "..game_info._title)
       end
+      
+      load_thumbnail()
     end)
   end
 
@@ -619,7 +621,13 @@ do ---- Game saving + loading
         return
       end
       
-      local post = castle.post.get({id = post_id})
+      local post = castle.post.get({postId = post_id})
+      
+      if not post then
+        new_message("Something went wrong with the post... :S")
+        r_log("Something went wrong with the post")
+      end
+      
       info._preview = post.mediaUrl
       
       local data = {
@@ -1019,7 +1027,13 @@ do ---- Thumbnail stuff
   end
   
   function load_thumbnail()
-    
+    local _file = "thumbnail_"..game_data._id..".png"
+    if love.filesystem.exists(_file) then
+      file = _file
+      data = love.image.newImageData(file)
+      path = "file://"..love.filesystem.getSaveDirectory().."/"..file
+      id = game_data._id
+    end
   end
   
   function screenshot_data()
