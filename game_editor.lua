@@ -1032,7 +1032,7 @@ do ---- Thumbnail stuff
       file = _file
       path = "file://"..love.filesystem.getSaveDirectory().."/"..file
       data = love.image.newImageData(path)
-      id = game_data._id
+      id = game_info._id
     end
   end
   
