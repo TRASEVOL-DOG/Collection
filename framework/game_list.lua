@@ -90,7 +90,7 @@ function get_games(count)
         goto get_another_game
       end
       
-      local info = "info_"..id
+      local info = castle.storage.getGlobal("info_"..id)
       
       local data = {
         editor      = true,
