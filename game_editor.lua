@@ -668,6 +668,8 @@ do ---- Game saving + loading
 main: main.lua
 title: ]]..game_info._title..[[
 
+owner: ]]..user_info.username..[[
+
 primaryColor: 000000
 coverImage: preview.png
 dimensions: full
