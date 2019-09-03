@@ -94,7 +94,7 @@ function get_games(count)
       
       local data = {
         editor      = true,
-        id          = id,
+        code_name   = id,
         name        = info.title,
         author      = info.author,
         preview_url = info.preview,
