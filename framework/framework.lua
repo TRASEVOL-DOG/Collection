@@ -208,23 +208,21 @@ do -- preloading games
   local g_o_games -- game over games { {name, player_spr, preview}, .. }
   
   function init_shown_games_game_over()
-    g_o_games = {}
-    local choosen_games = pick_different(4, get_game_list())
-    for i, g in pairs(choosen_games) do
-      local data = {
-        name = g.name,
-        player_spr = g.player_spr,
-        code_name = g.code_name
-      }
+    network.async(function()
+      g_o_games = {}
       
-      network.async(function()
-        data.preview = load_png(nil, "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/"..g.code_name.."_preview.png")
-      end)
+      local choosen_games = get_games(4)
       
-      add(g_o_games, data)
-    end
-    
-    log("Initialized info for next games.", "o7")
+      for i, g in pairs(choosen_games) do
+        network.async(function()
+          g.preview = load_png(nil, g.preview_url)
+        end)
+        
+        add(g_o_games, g)
+      end
+      
+      log("Initialized info for next games.", "o7")
+    end)
   end
   
   function get_game_over_game_list()
@@ -1595,26 +1593,6 @@ do -- misc
     spritesheet("glyphs")
     palt(0, true)
     palt(16, false)
-  end
-  
-  function pick_different( number, tab )
-    choosen = {}    
-    for i = 1, number do
-      local picked = pick(tab)
-      
-      while check_in(picked, choosen) do 
-        picked = pick(tab)
-      end
-      choosen[i] = picked
-    end    
-    return choosen
-  end
-  
-  function check_in(value, tab)
-    for index, val in pairs(tab) do
-      if val == value then return true end
-    end
-    return false
   end
   
   function load_assets()
