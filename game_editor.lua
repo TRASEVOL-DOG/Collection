@@ -666,7 +666,9 @@ do ---- Game saving + loading
     love.filesystem.write(game_info._title.."/main.lua", "-- Launches the game editor with this game's ID to launch it.\r\ncastle.game.load('ll4uzw', { id = '"..game_info._id.."', play = true })")
     love.filesystem.write(game_info._title.."/"..game_info._title..".castle", [[---
 main: main.lua
-title: ]]..game_info._title..[[\r\nprimaryColor: 000000
+title: ]]..game_info._title..[[
+
+primaryColor: 000000
 coverImage: preview.png
 dimensions: full
 description: ]]..game_info._description)
