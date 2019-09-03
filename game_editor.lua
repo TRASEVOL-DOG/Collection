@@ -5,9 +5,11 @@ require("framework/framework.lua")
 
 ---- Loading the game
 
-local params = castle.game.getInitialParams()
+local post = castle.post.getInitialPost()
+
+local params = (post ~= nil and post.data) or castle.game.getInitialParams()
 if params and params.play then
-  local data = castle.storage.getGlobal("game_"..params.id)
+  local data = castle.storage.getGlobal("publ_"..params.id)
   
   local env = getfenv(1)
   for k, v in pairs(data.game_info) do
@@ -58,7 +60,7 @@ love.draw = nil
 
 local reset_data
 local __load, __update, __draw, update_palette, draw_palette, update_glyphgrid, draw_glyphgrid, draw_cursor, on_resize
-local load_game, save_game, delete_game, gen_game_id
+local load_game, save_game, delete_game, gen_game_id, publish_game
 local test_game, stop_testing, compile_foo, define_user_env
 local find_foo, new_foo, update_def, delete_foo
 local new_message
@@ -86,6 +88,7 @@ do ---- Game data + function data
       _controls_list = {},
       _cursor_info   = nil,
       _id            = nil,
+      _preview       = nil,
       _published     = false
     }
     
@@ -484,8 +487,6 @@ do ---- Game saving + loading
   end
 
   function save_game()
-    local data = {}
-    
     if not user_info then
       user_info = castle.user.getMe()
       
@@ -499,13 +500,16 @@ do ---- Game saving + loading
       game_info._id = gen_game_id()
     end
     
-    data.game_info = game_info
-    data.functions = functions
-    data.function_list = function_list
+    local data = {
+      game_info = game_info
+      functions = functions
+      function_list = function_list
+    }
     
     local info = {
       title     = game_info._title,
       author    = user_info.username,
+      preview   = game_info._preview,
       glyph     = game_info._player_glyph,
       published = game_info._published
     }
@@ -585,6 +589,59 @@ do ---- Game saving + loading
     return str
   end
 
+  function publish_game()
+    if not game_info._id then
+      new_message("Cannot publish with no Game ID, save the game first.")
+      r_log("Cannot publish with no Game ID")
+      return
+    end
+  
+    local thumb = thumbnail_data()
+    if not thumb then
+      new_message("Need a thumbnail to publish.")
+      r_log("Need a thumbnail to publish!")
+      return
+    end
+    
+    network.async(function()
+      local info = game_info
+      local exists = info._published
+    
+      local post_id = castle.post.create({
+        message = exists and (info._title.." got an update!") or ("Here's my new game: "..info._title.."!")
+        media = thumb,
+        data = { id = info._id, play = true }
+      })
+      
+      if not post_id then
+        new_message("Publishing was aborted.")
+        w_log("Publishing post was not sent out - publishing aborted.")
+        return
+      end
+      
+      local post = castle.post.get({id = post_id})
+      info._preview = post.mediaUrl
+      
+      local data = {
+        game_info = game_info,
+        functions = functions,
+        function_list = function_list
+      }
+      
+      network.async(castle.storage.setGlobal, nil, "publ_"..game_info._id, data)
+      
+      if not exists then
+        local n = castle.storage.getGlobal("published_count") or 0
+        castle.storage.setGlobal("published_"..n, info._id)
+        castle.storage.setGlobal("published_count", n+1)
+        game_info._published = n
+      end
+      
+      save_game()
+      
+      new_message(info._title.." is published!")
+    end)
+  end
 end
 
 
