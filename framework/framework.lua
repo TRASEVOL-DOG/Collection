@@ -2,6 +2,7 @@
 --
 --
 
+
 -- here's what the user should define (as global)
 -- - _title: name of the game
 -- - _description  : a one sentence description/instruction for the game
@@ -85,6 +86,8 @@ local BATTERY_COST = 10
 local display_battery
 local display_difficulty
 local init_time
+
+log(castle.storage.getGlobal("published_count") or "nil", "-->")
 
 do -- love overloads (load, update, draw)
 
