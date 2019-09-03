@@ -87,8 +87,6 @@ local display_battery
 local display_difficulty
 local init_time
 
-log(castle.storage.getGlobal("published_count") or "nil", "-->")
-
 do -- love overloads (load, update, draw)
 
   function love.load(from_editor, editor_difficulty)
@@ -218,6 +216,7 @@ do -- preloading games
       
       for i, g in pairs(choosen_games) do
         network.async(function()
+          log("Loading game preview: "..g.preview_url)
           g.preview = load_png(nil, g.preview_url)
         end)
         
