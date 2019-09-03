@@ -420,7 +420,7 @@ do ---- Game saving + loading
     thumbnails = {}
     for _, d in pairs(user_registry) do
       local file = "thumbnail_"..d.id..".png"
-      if love.filesystem.exists(file) then
+      if love.filesystem.getInfo(file) then
         thumbnails[d.id] = file
       end
     end
@@ -1028,7 +1028,7 @@ do ---- Thumbnail stuff
   
   function load_thumbnail()
     local _file = "thumbnail_"..game_info._id..".png"
-    if love.filesystem.exists(_file) then
+    if love.filesystem.getInfo(_file) then
       file = _file
       path = "file://"..love.filesystem.getSaveDirectory().."/"..file
       data = love.image.newImageData(path)
