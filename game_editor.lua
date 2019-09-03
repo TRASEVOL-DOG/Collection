@@ -1030,8 +1030,8 @@ do ---- Thumbnail stuff
     local _file = "thumbnail_"..game_info._id..".png"
     if love.filesystem.exists(_file) then
       file = _file
-      data = love.image.newImageData(file)
       path = "file://"..love.filesystem.getSaveDirectory().."/"..file
+      data = love.image.newImageData(path)
       id = game_data._id
     end
   end
