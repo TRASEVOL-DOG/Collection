@@ -501,8 +501,8 @@ do ---- Game saving + loading
     end
     
     local data = {
-      game_info = game_info
-      functions = functions
+      game_info = game_info,
+      functions = functions,
       function_list = function_list
     }
     
@@ -608,7 +608,7 @@ do ---- Game saving + loading
       local exists = info._published
     
       local post_id = castle.post.create({
-        message = exists and (info._title.." got an update!") or ("Here's my new game: "..info._title.."!")
+        message = exists and (info._title.." got an update!") or ("Here's my new game: "..info._title.."!"),
         media = thumb,
         data = { id = info._id, play = true }
       })
