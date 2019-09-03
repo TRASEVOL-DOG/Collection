@@ -650,6 +650,38 @@ do ---- Game saving + loading
       new_message(info._title.." is published!")
     end)
   end
+
+  function generate_project_files()
+    local success = love.filesystem.createDirectory(game_info._title)
+    
+    if not success then
+      new_message("Could not create folder '"..game_info._title.."'")
+      r_log("Could not create directory for generated files.")
+      return
+    end
+    
+    local thumb = thumbnail_data()
+    
+    thumb:encode("png", game_info._title.."/preview.png")
+    love.filesystem.write(game_info._title.."/main.lua", "castle.game.load('ll4uzw', { id = '"..game_info._id.."', play = true })")
+    love.filesystem.write(game_info._title.."/"..game_info._title..".castle", [[---
+main: main.lua
+title: ]]..game_info._title..[[
+primaryColor: 000000
+coverImage: preview.png
+dimensions: full
+description: ]]..game_info._description)
+
+    love.filesystem.write(game_info._title.."/README.txt", [[Hi, thank you for using the Game Editor!
+
+The files generated along this one can be used to register your game on your profile! Simply go on your profile on the Castle app, then click "Add game", and choose this file's folder!
+
+Take care!
+
+Remy 🍬]])
+
+    love.system.openURL("file://"..love.filesystem.getSaveDirectory().."/"..game_info._title)
+  end
 end
 
 
@@ -1117,6 +1149,10 @@ do ---- UI definitions
         log("Publishing...", "O")
         new_message("Publishing...")
         publish_game()
+      end
+      
+      if info._published and ui.button("[Generate files]") then
+        generate_project_files()
       end
       
       if ui.button("[New game]", {kind = "danger"}) then
