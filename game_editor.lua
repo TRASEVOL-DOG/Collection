@@ -1099,6 +1099,12 @@ do ---- UI definitions
         save_game()
       end
       
+      if ui.button("[Publish]", {kind = "danger"}) then
+        log("Publishing...", "O")
+        new_message("Publishing...")
+        publish_game()
+      end
+      
       if ui.button("[New game]", {kind = "danger"}) then
         reset_data()
         log("Starting a new, blank game.", "O")
