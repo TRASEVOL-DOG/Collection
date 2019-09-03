@@ -1027,7 +1027,7 @@ do ---- Thumbnail stuff
   end
   
   function load_thumbnail()
-    local _file = "thumbnail_"..game_data._id..".png"
+    local _file = "thumbnail_"..game_info._id..".png"
     if love.filesystem.exists(_file) then
       file = _file
       data = love.image.newImageData(file)
