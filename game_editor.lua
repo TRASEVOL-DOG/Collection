@@ -650,21 +650,41 @@ do ---- Game saving + loading
       new_message(info._title.." is published!")
     end)
   end
-
+  
+  local file_chars = {}
+  do
+    local chars = {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}
+    for _, k in pairs(chars) do
+      file_chars[k] = true
+    end
+  end
+  
   function generate_project_files()
+    local fname = ""
+    for i = 1, #game_info._title do
+      local ch = game_info._title:sub(i,i)
+      if file_chars[ch] then
+        fname = fname..ch
+      end
+    end
+    
+    if fname == "" then
+      fname = "game"
+    end
+    
     local success = love.filesystem.createDirectory(game_info._title)
     
     if not success then
-      new_message("Could not create folder '"..game_info._title.."'")
+      new_message("Could not create folder '"..fname.."'")
       r_log("Could not create directory for generated files.")
       return
     end
     
     local thumb = thumbnail_data()
     
-    thumb:encode("png", game_info._title.."/preview.png")
-    love.filesystem.write(game_info._title.."/main.lua", "-- Launches the game editor with this game's ID to launch it.\r\ncastle.game.load('ll4uzw', { id = '"..game_info._id.."', play = true })")
-    love.filesystem.write(game_info._title.."/"..game_info._title..".castle", [[---
+    thumb:encode("png", fname.."/preview.png")
+    love.filesystem.write(fname.."/main.lua", "-- Launches the game editor with this game's ID to launch it.\r\ncastle.game.load('ll4uzw', { id = '"..game_info._id.."', play = true })")
+    love.filesystem.write(fname.."/"..fname..".castle", [[---
 main: main.lua
 title: ]]..game_info._title..[[
 
@@ -675,7 +695,7 @@ coverImage: preview.png
 dimensions: full
 description: ]]..game_info._description)
 
-    love.filesystem.write(game_info._title.."/README.txt", [[Hi, thank you for using the Game Editor!
+    love.filesystem.write(fname.."/README.txt", [[Hi, thank you for using the Game Editor!
 
 The files generated along this one can be used to register your game on your profile! Simply go on your profile on the Castle app, then click "Add game", and choose this file's folder!
 
@@ -683,7 +703,7 @@ Take care!
 
 Remy 🍬]])
 
-    love.system.openURL("file://"..love.filesystem.getSaveDirectory().."/"..game_info._title)
+    love.system.openURL("file://"..love.filesystem.getSaveDirectory().."/"..fname)
   end
 end
 
