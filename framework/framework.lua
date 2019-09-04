@@ -155,6 +155,10 @@ do -- love overloads (load, update, draw)
     
     init_shown_games_game_over()
     
+    in_controls = false
+    in_gameover = false
+    in_pause = false
+    
     init_controls_screen()
     
     log("Done initializing Collection framework, launching game!", "o7")
@@ -260,6 +264,8 @@ do -- gameover
   
     in_gameover = true
     gameover_t = 0
+    
+    in_select = false
     
     global_score = (global_score or 0) + mid(score, 0, 100)
     
