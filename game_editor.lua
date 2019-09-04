@@ -672,7 +672,7 @@ do ---- Game saving + loading
       fname = "game"
     end
     
-    local success = love.filesystem.createDirectory(game_info._title)
+    local success = love.filesystem.createDirectory(fname)
     
     if not success then
       new_message("Could not create folder '"..fname.."'")
