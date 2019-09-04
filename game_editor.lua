@@ -1115,11 +1115,11 @@ do ---- UI definitions
 
   local ui = castle.ui
   function castle.uiupdate()
-
     ui.tabs("mainTabs", function()
       ui.tab("Project", project_panel)
       ui.tab("Game Info", info_editor)
       ui.tab("Code", function_editor)
+      ui.tab("Info", info_panel)
 --      ui.tab("Play", testing_ui)
     end)
     
@@ -1161,7 +1161,7 @@ do ---- UI definitions
         ui.image("file://"..love.filesystem.getSaveDirectory().."/"..thumb)
         ui.markdown("&#160;")
       else
-        ui.markdown("*no thumbnail*")
+        ui.markdown("*no thumbnail*\r\n\r\n*`(press T while testing to take one)`*")
       end
       
       ui.markdown("***"..info._title.."***\r\n\r\n*`"..(info._id or "Save to generate an ID").."`*\r\n\r\n*"..(info._published and "Published" or "Not published").."*")
@@ -2189,6 +2189,56 @@ end
     end
   end
 
+  
+  -- info + credits
+  
+  function info_panel()
+    ui.markdown([[
+### Introduction:
+Collection *(working title)* is a project originated by [Eliott](https://twitter.com/Eliott_MacR) and [myself, Trasevol_Dog](https://twitter.com/TRASEVOL_DOG)!
+
+I made this editor to let you add games to the collection! Make a game and publish it and it will appear on the endscreen of other games in the collection, letting players play your game as part of a game-chain progression.
+
+However, your possibilities are deliberately limited, to make up a coherent experience with the other games. The restrictions include:
+- The screen resolution is fixed to 256 x 192.
+- You can only use the provided 30-color palette.
+- You can only use primitive drawing and the provided selection of glyphs to draw out your game. You may not use any external graphical resources.
+- The game should take in the difficulty passed to `load(difficulty)`, and it should end eventually, preferably before the 5 minutes mark, using the `gameover(score, [stats])` function.
+- The available API is limited to a careful selection which you can find on the *Code* tab, under "Complete API".
+
+Hopefully those limitations will help you making something small and fun. :)
+
+You can save your game at any time using the 'Save' button which is always at the bottom of this panel, whichever tab you are on.
+
+When you are done making your game, please ensure that you can finish it, that no error occurs, and that it may not be deemed inappropriate for whatever reason. (note that your game may be removed from the project if it is inappropriate) Also make sure to get a thumbnail for your game, by pressing 'T' while testing.
+
+Then you can use the 'Publish' button to add your game to the Collection! You will be prompted to make a post to confirm the publication of the game.
+
+After publishing, a new button will appear: 'Generate files'. You may use that button to generate a folder which you can add as a new game to your profile. The files inside this folder will redirect Castle to this Editor and will launch your game.
+
+&#160;
+
+### Credits:
+This editor was made by [Trasevol_Dog](https://twitter.com/trasevol_dog), with the help of [Nikki](https://github.com/nikki93) for getting this panel as it is now!
+
+The whole Collection project uses [the Sugarcoat library](https://github.com/TRASEVOL-DOG/sugarcoat).
+
+**Thank you to the whole Castle team!**
+
+**Thank you to my supporters [on Patreon](https://www.patreon.com/trasevol_dog)!**
+- &#9733; *Joseph White, *&#9733; *Spaceling*
+- *rotatetranslate, Anne Le Clech, XHXIAIEIN, LadyLeia, bbsamurai, HJS, Paul Nguyen, Dan Lewis, Dan Rees-Jones, Joel Jorgensen, Marty Kovach, Flo Devaux, Thomas Wright, HERVAN, berkfrei, Jearl, Johnathan Roatch, Raphael Gaschignard, Eiyeron, Sam Loeschen, amy, Cole Smith, Andrea D'Amico, Simon Stålhandske, slono, Max Cahill, hushcoil, Gruber, Pierre B., Sean S. LeBlanc, Andrew Reist, Paul Nicholas, vaporstack, Jakub Wasilewski*
+
+**Special thanks to:**
+- Elodie for her undying support!
+- Eliott for testing this editor while it was still unfinished and broken, and being really chill about it!
+- Jason 'schazers' for how nice you were all along my relationship with Castle so far! You were a great listener, had really nice ideas, and just was a great intermediary in general. This editor might not have existed without your enthousiasm for user games to be part of the project when Eliott and I pitched it to you!
+
+**And, finally, thank** ***you*** **for using this editor and playing the games!** *:D*
+]])
+  end
+  
+  
   -- testing ui
 
   function testing_ui()
