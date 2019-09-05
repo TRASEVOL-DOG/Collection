@@ -72,7 +72,7 @@ local point_in_rect
 
 local game_info, functions, function_list, function_names, cur_function
 local user_registry, thumbnails
-local testing, compile_error, runtime_error, difficulty
+local testing, compile_error, runtime_error, difficulty, controls_skip
 local message, message_t
 local ui_panel
 
@@ -784,6 +784,10 @@ do ---- Game compiling + testing
     sugar.on_resize = nil
 
     new_love.load("yes", difficulty)
+    
+    if controls_skip then
+      skip_controls()
+    end
     
     log("Now testing.", "O")
   end
@@ -2325,6 +2329,7 @@ The whole Collection project uses [the Sugarcoat library](https://github.com/TRA
     end)
     
     difficulty = ui.slider("Difficulty", difficulty, 0, 200)
+    controls_skip = ui.toggle("Don't skip controls", "Skip controls", controls_skip or false)
 
     if runtime_error then
       ui.markdown("`Runtime error:`")
