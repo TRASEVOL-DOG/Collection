@@ -571,13 +571,26 @@ do ---- Game saving + loading
       castle.storage.set("user_registry", user_registry)
     end)
     
-    network.async(castle.storage.setGlobal, nil, "info_"..id, nil)
-    network.async(castle.storage.setGlobal, nil, "game_"..id, nil)
-    network.async(castle.storage.set, nil, "game_"..id, nil)
+    network.async(function()
+      local game = castle.storage.get("game_"..id)
     
-    if id == game_info._id then
-      game_info._id = nil
-    end
+      network.async(castle.storage.setGlobal, nil, "info_"..id, nil)
+      network.async(castle.storage.setGlobal, nil, "game_"..id, nil)
+      network.async(castle.storage.set, nil, "game_"..id, nil)
+
+      local info = game.game_info
+      if info._published then
+        network.async(castle.storage.setGlobal, nil, "publ_"..id, nil)
+        network.async(castle.storage.setGlobal, nil, "published_"..info._published, nil)
+      end
+      
+      if id == game_info._id then
+        game_info._id = nil
+      end
+      
+      new_message(info.title.." was deleted.")
+      log(info.title.." was deleted.", "O")
+    end)
   end
 
   function gen_game_id()
@@ -650,7 +663,24 @@ do ---- Game saving + loading
       save_game()
       
       new_message(info._title.." is published!")
+      log(info._title.." was published.", "O")
     end)
+  end
+  
+  function unpublish_game()
+    if not game_info._published then
+      return
+    end
+    
+    network.async(castle.storage.setGlobal, nil, "publ_"..game_info._id, nil)
+    network.async(castle.storage.setGlobal, nil, "published_"..game_info._published, nil)
+    
+    game_info._published = nil
+    
+    save_game()
+    
+    new_message(info._title.." isn't published anymore.")
+    log(info._title.." was unpublished.", "O")
   end
   
   local file_chars = {}
@@ -1174,6 +1204,10 @@ do ---- UI definitions
         log("Publishing...", "O")
         new_message("Publishing...")
         publish_game()
+      end
+      
+      if info._published and ui.button("[Unpublish]", {kind = "danger"}) then
+        unpublish_game()
       end
       
       if info._published and ui.button("[Generate files]") then
