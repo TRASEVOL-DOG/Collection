@@ -1181,6 +1181,7 @@ do ---- UI definitions
   local time_units = {"second", "minute", "hour", "day", "month", "year"}
   local time_keys = {"sec", "min", "hour", "day", "month", "year"}
   local time_mins = {0, 0, 1, 1, 1, 1970}
+  local publishing, p_step_a, p_step_b, p_step_c = false, false, false, false
   local deleting_project = {}
   function project_panel()
     ui.box("current_game_box", { borderLeft = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
@@ -1200,11 +1201,29 @@ do ---- UI definitions
         save_game()
       end
       
-      if ui.button("[Publish]", {kind = "danger"}) then
-        log("Publishing...", "O")
-        new_message("Publishing...")
-        publish_game()
+      
+      if publishing then
+        p_step_a = ui.checkbox("Have you tested the game since you last modified it?", p_step_a)
+        if not p_step_a then goto no_publish end
+        
+        p_step_b = ui.checkbox("Can you finish the game? (i.e. reach the gameover)", p_step_b)
+        if not p_step_b then goto no_publish end
+        
+        p_step_c = ui.checkbox("Are you confident the game won't produce errors or infinite loops?", p_step_c)
+        if not p_step_c then goto no_publish end
+        
+        if ui.button("[Publish it!]", {kind = "danger"}) then
+          log("Publishing...", "O")
+          new_message("Publishing...")
+          publish_game()
+          publishing = false
+        end
+        
+        ::no_publish::
+      else
+        publishing = ui.button("[Publish]", {kind = "danger"})
       end
+      
       
       if info._published and ui.button("[Unpublish]", {kind = "danger"}) then
         unpublish_game()
