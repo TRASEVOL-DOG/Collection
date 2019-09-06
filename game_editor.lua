@@ -1417,6 +1417,7 @@ do ---- UI definitions
 
   -- code editor
 
+  local code_completions, do_completion = {}, true
   local deleting_function
   local essential_functions = { _init = true, _update = true, _draw = true }
   local function_name = "_init"
@@ -1490,8 +1491,10 @@ do ---- UI definitions
     end)
     
     ui.markdown("`function "..cur_function.def.."`")
-    cur_function.code = ui.codeEditor("code", cur_function.code, { hideLabel = true })
+    cur_function.code = ui.codeEditor("code", cur_function.code, { hideLabel = true, enableCompletions = do_completion, completions = code_completions })
     ui.markdown("`end`")
+    
+    do_completion = ui.toggle("Auto-Completion", "Auto-Completion", do_completion)
     
     ui.markdown("&#160;")
     
@@ -2242,6 +2245,23 @@ end
       else
         local str = doc[foo]
         ui.markdown(str:sub(2, #str) or "")
+      end
+    end
+  
+    for _, cat in pairs(foo_names) do
+      for z, foo in pairs(cat) do
+        local entry = {
+          label = foo,
+          documentation = doc[foo]
+        }
+        
+        if foo:sub(#foo,#foo) == ')' then
+          entry.kind = "Function"
+        else
+          entry.kind = "Folder"
+        end
+        
+        add(code_completions, entry)
       end
     end
   end
