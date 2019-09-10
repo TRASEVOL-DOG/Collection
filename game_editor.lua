@@ -1188,7 +1188,7 @@ do ---- UI definitions
   local publishing, p_step_a, p_step_b, p_step_c = false, false, false, false
   local deleting_project = {}
   function project_panel()
-    ui.box("current_game_box", { borderLeft = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
+    ui.box("current_game_box", { borderLeft = "3px dotted white", borderTop = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
       local info = game_info
       
       local thumb = thumbnails[info._id]
@@ -1253,7 +1253,7 @@ do ---- UI definitions
     else
       for i,info in ipairs(user_registry) do
 
-        ui.box("game_box_"..i, { borderLeft = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
+        ui.box("game_box_"..i, { borderLeft = "3px dotted white", borderTop = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
           local thumb = thumbnails[info.id]
           if thumb then
             ui.image("file://"..love.filesystem.getSaveDirectory().."/"..thumb)
