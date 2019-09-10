@@ -1417,7 +1417,7 @@ do ---- UI definitions
 
   -- code editor
 
-  local code_completions, do_completion = {}, true
+  local code_completions, do_completion = {}, false
   local deleting_function
   local essential_functions = { _init = true, _update = true, _draw = true }
   local function_name = "_init"
