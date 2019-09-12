@@ -1350,14 +1350,18 @@ do ---- UI definitions
       if id then
         local info = castle.storage.getGlobal("info_"..id)
       
-        local key = info.title.."(by "..info.author..") "..id
+        local key = info.title.." (by "..info.author..") "..id
       
         add(list, key)
       end
     end
     
+    table.sort(list)
+    
     published_list = list
     published_selected = published_list[1]
+    
+    log("Done retrieving published games.", "O")
   end)
 
   -- info editor
