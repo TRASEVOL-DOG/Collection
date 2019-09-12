@@ -499,10 +499,16 @@ do ---- Game saving + loading
       end
     end
     
+    if game_info._author ~= nil and game_info._author ~= user_info.username then
+      error("Cannot save someone else's game.")
+    end
+    
     local first_time = (game_info._id == nil)
     if first_time then
       game_info._id = gen_game_id()
     end
+    
+    game_info._author = user_info.username
     
     local data = {
       game_info = game_info,
@@ -1181,6 +1187,8 @@ do ---- UI definitions
 
 
   -- project panel
+  
+  local published_list, published_selected
 
   local time_units = {"second", "minute", "hour", "day", "month", "year"}
   local time_keys = {"sec", "min", "hour", "day", "month", "year"}
@@ -1201,7 +1209,8 @@ do ---- UI definitions
       
       ui.markdown("***"..info._title.."***\r\n\r\n*`"..(info._id or "Save to generate an ID").."`*\r\n\r\n*"..(info._published and "Published" or "Not published").."*")
       
-      if ui.button("[Save game]") then
+      local is_owner = (game_info._author == nil or game_info._author == user_info.username)
+      if ui.button("[Save game]", {disabled = not is_owner}) and is_owner then
         save_game()
       end
       
@@ -1224,7 +1233,7 @@ do ---- UI definitions
         end
         
         ::no_publish::
-      else
+      elseif is_owner then
         publishing = ui.button("[Publish]", {kind = "danger"})
       end
       
@@ -1241,6 +1250,7 @@ do ---- UI definitions
         reset_data()
         log("Starting a new, blank game.", "O")
         new_message("New game")
+        published_selected = ""
       end
     end)
 
@@ -1277,10 +1287,12 @@ do ---- UI definitions
           
           if ui.button("[Load game]") then
             load_game(info.id, true)
+            published_selected = ""
           end
           
           if ui.button("[Load copy]") then
             load_game(info.id, true, true)
+            published_selected = ""
           end
           
           if deleting_project[info.id] then
@@ -1304,8 +1316,48 @@ do ---- UI definitions
       end
     end
     
+    if published_list then
+      ui.section("Published project viewer", function()
+        local nv = ui.radioButtonGroup("published projects", published_selected, published_list, {hideLabel = true})
+        
+        if nv ~= published_selected then
+          if nv == "" then
+            reset_data()
+            log("Starting a new, blank game.", "O")
+            new_message("New game")
+          else
+            local n = #nv
+            while nv:sub(n,n) ~= " " do n = n - 1 end
+            local id = nv:sub(n+1, #nv)
+            
+            load_game(id, false)
+          end
+        
+          published_selected = nv
+        end
+      end)
+    end
   end
 
+  network.async(function()
+    local list = { "" }
+    
+    local n = castle.storage.getGlobal("published_count") or 0
+    for i = 1, n do
+      local id = castle.storage.getGlobal("published_"..i)
+      
+      if id then
+        local info = castle.storage.getGlobal("info_"..id)
+      
+        local key = info.title.."(by "..info.author..") "..id
+      
+        add(list, key)
+      end
+    end
+    
+    published_list = list
+    published_selected = published_list[1]
+  end)
 
   -- info editor
 
@@ -2341,7 +2393,8 @@ The whole Collection project uses [the Sugarcoat library](https://github.com/TRA
         end)
         
         ui.box("testing_save", { width = 0.48 }, function()
-          if ui.button("[Save]") then
+          local is_owner = (game_info._author == nil or game_info._author == user_info.username)
+          if ui.button("[Save]", {disabled = not is_owner}) and is_owner then
             save_game()
           end
         end)
