@@ -1343,7 +1343,7 @@ do ---- UI definitions
     local list = { "" }
     
     local n = castle.storage.getGlobal("published_count") or 0
-    for i = 1, n do
+    for i = 0, n-1 do
       local id = castle.storage.getGlobal("published_"..i)
       
       if id then
