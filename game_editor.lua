@@ -76,6 +76,8 @@ local testing, compile_error, runtime_error, difficulty, controls_skip
 local message, message_t
 local ui_panel
 
+local user_info = castle.user.getMe()
+  
 
 do ---- Game data + function data
 
@@ -400,7 +402,6 @@ end
 
 do ---- Game saving + loading
 
-  local user_info = castle.user.getMe()
   thumbnails = {}
 
   network.async(function()
