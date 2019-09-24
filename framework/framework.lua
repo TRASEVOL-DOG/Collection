@@ -1046,6 +1046,9 @@ do -- controls screen
     camera()
   end
 
+  function skip_controls()
+    in_controls = false
+  end
 end
 
 
