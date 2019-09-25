@@ -1197,9 +1197,7 @@ do ---- UI definitions
   local publishing, p_step_a, p_step_b, p_step_c = false, false, false, false
   local deleting_project = {}
   function project_panel()
-    ui.box("current_game_box_"..(game_info._id or ""), { borderLeft = "3px dotted white", borderTop = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
-      local info = game_info
-      
+    ui.box("current_game_box", { borderLeft = "3px dotted white", borderTop = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
       local thumb = thumbnails[info._id]
       if thumb then
         ui.image("file://"..love.filesystem.getSaveDirectory().."/"..thumb)
@@ -1208,7 +1206,7 @@ do ---- UI definitions
         ui.markdown("*no thumbnail*\r\n\r\n*`(press T while testing to take one)`*")
       end
       
-      ui.markdown("***"..info._title.."***\r\n\r\n*`"..(info._id or "Save to generate an ID").."`*\r\n\r\n*"..(info._published and "Published" or "Not published").."*")
+      ui.markdown("***"..game_info._title.."***\r\n\r\n*`"..(game_info._id or "Save to generate an ID").."`*\r\n\r\n*"..(game_info._published and "Published" or "Not published").."*")
       
       local is_owner = (game_info._author == nil or game_info._author == user_info.username)
       if ui.button("[Save game]", {disabled = not is_owner}) and is_owner then
@@ -1239,11 +1237,11 @@ do ---- UI definitions
       end
       
       
-      if info._published and ui.button("[Unpublish]", {kind = "danger"}) then
+      if game_info._published and ui.button("[Unpublish]", {kind = "danger"}) then
         unpublish_game()
       end
       
-      if info._published and ui.button("[Generate files]") then
+      if game_info._published and ui.button("[Generate files]") then
         generate_project_files()
       end
       
