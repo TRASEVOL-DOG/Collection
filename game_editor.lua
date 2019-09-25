@@ -1197,7 +1197,7 @@ do ---- UI definitions
   local publishing, p_step_a, p_step_b, p_step_c = false, false, false, false
   local deleting_project = {}
   function project_panel()
-    ui.box("current_game_box", { borderLeft = "3px dotted white", borderTop = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
+    ui.box("current_game_box_"..(game_info._id or ""), { borderLeft = "3px dotted white", borderTop = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
       local info = game_info
       
       local thumb = thumbnails[info._id]
