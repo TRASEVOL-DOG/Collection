@@ -1205,7 +1205,7 @@ do ---- UI definitions
   local publishing, p_step_a, p_step_b, p_step_c = false, false, false, false
   local deleting_project = {}
   function project_panel()
-    ui.box("current_game_box", { borderLeft = "3px dotted white", borderTop = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
+--    ui.box("current_game_box", { borderLeft = "3px dotted white", borderTop = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
       local thumb = thumbnails[game_info._id]
       if thumb then
         ui.image("file://"..love.filesystem.getSaveDirectory().."/"..thumb)
@@ -1259,7 +1259,7 @@ do ---- UI definitions
         new_message("New game")
         published_selected = ""
       end
-    end)
+--    end)
 
     ui.markdown("&#160;\r\n\r\nMy games:")
     
