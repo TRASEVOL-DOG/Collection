@@ -1186,6 +1186,14 @@ do ---- UI definitions
     end
   end
 
+  
+  local function force_refresh()
+    local true_update = castle.uiupdate
+    castle.uiupdate = function()
+      caslte.uiupdate = true_update
+    end
+  end
+  
 
   -- project panel
   
@@ -1287,11 +1295,13 @@ do ---- UI definitions
           if ui.button("[Load game]") then
             load_game(info.id, true)
             published_selected = ""
+            force_refresh()
           end
           
           if ui.button("[Load copy]") then
             load_game(info.id, true, true)
             published_selected = ""
+            force_refresh()
           end
           
           if deleting_project[info.id] then
