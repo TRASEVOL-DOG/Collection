@@ -3,5 +3,6 @@ main: shooting_range.lua
 title: Fishing
 owner: spaceling
 coverImage: shooting_range_preview.png
+storageId: 470d6589-76a1-418a-a64d-8b97b91eb7c1
 primaryColor: 000000
 dimensions: full

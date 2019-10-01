@@ -2,6 +2,7 @@
 --
 --
 
+
 -- here's what the user should define (as global)
 -- - _title: name of the game
 -- - _description  : a one sentence description/instruction for the game
@@ -154,6 +155,10 @@ do -- love overloads (load, update, draw)
     
     init_shown_games_game_over()
     
+    in_controls = false
+    in_gameover = false
+    in_pause = false
+    
     init_controls_screen()
     
     log("Done initializing Collection framework, launching game!", "o7")
@@ -208,23 +213,22 @@ do -- preloading games
   local g_o_games -- game over games { {name, player_spr, preview}, .. }
   
   function init_shown_games_game_over()
-    g_o_games = {}
-    local choosen_games = pick_different(4, get_game_list())
-    for i, g in pairs(choosen_games) do
-      local data = {
-        name = g.name,
-        player_spr = g.player_spr,
-        code_name = g.code_name
-      }
+    network.async(function()
+      g_o_games = {}
       
-      network.async(function()
-        data.preview = load_png(nil, "https://raw.githubusercontent.com/TRASEVOL-DOG/Collection/master/"..g.code_name.."_preview.png")
-      end)
+      local choosen_games = get_games(4)
       
-      add(g_o_games, data)
-    end
-    
-    log("Initialized info for next games.", "o7")
+      for i, g in pairs(choosen_games) do
+        network.async(function()
+          log("Loading game preview: "..g.preview_url)
+          g.preview = load_png(nil, g.preview_url)
+        end)
+        
+        add(g_o_games, g)
+      end
+      
+      log("Initialized info for next games.", "o7")
+    end)
   end
   
   function get_game_over_game_list()
@@ -260,6 +264,8 @@ do -- gameover
   
     in_gameover = true
     gameover_t = 0
+    
+    in_select = false
     
     global_score = (global_score or 0) + mid(score, 0, 100)
     
@@ -1040,6 +1046,9 @@ do -- controls screen
     camera()
   end
 
+  function skip_controls()
+    in_controls = false
+  end
 end
 
 
@@ -1595,26 +1604,6 @@ do -- misc
     spritesheet("glyphs")
     palt(0, true)
     palt(16, false)
-  end
-  
-  function pick_different( number, tab )
-    choosen = {}    
-    for i = 1, number do
-      local picked = pick(tab)
-      
-      while check_in(picked, choosen) do 
-        picked = pick(tab)
-      end
-      choosen[i] = picked
-    end    
-    return choosen
-  end
-  
-  function check_in(value, tab)
-    for index, val in pairs(tab) do
-      if val == value then return true end
-    end
-    return false
   end
   
   function load_assets()

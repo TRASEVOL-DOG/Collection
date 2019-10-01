@@ -5,9 +5,11 @@ require("framework/framework.lua")
 
 ---- Loading the game
 
-local params = castle.game.getInitialParams()
+local post = castle.post.getInitialPost()
+
+local params = (post ~= nil and post.data) or castle.game.getInitialParams()
 if params and params.play then
-  local data = castle.storage.getGlobal("game_"..params.id)
+  local data = castle.storage.getGlobal("publ_"..params.id)
   
   local env = getfenv(1)
   for k, v in pairs(data.game_info) do
@@ -58,21 +60,24 @@ love.draw = nil
 
 local reset_data
 local __load, __update, __draw, update_palette, draw_palette, update_glyphgrid, draw_glyphgrid, draw_cursor, on_resize
-local load_game, save_game, delete_game, gen_game_id
+local load_game, save_game, delete_game, gen_game_id, publish_game
 local test_game, stop_testing, compile_foo, define_user_env
 local find_foo, new_foo, update_def, delete_foo
 local new_message
+local take_thumbnail, thumbnail_path, thumbnail_data, load_thumbnail
 local ui_panel, remove_editor_panel, project_panel, info_editor, controls_edit, cursor_edit, function_editor, testing_ui
 local point_in_rect
 
 -- local variables
 
 local game_info, functions, function_list, function_names, cur_function
-local user_registry
-local testing, compile_error, runtime_error, difficulty
+local user_registry, thumbnails
+local testing, compile_error, runtime_error, difficulty, controls_skip
 local message, message_t
 local ui_panel
 
+local user_info = castle.user.getMe()
+  
 
 do ---- Game data + function data
 
@@ -85,6 +90,7 @@ do ---- Game data + function data
       _controls_list = {},
       _cursor_info   = nil,
       _id            = nil,
+      _preview       = nil,
       _published     = false
     }
     
@@ -135,6 +141,8 @@ do ---- Main screen
     local w,h = window_size()
     local scale = ceil(min(w, h) / min_side)
     screen_resizeable(true, 8, on_resize)
+    
+    get_games = function() return {} end
   end
   love.load = __load
 
@@ -394,12 +402,11 @@ end
 
 do ---- Game saving + loading
 
-  local user_info = castle.user.getMe()
+  thumbnails = {}
 
   network.async(function()
     log("Retrieving user games...", "O")
     user_registry = castle.storage.get("user_registry") or {}
-    log("Done retrieving user games!", "O")
     
     -- reordering them by save date
     local b = true
@@ -412,6 +419,16 @@ do ---- Game saving + loading
         end
       end
     end
+    
+    thumbnails = {}
+    for _, d in pairs(user_registry) do
+      local file = "thumbnail_"..d.id..".png"
+      if love.filesystem.getInfo(file) then
+        thumbnails[d.id] = file
+      end
+    end
+    
+    log("Done retrieving user games!", "O")
   end)
 
   function new_game()
@@ -469,12 +486,12 @@ do ---- Game saving + loading
         log("Loaded "..game_info._title, "O")
         new_message("Loaded "..game_info._title)
       end
+      
+      load_thumbnail()
     end)
   end
 
   function save_game()
-    local data = {}
-    
     if not user_info then
       user_info = castle.user.getMe()
       
@@ -483,18 +500,27 @@ do ---- Game saving + loading
       end
     end
     
+    if game_info._author ~= nil and game_info._author ~= user_info.username then
+      error("Cannot save someone else's game.")
+    end
+    
     local first_time = (game_info._id == nil)
     if first_time then
       game_info._id = gen_game_id()
     end
     
-    data.game_info = game_info
-    data.functions = functions
-    data.function_list = function_list
+    game_info._author = user_info.username
+    
+    local data = {
+      game_info = game_info,
+      functions = functions,
+      function_list = function_list
+    }
     
     local info = {
       title     = game_info._title,
       author    = user_info.username,
+      preview   = game_info._preview,
       glyph     = game_info._player_glyph,
       published = game_info._published
     }
@@ -552,13 +578,26 @@ do ---- Game saving + loading
       castle.storage.set("user_registry", user_registry)
     end)
     
-    network.async(castle.storage.setGlobal, nil, "info_"..id, nil)
-    network.async(castle.storage.setGlobal, nil, "game_"..id, nil)
-    network.async(castle.storage.set, nil, "game_"..id, nil)
+    network.async(function()
+      local game = castle.storage.get("game_"..id)
     
-    if id == game_info._id then
-      game_info._id = nil
-    end
+      network.async(castle.storage.setGlobal, nil, "info_"..id, nil)
+      network.async(castle.storage.setGlobal, nil, "game_"..id, nil)
+      network.async(castle.storage.set, nil, "game_"..id, nil)
+
+      local info = game.game_info
+      if info._published then
+        network.async(castle.storage.setGlobal, nil, "publ_"..id, nil)
+        network.async(castle.storage.setGlobal, nil, "published_"..info._published, nil)
+      end
+      
+      if id == game_info._id then
+        game_info._id = nil
+      end
+      
+      new_message(info.title.." was deleted.")
+      log(info.title.." was deleted.", "O")
+    end)
   end
 
   function gen_game_id()
@@ -574,6 +613,137 @@ do ---- Game saving + loading
     return str
   end
 
+  function publish_game()
+    if not game_info._id then
+      new_message("Cannot publish with no Game ID, save the game first.")
+      r_log("Cannot publish with no Game ID")
+      return
+    end
+  
+    local thumb = thumbnail_data()
+    if not thumb then
+      new_message("Need a thumbnail to publish.")
+      r_log("Need a thumbnail to publish!")
+      return
+    end
+    
+    network.async(function()
+      local info = game_info
+      local exists = info._published
+    
+      local post_id = castle.post.create({
+        message = exists and (info._title.." got an update!") or ("Here's my new game: "..info._title.."!"),
+        media = thumb,
+        data = { id = info._id, play = true }
+      })
+      
+      if not post_id then
+        new_message("Publishing was aborted.")
+        w_log("Publishing post was not sent out - publishing aborted.")
+        return
+      end
+      
+      local post = castle.post.get({postId = post_id})
+      
+      if not post then
+        new_message("Something went wrong with the post... :S")
+        r_log("Something went wrong with the post")
+      end
+      
+      info._preview = post.mediaUrl
+      
+      local data = {
+        game_info = game_info,
+        functions = functions,
+        function_list = function_list
+      }
+      
+      network.async(castle.storage.setGlobal, nil, "publ_"..game_info._id, data)
+      
+      if not exists then
+        local n = castle.storage.getGlobal("published_count") or 0
+        castle.storage.setGlobal("published_"..n, info._id)
+        castle.storage.setGlobal("published_count", n+1)
+        game_info._published = n
+      end
+      
+      save_game()
+      
+      new_message(info._title.." is published!")
+      log(info._title.." was published.", "O")
+    end)
+  end
+  
+  function unpublish_game()
+    if not game_info._published then
+      return
+    end
+    
+    network.async(castle.storage.setGlobal, nil, "publ_"..game_info._id, nil)
+    network.async(castle.storage.setGlobal, nil, "published_"..game_info._published, nil)
+    
+    game_info._published = nil
+    
+    save_game()
+    
+    new_message(info._title.." isn't published anymore.")
+    log(info._title.." was unpublished.", "O")
+  end
+  
+  local file_chars = {}
+  do
+    local chars = { 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}
+    for _, k in pairs(chars) do
+      file_chars[k] = true
+    end
+  end
+  
+  function generate_project_files()
+    local fname = ""
+    for i = 1, #game_info._title do
+      local ch = game_info._title:sub(i,i)
+      if file_chars[ch] then
+        fname = fname..ch
+      end
+    end
+    
+    if fname == "" then
+      fname = "game"
+    end
+    
+    local success = love.filesystem.createDirectory(fname)
+    
+    if not success then
+      new_message("Could not create folder '"..fname.."'")
+      r_log("Could not create directory for generated files.")
+      return
+    end
+    
+    local thumb = thumbnail_data()
+    
+    thumb:encode("png", fname.."/preview.png")
+    love.filesystem.write(fname.."/main.lua", "-- Launches the game editor with this game's ID to launch it.\r\ncastle.game.load('ll4uzw', { id = '"..game_info._id.."', play = true })")
+    love.filesystem.write(fname.."/"..fname..".castle", [[---
+main: main.lua
+title: ]]..game_info._title..[[
+
+owner: ]]..user_info.username..[[
+
+primaryColor: 000000
+coverImage: preview.png
+dimensions: full
+description: ]]..game_info._description)
+
+    love.filesystem.write(fname.."/README.txt", [[Hi, thank you for using the Game Editor!
+
+The files generated along this one can be used to register your game on your profile! Simply go on your profile on the Castle app, then click "Add game", and choose this file's folder!
+
+Take care!
+
+Remy 🍬]])
+
+    love.system.openURL("file://"..love.filesystem.getSaveDirectory().."/"..fname)
+  end
 end
 
 
@@ -621,6 +791,10 @@ do ---- Game compiling + testing
     sugar.on_resize = nil
 
     new_love.load("yes", difficulty)
+    
+    if controls_skip then
+      skip_controls()
+    end
     
     log("Now testing.", "O")
   end
@@ -910,15 +1084,83 @@ do ---- Message / notification
 end
 
 
+do ---- Thumbnail stuff
+  local data, file, path, id
+  local screenshot_data
+  
+  function take_thumbnail()
+    log("Taking thumbnail!", "...")
+    data = screenshot_data()
+    
+    if not game_info._id then
+      save_game()
+    end
+    
+    network.async(function()
+      id = game_info._id
+      file = "thumbnail_"..id..".png"
+      data:encode("png", file)
+      
+      path = "file://"..love.filesystem.getSaveDirectory().."/"..file
+      
+      thumbnails[id] = file
+      log("Thumbnail taken!", "O")
+    end)
+  end
+  
+  function thumbnail_path(absolute)
+    if id == game_info._id then
+      if absolute then
+        return path
+      else
+        return file
+      end
+    end
+  end
+  
+  function thumbnail_data()
+    if id == game_info._id then
+      return data
+    end
+  end
+  
+  function load_thumbnail()
+    local _file = "thumbnail_"..game_info._id..".png"
+    if love.filesystem.getInfo(_file) then
+      file = _file
+      path = "file://"..love.filesystem.getSaveDirectory().."/"..file
+      data = love.image.newImageData(path)
+      id = game_info._id
+    end
+  end
+  
+  function screenshot_data()
+    local surf = new_surface(256, 192, "screenshot")
+    
+    target(surf)
+    palt(0, false)
+    spr_sheet("__screen__", 0, -16)
+    
+    local data = surfshot_data(surf, 2)
+    
+    target()
+    delete_surface(surf)
+    palt(0, true)
+    
+    return data
+  end
+end
+
+
 do ---- UI definitions
 
   local ui = castle.ui
   function castle.uiupdate()
-
     ui.tabs("mainTabs", function()
       ui.tab("Project", project_panel)
       ui.tab("Game Info", info_editor)
       ui.tab("Code", function_editor)
+      ui.tab("Info", info_panel)
 --      ui.tab("Play", testing_ui)
     end)
     
@@ -944,28 +1186,80 @@ do ---- UI definitions
     end
   end
 
+  
+  local function force_refresh()
+    local true_update = castle.uiupdate
+    castle.uiupdate = function()
+      caslte.uiupdate = true_update
+    end
+  end
+  
 
   -- project panel
+  
+  local published_list, published_selected
 
   local time_units = {"second", "minute", "hour", "day", "month", "year"}
   local time_keys = {"sec", "min", "hour", "day", "month", "year"}
   local time_mins = {0, 0, 1, 1, 1, 1970}
+  local publishing, p_step_a, p_step_b, p_step_c = false, false, false, false
   local deleting_project = {}
   function project_panel()
-    ui.box("current_game_box", { borderLeft = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
-      local info = game_info
-      ui.markdown("***"..info._title.."***\r\n\r\n*`"..(info._id or "Save to generate an ID").."`*\r\n\r\n*"..(info._published and "Published" or "Not published").."*")
+--    ui.box("current_game_box", { borderLeft = "3px dotted white", borderTop = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
+      local thumb = thumbnails[game_info._id]
+      if thumb then
+        ui.image("file://"..love.filesystem.getSaveDirectory().."/"..thumb)
+        ui.markdown("&#160;")
+      else
+        ui.markdown("*no thumbnail*\r\n\r\n*`(press T while testing to take one)`*")
+      end
       
-      if ui.button("[Save game]") then
+      ui.markdown("***"..game_info._title.."***\r\n\r\n*`"..(game_info._id or "Save to generate an ID").."`*\r\n\r\n*"..(game_info._published and "Published" or "Not published").."*")
+      
+      local is_owner = (game_info._author == nil or game_info._author == user_info.username)
+      if ui.button("[Save game]", {disabled = not is_owner}) and is_owner then
         save_game()
+      end
+      
+      
+      if publishing then
+        p_step_a = ui.checkbox("Have you tested the game since you last modified it?", p_step_a)
+        if not p_step_a then goto no_publish end
+        
+        p_step_b = ui.checkbox("Can you finish the game? (i.e. reach the gameover)", p_step_b)
+        if not p_step_b then goto no_publish end
+        
+        p_step_c = ui.checkbox("Are you confident the game won't produce errors or infinite loops?", p_step_c)
+        if not p_step_c then goto no_publish end
+        
+        if ui.button("[Publish it!]", {kind = "danger"}) then
+          log("Publishing...", "O")
+          new_message("Publishing...")
+          publish_game()
+          publishing = false
+        end
+        
+        ::no_publish::
+      elseif is_owner then
+        publishing = ui.button("[Publish]", {kind = "danger"})
+      end
+      
+      
+      if game_info._published and ui.button("[Unpublish]", {kind = "danger"}) then
+        unpublish_game()
+      end
+      
+      if game_info._published and ui.button("[Generate files]") then
+        generate_project_files()
       end
       
       if ui.button("[New game]", {kind = "danger"}) then
         reset_data()
         log("Starting a new, blank game.", "O")
         new_message("New game")
+        published_selected = ""
       end
-    end)
+--    end)
 
     ui.markdown("&#160;\r\n\r\nMy games:")
     
@@ -976,7 +1270,15 @@ do ---- UI definitions
     else
       for i,info in ipairs(user_registry) do
 
-        ui.box("game_box_"..i, { borderLeft = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
+        ui.box("game_box_"..i, { borderLeft = "3px dotted white", borderTop = "3px dotted white", borderRadius = 16, margin = 1, padding = 3 }, function()
+          local thumb = thumbnails[info.id]
+          if thumb then
+            ui.image("file://"..love.filesystem.getSaveDirectory().."/"..thumb)
+            ui.markdown("&#160;")
+          else
+            ui.markdown("*no thumbnail*")
+          end
+        
           ui.markdown("***"..info.title.."***\r\n\r\n*`"..info.id.."`*\r\n\r\n*"..(info.published and "Published" or "Not published").."*")
           
           local d, str = os.date("*t", os.time() - (info.date or 0))
@@ -992,10 +1294,14 @@ do ---- UI definitions
           
           if ui.button("[Load game]") then
             load_game(info.id, true)
+            published_selected = ""
+            force_refresh()
           end
           
           if ui.button("[Load copy]") then
             load_game(info.id, true, true)
+            published_selected = ""
+            force_refresh()
           end
           
           if deleting_project[info.id] then
@@ -1019,8 +1325,52 @@ do ---- UI definitions
       end
     end
     
+    if published_list then
+      ui.section("Published project viewer", function()
+        local nv = ui.radioButtonGroup("published projects", published_selected, published_list, {hideLabel = true})
+        
+        if nv ~= published_selected then
+          if nv == "" then
+            reset_data()
+            log("Starting a new, blank game.", "O")
+            new_message("New game")
+          else
+            local n = #nv
+            while nv:sub(n,n) ~= " " do n = n - 1 end
+            local id = nv:sub(n+1, #nv)
+            
+            load_game(id, false)
+          end
+        
+          published_selected = nv
+        end
+      end)
+    end
   end
 
+  network.async(function()
+    local list = { "" }
+    
+    local n = castle.storage.getGlobal("published_count") or 0
+    for i = 0, n-1 do
+      local id = castle.storage.getGlobal("published_"..i)
+      
+      if id then
+        local info = castle.storage.getGlobal("info_"..id)
+      
+        local key = info.title.." (by "..info.author..") "..id
+      
+        add(list, key)
+      end
+    end
+    
+    table.sort(list)
+    
+    published_list = list
+    published_selected = published_list[1]
+    
+    log("Done retrieving published games.", "O")
+  end)
 
   -- info editor
 
@@ -1132,6 +1482,7 @@ do ---- UI definitions
 
   -- code editor
 
+  local code_completions, do_completion = {}, false
   local deleting_function
   local essential_functions = { _init = true, _update = true, _draw = true }
   local function_name = "_init"
@@ -1205,8 +1556,10 @@ do ---- UI definitions
     end)
     
     ui.markdown("`function "..cur_function.def.."`")
-    cur_function.code = ui.codeEditor("code", cur_function.code, { hideLabel = true })
+    cur_function.code = ui.codeEditor("code", cur_function.code, { hideLabel = true, enableCompletions = do_completion, completions = code_completions })
     ui.markdown("`end`")
+    
+    do_completion = ui.toggle("Auto-Completion", "Auto-Completion", do_completion)
     
     ui.markdown("&#160;")
     
@@ -1959,8 +2312,75 @@ end
         ui.markdown(str:sub(2, #str) or "")
       end
     end
+  
+    for _, cat in pairs(foo_names) do
+      for z, foo in pairs(cat) do
+        local entry = {
+          label = foo,
+          documentation = doc[foo]
+        }
+        
+        if foo:sub(#foo,#foo) == ')' then
+          entry.kind = "Function"
+        else
+          entry.kind = "Folder"
+        end
+        
+        add(code_completions, entry)
+      end
+    end
   end
 
+  
+  -- info + credits
+  
+  function info_panel()
+    ui.markdown([[
+### Introduction:
+Collection *(working title)* is a project originated by [Eliott](https://twitter.com/Eliott_MacR) and [myself, Trasevol_Dog](https://twitter.com/TRASEVOL_DOG)!
+
+I made this editor to let you add games to the collection! Make a game and publish it and it will appear on the endscreen of other games in the collection, letting players play your game as part of a game-chain progression.
+
+However, your possibilities are deliberately limited, to make up a coherent experience with the other games. The restrictions include:
+- The screen resolution is fixed to 256 x 192.
+- You can only use the provided 30-color palette.
+- You can only use primitive drawing and the provided selection of glyphs to draw out your game. You may not use any external graphical resources.
+- The game should take in the difficulty passed to `load(difficulty)`, and it should end eventually, preferably before the 5 minutes mark, using the `gameover(score, [stats])` function.
+- The available API is limited to a careful selection which you can find on the *Code* tab, under "Complete API".
+
+Hopefully those limitations will help you making something small and fun. :)
+
+You can save your game at any time using the 'Save' button which is always at the bottom of this panel, whichever tab you are on.
+
+When you are done making your game, please ensure that you can finish it, that no error occurs, and that it may not be deemed inappropriate for whatever reason. (note that your game may be removed from the project if it is inappropriate) Also make sure to get a thumbnail for your game, by pressing 'T' while testing.
+
+Then you can use the 'Publish' button to add your game to the Collection! You will be prompted to make a post to confirm the publication of the game.
+
+After publishing, a new button will appear: 'Generate files'. You may use that button to generate a folder which you can add as a new game to your profile. The files inside this folder will redirect Castle to this Editor and will launch your game.
+
+&#160;
+
+### Credits:
+This editor was made by [Trasevol_Dog](https://twitter.com/trasevol_dog), with the help of [Nikki](https://github.com/nikki93) for getting this panel as it is now!
+
+The whole Collection project uses [the Sugarcoat library](https://github.com/TRASEVOL-DOG/sugarcoat).
+
+**Thank you to the whole Castle team!**
+
+**Thank you to my supporters [on Patreon](https://www.patreon.com/trasevol_dog)!**
+- &#9733; *Joseph White, *&#9733; *Spaceling*
+- *rotatetranslate, Anne Le Clech, XHXIAIEIN, LadyLeia, bbsamurai, HJS, Paul Nguyen, Dan Lewis, Dan Rees-Jones, Joel Jorgensen, Marty Kovach, Flo Devaux, Thomas Wright, HERVAN, berkfrei, Jearl, Johnathan Roatch, Raphael Gaschignard, Eiyeron, Sam Loeschen, amy, Cole Smith, Andrea D'Amico, Simon St�lhandske, slono, Max Cahill, hushcoil, Gruber, Pierre B., Sean S. LeBlanc, Andrew Reist, Paul Nicholas, vaporstack, Jakub Wasilewski*
+
+**Special thanks to:**
+- Elodie for her undying support!
+- Eliott for testing this editor while it was still unfinished and broken, and being really chill about it!
+- Jason 'schazers' for how nice you were all along my relationship with Castle so far! You were a great listener, had really nice ideas, and just was a great intermediary in general. This editor might not have existed without your enthousiasm for user games to be part of the project when Eliott and I pitched it to you!
+
+**And, finally, thank** ***you*** **for using this editor and playing the games!** *:D*
+]])
+  end
+  
+  
   -- testing ui
 
   function testing_ui()
@@ -1986,7 +2406,8 @@ end
         end)
         
         ui.box("testing_save", { width = 0.48 }, function()
-          if ui.button("[Save]") then
+          local is_owner = (game_info._author == nil or game_info._author == user_info.username)
+          if ui.button("[Save]", {disabled = not is_owner}) and is_owner then
             save_game()
           end
         end)
@@ -1994,6 +2415,7 @@ end
     end)
     
     difficulty = ui.slider("Difficulty", difficulty, 0, 200)
+    controls_skip = ui.toggle("Don't skip controls", "Skip controls", controls_skip or false)
 
     if runtime_error then
       ui.markdown("`Runtime error:`")
@@ -2030,6 +2452,10 @@ do ---- Misc
         message = "I'm making a video game! 👀",
         media = 'capture'
       })
+    end
+    
+    if testing and k == "t" then
+      take_thumbnail()
     end
   end
 
