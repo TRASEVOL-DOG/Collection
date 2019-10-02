@@ -406,6 +406,9 @@ function update_pieces()
     p.y = p.y - (p.y%8) -- GRID
     if btnp("A") then
       selected = nil
+      
+      log("check end of puzzle!")
+      
     end
   end
   
