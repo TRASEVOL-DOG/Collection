@@ -324,7 +324,6 @@ function draw_playground()
   
   rf(x, y, p.rw, p.rh, _p_n("black"))   
   
-  
   draw_pieces()
 
 end
@@ -407,7 +406,7 @@ function update_pieces()
     if btnp("A") then
       selected = nil
       
-      log("check end of puzzle!")
+      if check_end_puzzle() then log("u did it") end 
       
     end
   end
@@ -416,6 +415,43 @@ function update_pieces()
     -- update_piece(p)  
   -- end
   
+end
+
+function check_end_puzzle()
+  log("check end of puzzle!")
+  local p = playground
+  local p_cells = {}
+  
+  for j = 1, p.h do 
+    local l = {}
+    for i = 1, p.w do 
+      add(l, 0)
+    end
+    add(p_cells, l)
+  end 
+  
+  for _, pi in pairs(pieces) do
+    -- if _ == #pieces then
+      -- log("piece = " .. pi.x/8 + 1 .. " " .. pi.y/8 + 1)
+      -- log("playground = " .. p.x/8 .. " " .. p.y/8)
+    local x = 1 - p.x/8 + (pi.x/8 + 1)
+    local y = 1 - p.y/8 + (pi.y/8 + 1)
+    for j, line in pairs(pi.lines) do
+      for i, s in pairs(line) do
+        if p_cells[y + j - 1] and p_cells[y + j - 1][x + i - 1] then 
+          if s == 1 then p_cells[y + j - 1][x + i - 1] = 1 end
+        end
+      end
+    end
+    -- end
+  end
+  
+  for j, line in pairs(p_cells) do
+    for i, s in pairs(line) do
+      if s == 0 then log(i) log(j) return end
+    end
+  end
+  return true
 end
 
 function draw_pieces()
