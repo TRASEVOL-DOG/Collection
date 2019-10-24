@@ -59,8 +59,10 @@ local function mid(a, b, c)
 end
 
 
-local UINT32_MAX = 0xffff
-local x, y, z, w, v = 123456789, 362436069, 521288629, 88675123, 886756453
+local B = require("bit")
+local FULL_INT = B.bnot(0)
+local UINT_MAX = -2 * FULL_INT - 1
+local x, y, z, w, v = 12345, 36246, 52128, 88675, 86123
 
 local function srand(seed)
   seed = seed or 0
@@ -70,23 +72,22 @@ local function srand(seed)
   end
 
   x = abs(seed);
-  y = 362436069;
-  z = 521288629;
-  w = 88675123;
-  v = 886756453;
+  y = 36246;
+  z = 52128;
+  w = 88675;
+  v = 86123;
 end
 
-local B = require("bit")
 local function raw_rnd()
   local t = B.bxor(x, B.rshift(x, 7))
   x, y, z, w = y, z, w, v
-  v = B.bxor(B.bxor(v, B.lshift(v, 6)), B.bxor(t, B.lshift(t, 13)))
-  return B.band((y + y + 1) * v, UINT32_MAX)
+  v = B.bxor(B.bxor(v, B.band(B.lshift(v, 6), FULL_INT)), B.bxor(t, B.band(B.lshift(t, 13), FULL_INT)))
+  return B.band((y + y + 1) * v, FULL_INT)
 end
 
 local function rnd(n)
   n = n or 1
-  return ((raw_rnd() / UINT32_MAX) * n);
+  return ((raw_rnd() / UINT_MAX + 0.5) * n);
 end
 
 local function irnd(n)
