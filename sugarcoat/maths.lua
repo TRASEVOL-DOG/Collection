@@ -60,8 +60,8 @@ end
 
 
 local B = require("bit")
-local FULL_INT = B.bnot(0)
-local UINT_MAX = -2 * FULL_INT - 1
+local FULL_INT = 0xffff
+local UINT_MAX = FULL_INT-- -2 * FULL_INT - 1
 local x, y, z, w, v = 12345, 36246, 52128, 88675, 86123
 
 local function srand(seed)
@@ -87,7 +87,7 @@ end
 
 local function rnd(n)
   n = n or 1
-  return ((raw_rnd() / UINT_MAX + 0.5) * n);
+  return ((raw_rnd() / UINT_MAX) * n);
 end
 
 local function irnd(n)
